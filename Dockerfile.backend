@@ -1,0 +1,33 @@
+# --- STAGE 1: Builder ---
+FROM golang:1.25 AS builder
+
+WORKDIR /app
+
+# Copy go.mod and go.sum to cache dependencies
+COPY backend/go.mod backend/go.sum ./backend/
+# Move into the backend directory for dependency downloading
+WORKDIR /app/backend 
+RUN go mod tidy
+
+# Copy the rest of the source code
+WORKDIR /app
+COPY backend ./backend
+
+# Build the application
+# We use the full module path for the output binary
+WORKDIR /app/backend
+RUN CGO_ENABLED=0 go build -o /app/server .
+
+# --- STAGE 2: Final Image (Minimal) ---
+FROM alpine:latest
+
+WORKDIR /app
+
+# Copy the compiled binary from the builder stage
+COPY --from=builder /app/server .
+
+# Copy necessary resources (like SSL certs if needed later, but not now)
+
+EXPOSE 8080
+
+CMD ["./server"]

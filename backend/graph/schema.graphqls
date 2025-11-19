@@ -1,0 +1,136 @@
+# --- INPUT TYPES (What the Client Sends) ---
+# Used for creating a new workout
+input SetInput {
+	reps: Int!
+	weight: Float! # Value is ALWAYS KGS
+	unit: WeightUnit! # A new field to specify the user's current preference
+	rpe: Int
+	toFailure: Boolean
+	order: Int!
+}
+
+# --- NEW ENUM for Frontend Preference ---
+enum WeightUnit {
+	KILOGRAMS
+	POUNDS
+}
+
+input ExerciseLogInput {
+	uniqueExerciseId: ID!
+	sets: [SetInput!]!
+	notes: String
+}
+
+input CreateWorkoutLogInput {
+	name: String!
+	startTime: Time!
+	endTime: Time!
+	exerciseLogs: [ExerciseLogInput!]!
+	locationName: String
+	generalNotes: String
+}
+
+# --- OBJECT TYPES (What the Server Returns) ---
+type Set {
+	reps: Int!
+	weight: Float! # 💡 Documentation should clarify: Value is ALWAYS stored as KGS (kilograms)
+	rpe: Int
+	toFailure: Boolean
+	order: Int!
+}
+
+type ExerciseLog {
+	uniqueExerciseId: ID!
+	sets: [Set!]!
+	notes: String
+}
+
+type WorkoutLog {
+	id: ID!
+	name: String!
+	startTime: Time!
+	endTime: Time!
+	exerciseLogs: [ExerciseLog!]!
+	locationName: String
+	generalNotes: String
+}
+
+# --- ROOT OPERATIONS ---
+
+# Read operations
+type Query {
+	# Retrieve a single workout log by ID
+	getWorkoutLog(id: ID!): WorkoutLog
+	# Retrieve a list of workouts (add filtering args later)
+	listWorkoutLogs: [WorkoutLog!]!
+}
+
+# Write operations
+type Mutation {
+	# Create a new workout log
+	createWorkoutLog(input: CreateWorkoutLogInput!): WorkoutLog!
+}
+
+# Scalar types for standard data
+scalar Time
+
+input RegisterInput {
+	email: String!
+	password: String!
+	# Add other registration fields here (e.g., name, preferred_unit)
+}
+
+input LoginInput {
+	email: String!
+	password: String!
+}
+
+# --- NEW ROOT OPERATION: AUTHENTICATION ---
+
+type AuthPayload {
+	# We don't return the JWT token, as it's sent via HttpOnly cookie
+	# but we can return basic user data and a success message.
+	success: Boolean!
+	message: String!
+	# Optionally return the user object if needed for the UI
+	user: User
+}
+
+type User {
+	id: ID!
+	email: String!
+	# Add other user fields
+	preferredUnit: String!
+}
+
+# 💡 Define the input type for updates. All fields are optional.
+input UpdateUserInput {
+	# New email (if changing)
+	email: String
+	# Used to verify the user before applying any changes
+	currentPassword: String!
+	# New password (if changing, must provide currentPassword)
+	newPassword: String
+	# New preferred unit (if changing)
+	preferredUnit: String
+}
+
+extend type Mutation {
+	# Create a new user account
+	register(input: RegisterInput!): AuthPayload!
+
+	# Login the user and set the HttpOnly cookie
+	login(input: LoginInput!): AuthPayload!
+
+	updateUser(input: UpdateUserInput!): AuthPayload!
+
+	# Clear the HttpOnly cookie and end the session
+	logout: AuthPayload!
+}
+
+# --- QUERY EXTENSION ---
+
+extend type Query {
+	# Get the currently logged-in user (based on the session cookie)
+	me: User
+}
