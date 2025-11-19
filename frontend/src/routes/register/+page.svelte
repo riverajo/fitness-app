@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { client } from '$lib/client';
+    import { mutationStore, gql, getContextClient } from '@urql/svelte';
     import { goto } from '$app/navigation';
 
     let email = $state('');
@@ -7,7 +7,7 @@
     let error = $state('');
     let loading = $state(false);
 
-    const registerMutation = `
+    const registerMutation = gql`
         mutation Register($input: RegisterInput!) {
             register(input: $input) {
                 success
@@ -26,20 +26,11 @@
         error = '';
 
         try {
-            const result = await client.mutation(registerMutation, {
-                input: {
-                    email,
-                    password
-                }
-            }).toPromise();
-
-            if (result.error) {
-                error = result.error.message;
-            } else if (result.data?.register.success) {
-                goto('/login');
-            } else {
-                error = result.data?.register.message || 'Registration failed';
-            }
+            let result;
+            let client = getContextClient();
+            const createUser = () => {
+                result = mutationStore({client, query: registerMutation, variables: {input: {email, password}}});
+            };
         } catch (e) {
             error = 'An unexpected error occurred';
             console.error(e);
