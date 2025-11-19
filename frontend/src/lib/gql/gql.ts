@@ -15,9 +15,11 @@ import type { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-
  */
 type Documents = {
     "\n\t\tquery ListWorkouts {\n\t\t\tlistWorkoutLogs {\n\t\t\t\tid\n\t\t\t\tname\n\t\t\t}\n\t\t}\n\t": typeof types.ListWorkoutsDocument,
+    "\n        mutation Register($input: RegisterInput!) {\n            register(input: $input) {\n                success\n                message\n                user {\n                    id\n                    email\n                }\n            }\n        }\n    ": typeof types.RegisterDocument,
 };
 const documents: Documents = {
     "\n\t\tquery ListWorkouts {\n\t\t\tlistWorkoutLogs {\n\t\t\t\tid\n\t\t\t\tname\n\t\t\t}\n\t\t}\n\t": types.ListWorkoutsDocument,
+    "\n        mutation Register($input: RegisterInput!) {\n            register(input: $input) {\n                success\n                message\n                user {\n                    id\n                    email\n                }\n            }\n        }\n    ": types.RegisterDocument,
 };
 
 /**
@@ -38,6 +40,10 @@ export function graphql(source: string): unknown;
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n\t\tquery ListWorkouts {\n\t\t\tlistWorkoutLogs {\n\t\t\t\tid\n\t\t\t\tname\n\t\t\t}\n\t\t}\n\t"): (typeof documents)["\n\t\tquery ListWorkouts {\n\t\t\tlistWorkoutLogs {\n\t\t\t\tid\n\t\t\t\tname\n\t\t\t}\n\t\t}\n\t"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n        mutation Register($input: RegisterInput!) {\n            register(input: $input) {\n                success\n                message\n                user {\n                    id\n                    email\n                }\n            }\n        }\n    "): (typeof documents)["\n        mutation Register($input: RegisterInput!) {\n            register(input: $input) {\n                success\n                message\n                user {\n                    id\n                    email\n                }\n            }\n        }\n    "];
 
 export function graphql(source: string) {
   return (documents as any)[source] ?? {};
