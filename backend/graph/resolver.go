@@ -18,9 +18,9 @@ type Resolver struct {
 	// Add other services (e.g., ExerciseService) as you create them
 }
 
-func NewResolver(userRepo repository.UserRepository) *Resolver {
+func NewResolver(userRepo repository.UserRepository, workoutRepo repository.WorkoutRepository) *Resolver {
 	return &Resolver{
 		UserService:    service.NewUserService(userRepo),
-		WorkoutService: service.NewWorkoutService(),
+		WorkoutService: service.NewWorkoutService(workoutRepo),
 	}
 }
