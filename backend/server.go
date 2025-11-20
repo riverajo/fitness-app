@@ -16,6 +16,7 @@ import (
 	"github.com/riverajo/fitness-app/backend/graph"
 	"github.com/riverajo/fitness-app/backend/internal/db"
 	"github.com/riverajo/fitness-app/backend/internal/middleware"
+	"github.com/riverajo/fitness-app/backend/internal/repository"
 )
 
 const defaultPort = "8080"
@@ -26,8 +27,11 @@ func main() {
 	// This function will look for MONGO_URI and fatal if it fails to connect.
 	db.Connect()
 
+	// Initialize Repositories
+	userRepo := repository.NewMongoUserRepository()
+
 	// The Resolver struct is where you inject services like the WorkoutService
-	resolver := graph.NewResolver()
+	resolver := graph.NewResolver(userRepo)
 
 	port := os.Getenv("PORT")
 	if port == "" {

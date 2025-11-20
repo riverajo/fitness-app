@@ -5,25 +5,21 @@ import (
 	"fmt"
 	"time"
 
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
+	"golang.org/x/crypto/bcrypt"
 
-	"golang.org/x/crypto/bcrypt" // 💡 Hashing library
-
-	"github.com/riverajo/fitness-app/backend/internal/db"
 	"github.com/riverajo/fitness-app/backend/internal/model"
+	"github.com/riverajo/fitness-app/backend/internal/repository"
 )
 
 // UserService handles all user-related business logic and database interaction.
 type UserService struct {
-	collection *mongo.Collection
+	repo repository.UserRepository
 }
 
 // NewUserService creates a new instance of the UserService.
-func NewUserService() *UserService {
-	// Get the users collection on initialization
+func NewUserService(repo repository.UserRepository) *UserService {
 	return &UserService{
-		collection: db.GetCollection("users"),
+		repo: repo,
 	}
 }
 
@@ -33,37 +29,22 @@ func NewUserService() *UserService {
 
 // It assumes the user object passed in is fully prepared (hashed, timed, etc.).
 func (s *UserService) CreateUser(ctx context.Context, input model.User) error {
-
-	// Check if user already exists
-	// We create a check model just for the query
-	filter := primitive.M{"email": input.Email}
-	count, err := s.collection.CountDocuments(ctx, filter)
-	if err != nil {
-		return fmt.Errorf("database error during user check: %w", err)
-	}
-	if count > 0 {
-		return fmt.Errorf("user with email %s already exists", input.Email)
-	}
-
-	_, err = s.collection.InsertOne(ctx, input)
-	if err != nil {
-		return fmt.Errorf("failed to insert user into database: %w", err)
-	}
-
-	return nil
+	// Delegate to repository
+	// The repository implementation already checks for existence, but we could move that check here if we wanted "pure" business logic.
+	// However, the repository implementation I wrote does the check.
+	// Let's rely on the repository for now as it mimics the previous behavior.
+	return s.repo.Create(ctx, input)
 }
 
 // Placeholder for verification logic (needed for login)
 func (s *UserService) VerifyPassword(ctx context.Context, email, password string) (*model.User, error) {
-	var user model.User
-
 	// 1. Find user by email
-	filter := primitive.M{"email": email}
-	err := s.collection.FindOne(ctx, filter).Decode(&user)
-	if err == mongo.ErrNoDocuments {
+	user, err := s.repo.FindByEmail(ctx, email)
+	if err != nil {
+		return nil, err
+	}
+	if user == nil {
 		return nil, fmt.Errorf("invalid credentials")
-	} else if err != nil {
-		return nil, fmt.Errorf("database error during login: %w", err)
 	}
 
 	// 2. Compare the hashed password
@@ -72,32 +53,19 @@ func (s *UserService) VerifyPassword(ctx context.Context, email, password string
 		return nil, fmt.Errorf("invalid credentials") // Use a generic error message for security
 	}
 
-	return &user, nil
+	return user, nil
 }
 
 // GetUserByID fetches a user from the database using their ObjectID.
 func (s *UserService) GetUserByID(ctx context.Context, idString string) (*model.User, error) {
-	var user model.User
-
-	// 1. Convert the string ID (from JWT) into a MongoDB ObjectID
-	objectID, err := primitive.ObjectIDFromHex(idString)
+	user, err := s.repo.FindByID(ctx, idString)
 	if err != nil {
-		return nil, fmt.Errorf("invalid user ID format: %w", err)
+		return nil, err
 	}
-
-	// 2. Query MongoDB by the "_id" field
-	filter := primitive.M{"_id": objectID}
-
-	// Find one document and decode the result into the user struct
-	err = s.collection.FindOne(ctx, filter).Decode(&user)
-
-	if err == mongo.ErrNoDocuments {
+	if user == nil {
 		return nil, fmt.Errorf("user not found")
-	} else if err != nil {
-		return nil, fmt.Errorf("database error fetching user: %w", err)
 	}
-
-	return &user, nil
+	return user, nil
 }
 
 func (s *UserService) UpdateUser(ctx context.Context, userID string, input model.UserUpdateInput) (*model.User, error) {
@@ -117,8 +85,8 @@ func (s *UserService) UpdateUser(ctx context.Context, userID string, input model
 		return nil, fmt.Errorf("invalid current password")
 	}
 
-	// 3. Prepare the update document (MongoDB $set operation)
-	update := primitive.M{}
+	// 3. Update fields
+	updated := false
 
 	// Handle New Password Update
 	if input.NewPassword != nil && *input.NewPassword != "" {
@@ -126,28 +94,25 @@ func (s *UserService) UpdateUser(ctx context.Context, userID string, input model
 		if hashErr != nil {
 			return nil, fmt.Errorf("failed to hash new password: %w", hashErr)
 		}
-		update["passwordHash"] = string(hashedPassword)
-		user.PasswordHash = string(hashedPassword) // Update local model for return
+		user.PasswordHash = string(hashedPassword)
+		updated = true
 	}
 
 	// Handle Preferred Unit Update
 	if input.PreferredUnit != nil && *input.PreferredUnit != "" {
-		update["preferredUnit"] = *input.PreferredUnit
-		user.PreferredUnit = *input.PreferredUnit // Update local model for return
+		user.PreferredUnit = *input.PreferredUnit
+		updated = true
 	}
 
 	// If there are updates to apply
-	if len(update) > 0 {
-		// Add updated timestamp
-		update["updatedAt"] = time.Now()
+	if updated {
 		user.UpdatedAt = time.Now()
-
-		_, err = s.collection.UpdateByID(ctx, user.ID, primitive.M{"$set": update})
+		err = s.repo.Update(ctx, user)
 		if err != nil {
-			return nil, fmt.Errorf("database error during update: %w", err)
+			return nil, err
 		}
 	}
 
-	// 4. Return the updated user entity (the local copy)
+	// 4. Return the updated user entity
 	return user, nil
 }

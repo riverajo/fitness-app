@@ -3,6 +3,7 @@ package graph
 //go:generate go run github.com/99designs/gqlgen generate
 
 import (
+	"github.com/riverajo/fitness-app/backend/internal/repository"
 	"github.com/riverajo/fitness-app/backend/internal/service" // 💡 New import
 )
 
@@ -17,9 +18,9 @@ type Resolver struct {
 	// Add other services (e.g., ExerciseService) as you create them
 }
 
-func NewResolver() *Resolver {
+func NewResolver(userRepo repository.UserRepository) *Resolver {
 	return &Resolver{
-		UserService:    service.NewUserService(),
+		UserService:    service.NewUserService(userRepo),
 		WorkoutService: service.NewWorkoutService(),
 	}
 }
