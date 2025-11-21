@@ -20,13 +20,14 @@
         }
     `;
 
+    const client = getContextClient();
+
     async function handleSubmit(e: Event) {
         e.preventDefault();
         loading = true;
         error = '';
 
         try {
-            const client = getContextClient();
             const result = await client.mutation(loginMutation, { input: { email, password } }).toPromise();
 
             if (result.error) {

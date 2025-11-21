@@ -20,6 +20,8 @@
         }
     `;
 
+    const client = getContextClient();
+
     async function handleSubmit(e: Event) {
         console.log('Submitting form...');
         e.preventDefault();
@@ -27,7 +29,6 @@
         error = '';
 
         try {
-            const client = getContextClient();
             const result = await client.mutation(registerMutation, { input: { email, password } }).toPromise();
 
             if (result.error) {
