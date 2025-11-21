@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 
@@ -22,25 +23,46 @@ func NewMongoWorkoutRepository() *MongoWorkoutRepository {
 }
 
 func (r *MongoWorkoutRepository) Create(ctx context.Context, log model.WorkoutLog) (*model.WorkoutLog, error) {
-	// Generate a new unique ID for the log if not present (though model might have string ID)
-	// The service was doing: log.ID = primitive.NewObjectID().Hex()
-	// We should probably stick to that or let Mongo generate it.
-	// If we use string IDs in the model, we need to handle that.
-
 	if log.ID == "" {
 		log.ID = primitive.NewObjectID().Hex()
 	}
 
-	result, err := r.collection.InsertOne(ctx, log)
+	oid, err := primitive.ObjectIDFromHex(log.ID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to insert workout log: %w", err)
+		return nil, fmt.Errorf("invalid id format: %w", err)
 	}
 
-	// Ensure the ID is set correctly on the returned object
-	if oid, ok := result.InsertedID.(primitive.ObjectID); ok {
-		log.ID = oid.Hex()
-	} else if idStr, ok := result.InsertedID.(string); ok {
-		log.ID = idStr
+	// Create a separate struct or map to ensure _id is inserted as ObjectID
+	// We can use a map to avoid defining a new struct if we trust the model fields match bson tags
+	// But model.WorkoutLog has `bson:"_id,omitempty"` on ID string.
+	// So we can't just pass log.
+	// We'll use a map for simplicity or a struct wrapper.
+	// Given the model is complex (nested slices), map might be easier but we need to be careful with types.
+	// Actually, we can just use the model but overwrite _id if we could, but we can't change type of ID field.
+	// So we must marshal to something else.
+
+	// Let's use a map, but we need to copy all fields. That's tedious and error prone.
+	// Better approach: Define an alias or struct with ObjectID _id.
+	// Or, since we are in the repository, we can define a private struct that mirrors the model but with ObjectID.
+	// But the model has nested structs (ExerciseLog, Set) which also have bson tags.
+	// If we use a map, we can marshal the log to bytes then unmarshal to map, then fix _id?
+	// That's slow.
+
+	// Let's try to just use a map for the top level fields.
+	doc := bson.M{
+		"_id":          oid,
+		"userId":       log.UserID,
+		"name":         log.Name,
+		"startTime":    log.StartTime,
+		"endTime":      log.EndTime,
+		"exerciseLogs": log.ExerciseLogs,
+		"locationName": log.LocationName,
+		"generalNotes": log.GeneralNotes,
+	}
+
+	_, err = r.collection.InsertOne(ctx, doc)
+	if err != nil {
+		return nil, fmt.Errorf("failed to insert workout log: %w", err)
 	}
 
 	return &log, nil

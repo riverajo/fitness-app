@@ -159,13 +159,18 @@ func (r *MongoUserRepository) Update(ctx context.Context, user *model.User) erro
 
 	// Let's update the fields that are mutable.
 
+	oid, err := primitive.ObjectIDFromHex(user.ID)
+	if err != nil {
+		return fmt.Errorf("invalid user ID format: %w", err)
+	}
+
 	updateFields := primitive.M{
 		"passwordHash":  user.PasswordHash,
 		"preferredUnit": user.PreferredUnit,
 		"updatedAt":     time.Now(),
 	}
 
-	_, err := r.collection.UpdateByID(ctx, user.ID, primitive.M{"$set": updateFields})
+	_, err = r.collection.UpdateByID(ctx, oid, primitive.M{"$set": updateFields})
 	if err != nil {
 		return fmt.Errorf("database error during update: %w", err)
 	}
