@@ -33,7 +33,38 @@ func (r *MongoUserRepository) Create(ctx context.Context, user model.User) error
 		return fmt.Errorf("user with email %s already exists", user.Email)
 	}
 
-	_, err = r.collection.InsertOne(ctx, user)
+	// Convert string ID to ObjectID for storage if it's a valid hex string
+	// However, if we store it as _id, we need to be careful.
+	// The model has `ID string `bson:"_id,omitempty"``.
+	// If we pass the struct directly to InsertOne, the driver will try to insert the string as _id.
+	// But we want _id to be an ObjectID.
+	// So we need to map it to a struct that uses ObjectID or let the driver generate it if empty.
+	// But NewUserFromRegisterInput generates a hex string.
+	// We should parse it back to ObjectID for insertion.
+
+	oid, err := primitive.ObjectIDFromHex(user.ID)
+	if err != nil {
+		return fmt.Errorf("invalid user ID format: %w", err)
+	}
+
+	// Create a temporary struct or map for insertion to ensure _id is ObjectID
+	userDoc := struct {
+		ID            primitive.ObjectID `bson:"_id,omitempty"`
+		Email         string             `bson:"email"`
+		PasswordHash  string             `bson:"passwordHash"`
+		CreatedAt     time.Time          `bson:"createdAt"`
+		UpdatedAt     time.Time          `bson:"updatedAt"`
+		PreferredUnit string             `bson:"preferredUnit"`
+	}{
+		ID:            oid,
+		Email:         user.Email,
+		PasswordHash:  user.PasswordHash,
+		CreatedAt:     user.CreatedAt,
+		UpdatedAt:     user.UpdatedAt,
+		PreferredUnit: user.PreferredUnit,
+	}
+
+	_, err = r.collection.InsertOne(ctx, userDoc)
 	if err != nil {
 		return fmt.Errorf("failed to insert user into database: %w", err)
 	}
@@ -42,32 +73,65 @@ func (r *MongoUserRepository) Create(ctx context.Context, user model.User) error
 }
 
 func (r *MongoUserRepository) FindByEmail(ctx context.Context, email string) (*model.User, error) {
-	var user model.User
+	// We need to decode into a struct that matches the DB (ObjectID _id) and then map to model.User (string ID)
+	var userDoc struct {
+		ID            primitive.ObjectID `bson:"_id"`
+		Email         string             `bson:"email"`
+		PasswordHash  string             `bson:"passwordHash"`
+		CreatedAt     time.Time          `bson:"createdAt"`
+		UpdatedAt     time.Time          `bson:"updatedAt"`
+		PreferredUnit string             `bson:"preferredUnit"`
+	}
+
 	filter := primitive.M{"email": email}
-	err := r.collection.FindOne(ctx, filter).Decode(&user)
+	err := r.collection.FindOne(ctx, filter).Decode(&userDoc)
 	if err == mongo.ErrNoDocuments {
-		return nil, nil // Return nil if not found, let service handle error
+		return nil, nil
 	} else if err != nil {
 		return nil, fmt.Errorf("database error finding user by email: %w", err)
 	}
-	return &user, nil
+
+	return &model.User{
+		ID:            userDoc.ID.Hex(),
+		Email:         userDoc.Email,
+		PasswordHash:  userDoc.PasswordHash,
+		CreatedAt:     userDoc.CreatedAt,
+		UpdatedAt:     userDoc.UpdatedAt,
+		PreferredUnit: userDoc.PreferredUnit,
+	}, nil
 }
 
 func (r *MongoUserRepository) FindByID(ctx context.Context, id string) (*model.User, error) {
-	var user model.User
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return nil, fmt.Errorf("invalid user ID format: %w", err)
 	}
 
+	var userDoc struct {
+		ID            primitive.ObjectID `bson:"_id"`
+		Email         string             `bson:"email"`
+		PasswordHash  string             `bson:"passwordHash"`
+		CreatedAt     time.Time          `bson:"createdAt"`
+		UpdatedAt     time.Time          `bson:"updatedAt"`
+		PreferredUnit string             `bson:"preferredUnit"`
+	}
+
 	filter := primitive.M{"_id": objectID}
-	err = r.collection.FindOne(ctx, filter).Decode(&user)
+	err = r.collection.FindOne(ctx, filter).Decode(&userDoc)
 	if err == mongo.ErrNoDocuments {
-		return nil, nil // Return nil if not found
+		return nil, nil
 	} else if err != nil {
 		return nil, fmt.Errorf("database error finding user by ID: %w", err)
 	}
-	return &user, nil
+
+	return &model.User{
+		ID:            userDoc.ID.Hex(),
+		Email:         userDoc.Email,
+		PasswordHash:  userDoc.PasswordHash,
+		CreatedAt:     userDoc.CreatedAt,
+		UpdatedAt:     userDoc.UpdatedAt,
+		PreferredUnit: userDoc.PreferredUnit,
+	}, nil
 }
 
 func (r *MongoUserRepository) Update(ctx context.Context, user *model.User) error {

@@ -10,7 +10,9 @@ import (
 
 // MockWorkoutRepository is a mock implementation of repository.WorkoutRepository
 type MockWorkoutRepository struct {
-	CreateFunc func(ctx context.Context, log model.WorkoutLog) (*model.WorkoutLog, error)
+	CreateFunc     func(ctx context.Context, log model.WorkoutLog) (*model.WorkoutLog, error)
+	GetByIDFunc    func(ctx context.Context, id string) (*model.WorkoutLog, error)
+	ListByUserFunc func(ctx context.Context, userID string) ([]*model.WorkoutLog, error)
 }
 
 func (m *MockWorkoutRepository) Create(ctx context.Context, log model.WorkoutLog) (*model.WorkoutLog, error) {
@@ -18,6 +20,20 @@ func (m *MockWorkoutRepository) Create(ctx context.Context, log model.WorkoutLog
 		return m.CreateFunc(ctx, log)
 	}
 	return &log, nil
+}
+
+func (m *MockWorkoutRepository) GetByID(ctx context.Context, id string) (*model.WorkoutLog, error) {
+	if m.GetByIDFunc != nil {
+		return m.GetByIDFunc(ctx, id)
+	}
+	return nil, nil
+}
+
+func (m *MockWorkoutRepository) ListByUser(ctx context.Context, userID string) ([]*model.WorkoutLog, error) {
+	if m.ListByUserFunc != nil {
+		return m.ListByUserFunc(ctx, userID)
+	}
+	return nil, nil
 }
 
 func TestCreateLog(t *testing.T) {

@@ -19,8 +19,58 @@ import (
 )
 
 // CreateWorkoutLog is the resolver for the createWorkoutLog field.
-func (r *mutationResolver) CreateWorkoutLog(ctx context.Context, input model1.CreateWorkoutLogInput) (*model1.WorkoutLog, error) {
-	panic(fmt.Errorf("not implemented: CreateWorkoutLog - createWorkoutLog"))
+func (r *mutationResolver) CreateWorkoutLog(ctx context.Context, input model1.CreateWorkoutLogInput) (*internalModel.WorkoutLog, error) {
+	// 1. Get UserID from context
+	userIDVal := ctx.Value(middleware.UserIDKey)
+	if userIDVal == nil {
+		return nil, fmt.Errorf("unauthorized: must be logged in to create a workout log")
+	}
+	userID := userIDVal.(string)
+
+	// 2. Map input to internal model
+	// Note: We still need to map Input -> Internal Model because Inputs are generated in graph/model
+	// and Domain Models are in internal/model. Auto-bind only handles Output types.
+	var internalExerciseLogs []*internalModel.ExerciseLog
+	for _, el := range input.ExerciseLogs {
+		var internalSets []*internalModel.Set
+		for _, s := range el.Sets {
+			internalSets = append(internalSets, &internalModel.Set{
+				Reps:      s.Reps,
+				Weight:    s.Weight,
+				Rpe:       s.Rpe,
+				ToFailure: s.ToFailure,
+				Order:     s.Order,
+			})
+		}
+		internalExerciseLogs = append(internalExerciseLogs, &internalModel.ExerciseLog{
+			UniqueExerciseID: el.UniqueExerciseID,
+			Sets:             internalSets,
+			Notes:            el.Notes,
+		})
+	}
+
+	internalLog := internalModel.WorkoutLog{
+		UserID:       userID,
+		Name:         input.Name,
+		StartTime:    input.StartTime,
+		EndTime:      input.EndTime,
+		ExerciseLogs: internalExerciseLogs,
+		LocationName: input.LocationName,
+		GeneralNotes: input.GeneralNotes,
+	}
+
+	// 3. Call Service
+	createdLog, err := r.WorkoutService.CreateLog(ctx, internalLog)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create workout log: %w", err)
+	}
+
+	// 4. Return the internal model directly! Auto-bind handles the rest.
+	// We do NOT need to map back to model1.WorkoutLog or fetch the User manually here.
+	// gqlgen will use the User resolver (if defined) or field (if present) on the struct.
+	// Since internalModel.WorkoutLog doesn't have a `User *User` field (it has UserID),
+	// we need a resolver for the `user` field on WorkoutLog.
+	return createdLog, nil
 }
 
 // Register is the resolver for the register field.
@@ -29,7 +79,7 @@ func (r *mutationResolver) Register(ctx context.Context, input model1.RegisterIn
 	if err != nil {
 		return nil, fmt.Errorf("failed to process password: %w", err)
 	}
-	internalUser := internalModel.NewUserFromRegisterInput(input, string(hashedPassword))
+	internalUser := internalModel.NewUser(input.Email, string(hashedPassword))
 	// 1. Call the UserService to handle hashing and database insertion.
 	err = r.UserService.CreateUser(ctx, *internalUser)
 
@@ -50,7 +100,7 @@ func (r *mutationResolver) Register(ctx context.Context, input model1.RegisterIn
 	return &model1.AuthPayload{
 		Success: true,
 		Message: "Registration successful. Please log in.",
-		User:    internalUser.ToGraphQLUser(), // Convert the DB model to the safe GraphQL output model
+		User:    internalUser, // Return internal user directly
 	}, nil
 }
 
@@ -65,7 +115,7 @@ func (r *mutationResolver) Login(ctx context.Context, input model1.LoginInput) (
 	// 1. Generate the JWT token
 	token, err := util.GenerateJWT(user)
 	if err != nil { /* ... handle error ... */
-		log.Printf("CRITICAL: Failed to generate JWT for user %s: %v", user.ID.Hex(), err)
+		log.Printf("CRITICAL: Failed to generate JWT for user %s: %v", user.ID, err)
 		return nil, fmt.Errorf("internal server error during session creation")
 	}
 
@@ -93,7 +143,7 @@ func (r *mutationResolver) Login(ctx context.Context, input model1.LoginInput) (
 	return &model1.AuthPayload{
 		Success: true,
 		Message: "Login successful. Token set in cookie.",
-		User:    user.ToGraphQLUser(),
+		User:    user, // Return internal user directly
 	}, nil
 }
 
@@ -124,7 +174,7 @@ func (r *mutationResolver) UpdateUser(ctx context.Context, input model1.UpdateUs
 	return &model1.AuthPayload{
 		Success: true,
 		Message: "User profile updated successfully.",
-		User:    updatedUser.ToGraphQLUser(),
+		User:    updatedUser, // Return internal user directly
 	}, nil
 }
 
@@ -134,18 +184,35 @@ func (r *mutationResolver) Logout(ctx context.Context) (*model1.AuthPayload, err
 }
 
 // GetWorkoutLog is the resolver for the getWorkoutLog field.
-func (r *queryResolver) GetWorkoutLog(ctx context.Context, id string) (*model1.WorkoutLog, error) {
-	panic(fmt.Errorf("not implemented: GetWorkoutLog - getWorkoutLog"))
+func (r *queryResolver) GetWorkoutLog(ctx context.Context, id string) (*internalModel.WorkoutLog, error) {
+	// 1. Fetch from service
+	log, err := r.WorkoutService.GetLog(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch workout log: %w", err)
+	}
+	return log, nil
 }
 
 // ListWorkoutLogs is the resolver for the listWorkoutLogs field.
-func (r *queryResolver) ListWorkoutLogs(ctx context.Context) ([]*model1.WorkoutLog, error) {
-	panic(fmt.Errorf("not implemented: ListWorkoutLogs - listWorkoutLogs"))
+func (r *queryResolver) ListWorkoutLogs(ctx context.Context) ([]*internalModel.WorkoutLog, error) {
+	// 1. Get UserID from context
+	userIDVal := ctx.Value(middleware.UserIDKey)
+	if userIDVal == nil {
+		return nil, fmt.Errorf("unauthorized: must be logged in to list workout logs")
+	}
+	userID := userIDVal.(string)
+
+	// 2. Fetch from service
+	logs, err := r.WorkoutService.ListLogs(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list workout logs: %w", err)
+	}
+	return logs, nil
 }
 
 // Me is the resolver for the me field.
-func (r *queryResolver) Me(ctx context.Context) (*model1.User, error) {
-	// Use gqlModel.User for output
+func (r *queryResolver) Me(ctx context.Context) (*internalModel.User, error) {
+	// Use internalModel.User for output
 
 	// 1. Extract the user ID from the context (injected by AuthMiddleware)
 	userIDVal := ctx.Value(middleware.UserIDKey)
@@ -169,8 +236,8 @@ func (r *queryResolver) Me(ctx context.Context) (*model1.User, error) {
 		return nil, fmt.Errorf("failed to retrieve user details: %w", err)
 	}
 
-	// 3. Return the safe GraphQL output model
-	return internalUser.ToGraphQLUser(), nil
+	// 3. Return the internal model directly
+	return internalUser, nil
 }
 
 // Mutation returns MutationResolver implementation.
@@ -181,3 +248,18 @@ func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
 
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
+
+// !!! WARNING !!!
+// The code below was going to be deleted when updating resolvers. It has been copied here so you have
+// one last chance to move it out of harms way if you want. There are two reasons this happens:
+//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
+//    it when you're done.
+//  - You have helper methods in this file. Move them out to keep these resolver files clean.
+/*
+	func (r *Resolver) WorkoutLog() WorkoutLogResolver { return &workoutLogResolver{r} }
+func (r *setInputResolver) Unit(ctx context.Context, obj *internalModel.SetInput, data model1.WeightUnit) error {
+	panic(fmt.Errorf("not implemented: Unit - unit"))
+}
+func (r *Resolver) SetInput() SetInputResolver { return &setInputResolver{r} }
+type setInputResolver struct{ *Resolver }
+*/

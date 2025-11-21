@@ -5,6 +5,7 @@ go 1.25.3
 require (
 	github.com/99designs/gqlgen v0.17.83
 	github.com/golang-jwt/jwt/v5 v5.3.0
+	github.com/rs/cors v1.11.1
 	github.com/vektah/gqlparser/v2 v2.5.31
 	go.mongodb.org/mongo-driver v1.17.6
 	golang.org/x/crypto v0.44.0
@@ -19,7 +20,6 @@ require (
 	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
 	github.com/klauspost/compress v1.16.7 // indirect
 	github.com/montanaflynn/stats v0.7.1 // indirect
-	github.com/rs/cors v1.11.1 // indirect
 	github.com/sosodev/duration v1.3.1 // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
 	github.com/xdg-go/scram v1.1.2 // indirect

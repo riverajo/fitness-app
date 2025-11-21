@@ -9,4 +9,6 @@ import (
 // WorkoutRepository defines the interface for workout data access.
 type WorkoutRepository interface {
 	Create(ctx context.Context, log model.WorkoutLog) (*model.WorkoutLog, error)
+	GetByID(ctx context.Context, id string) (*model.WorkoutLog, error)
+	ListByUser(ctx context.Context, userID string) ([]*model.WorkoutLog, error)
 }

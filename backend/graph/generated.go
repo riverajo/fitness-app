@@ -16,6 +16,7 @@ import (
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
 	"github.com/riverajo/fitness-app/backend/graph/model"
+	model1 "github.com/riverajo/fitness-app/backend/internal/model"
 	gqlparser "github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
 )
@@ -100,16 +101,16 @@ type ComplexityRoot struct {
 }
 
 type MutationResolver interface {
-	CreateWorkoutLog(ctx context.Context, input model.CreateWorkoutLogInput) (*model.WorkoutLog, error)
+	CreateWorkoutLog(ctx context.Context, input model.CreateWorkoutLogInput) (*model1.WorkoutLog, error)
 	Register(ctx context.Context, input model.RegisterInput) (*model.AuthPayload, error)
 	Login(ctx context.Context, input model.LoginInput) (*model.AuthPayload, error)
 	UpdateUser(ctx context.Context, input model.UpdateUserInput) (*model.AuthPayload, error)
 	Logout(ctx context.Context) (*model.AuthPayload, error)
 }
 type QueryResolver interface {
-	GetWorkoutLog(ctx context.Context, id string) (*model.WorkoutLog, error)
-	ListWorkoutLogs(ctx context.Context) ([]*model.WorkoutLog, error)
-	Me(ctx context.Context) (*model.User, error)
+	GetWorkoutLog(ctx context.Context, id string) (*model1.WorkoutLog, error)
+	ListWorkoutLogs(ctx context.Context) ([]*model1.WorkoutLog, error)
+	Me(ctx context.Context) (*model1.User, error)
 }
 
 type executableSchema struct {
@@ -653,7 +654,7 @@ func (ec *executionContext) _AuthPayload_user(ctx context.Context, field graphql
 			return obj.User, nil
 		},
 		nil,
-		ec.marshalOUser2ᚖgithubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋgraphᚋmodelᚐUser,
+		ec.marshalOUser2ᚖgithubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋinternalᚋmodelᚐUser,
 		true,
 		false,
 	)
@@ -680,7 +681,7 @@ func (ec *executionContext) fieldContext_AuthPayload_user(_ context.Context, fie
 	return fc, nil
 }
 
-func (ec *executionContext) _ExerciseLog_uniqueExerciseId(ctx context.Context, field graphql.CollectedField, obj *model.ExerciseLog) (ret graphql.Marshaler) {
+func (ec *executionContext) _ExerciseLog_uniqueExerciseId(ctx context.Context, field graphql.CollectedField, obj *model1.ExerciseLog) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
 		ec.OperationContext,
@@ -709,7 +710,7 @@ func (ec *executionContext) fieldContext_ExerciseLog_uniqueExerciseId(_ context.
 	return fc, nil
 }
 
-func (ec *executionContext) _ExerciseLog_sets(ctx context.Context, field graphql.CollectedField, obj *model.ExerciseLog) (ret graphql.Marshaler) {
+func (ec *executionContext) _ExerciseLog_sets(ctx context.Context, field graphql.CollectedField, obj *model1.ExerciseLog) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
 		ec.OperationContext,
@@ -719,7 +720,7 @@ func (ec *executionContext) _ExerciseLog_sets(ctx context.Context, field graphql
 			return obj.Sets, nil
 		},
 		nil,
-		ec.marshalNSet2ᚕᚖgithubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋgraphᚋmodelᚐSetᚄ,
+		ec.marshalNSet2ᚕᚖgithubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋinternalᚋmodelᚐSetᚄ,
 		true,
 		true,
 	)
@@ -750,7 +751,7 @@ func (ec *executionContext) fieldContext_ExerciseLog_sets(_ context.Context, fie
 	return fc, nil
 }
 
-func (ec *executionContext) _ExerciseLog_notes(ctx context.Context, field graphql.CollectedField, obj *model.ExerciseLog) (ret graphql.Marshaler) {
+func (ec *executionContext) _ExerciseLog_notes(ctx context.Context, field graphql.CollectedField, obj *model1.ExerciseLog) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
 		ec.OperationContext,
@@ -790,7 +791,7 @@ func (ec *executionContext) _Mutation_createWorkoutLog(ctx context.Context, fiel
 			return ec.resolvers.Mutation().CreateWorkoutLog(ctx, fc.Args["input"].(model.CreateWorkoutLogInput))
 		},
 		nil,
-		ec.marshalNWorkoutLog2ᚖgithubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋgraphᚋmodelᚐWorkoutLog,
+		ec.marshalNWorkoutLog2ᚖgithubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋinternalᚋmodelᚐWorkoutLog,
 		true,
 		true,
 	)
@@ -1031,7 +1032,7 @@ func (ec *executionContext) _Query_getWorkoutLog(ctx context.Context, field grap
 			return ec.resolvers.Query().GetWorkoutLog(ctx, fc.Args["id"].(string))
 		},
 		nil,
-		ec.marshalOWorkoutLog2ᚖgithubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋgraphᚋmodelᚐWorkoutLog,
+		ec.marshalOWorkoutLog2ᚖgithubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋinternalᚋmodelᚐWorkoutLog,
 		true,
 		false,
 	)
@@ -1087,7 +1088,7 @@ func (ec *executionContext) _Query_listWorkoutLogs(ctx context.Context, field gr
 			return ec.resolvers.Query().ListWorkoutLogs(ctx)
 		},
 		nil,
-		ec.marshalNWorkoutLog2ᚕᚖgithubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋgraphᚋmodelᚐWorkoutLogᚄ,
+		ec.marshalNWorkoutLog2ᚕᚖgithubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋinternalᚋmodelᚐWorkoutLogᚄ,
 		true,
 		true,
 	)
@@ -1132,7 +1133,7 @@ func (ec *executionContext) _Query_me(ctx context.Context, field graphql.Collect
 			return ec.resolvers.Query().Me(ctx)
 		},
 		nil,
-		ec.marshalOUser2ᚖgithubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋgraphᚋmodelᚐUser,
+		ec.marshalOUser2ᚖgithubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋinternalᚋmodelᚐUser,
 		true,
 		false,
 	)
@@ -1267,7 +1268,7 @@ func (ec *executionContext) fieldContext_Query___schema(_ context.Context, field
 	return fc, nil
 }
 
-func (ec *executionContext) _Set_reps(ctx context.Context, field graphql.CollectedField, obj *model.Set) (ret graphql.Marshaler) {
+func (ec *executionContext) _Set_reps(ctx context.Context, field graphql.CollectedField, obj *model1.Set) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
 		ec.OperationContext,
@@ -1296,7 +1297,7 @@ func (ec *executionContext) fieldContext_Set_reps(_ context.Context, field graph
 	return fc, nil
 }
 
-func (ec *executionContext) _Set_weight(ctx context.Context, field graphql.CollectedField, obj *model.Set) (ret graphql.Marshaler) {
+func (ec *executionContext) _Set_weight(ctx context.Context, field graphql.CollectedField, obj *model1.Set) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
 		ec.OperationContext,
@@ -1325,7 +1326,7 @@ func (ec *executionContext) fieldContext_Set_weight(_ context.Context, field gra
 	return fc, nil
 }
 
-func (ec *executionContext) _Set_rpe(ctx context.Context, field graphql.CollectedField, obj *model.Set) (ret graphql.Marshaler) {
+func (ec *executionContext) _Set_rpe(ctx context.Context, field graphql.CollectedField, obj *model1.Set) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
 		ec.OperationContext,
@@ -1354,7 +1355,7 @@ func (ec *executionContext) fieldContext_Set_rpe(_ context.Context, field graphq
 	return fc, nil
 }
 
-func (ec *executionContext) _Set_toFailure(ctx context.Context, field graphql.CollectedField, obj *model.Set) (ret graphql.Marshaler) {
+func (ec *executionContext) _Set_toFailure(ctx context.Context, field graphql.CollectedField, obj *model1.Set) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
 		ec.OperationContext,
@@ -1383,7 +1384,7 @@ func (ec *executionContext) fieldContext_Set_toFailure(_ context.Context, field 
 	return fc, nil
 }
 
-func (ec *executionContext) _Set_order(ctx context.Context, field graphql.CollectedField, obj *model.Set) (ret graphql.Marshaler) {
+func (ec *executionContext) _Set_order(ctx context.Context, field graphql.CollectedField, obj *model1.Set) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
 		ec.OperationContext,
@@ -1412,7 +1413,7 @@ func (ec *executionContext) fieldContext_Set_order(_ context.Context, field grap
 	return fc, nil
 }
 
-func (ec *executionContext) _User_id(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
+func (ec *executionContext) _User_id(ctx context.Context, field graphql.CollectedField, obj *model1.User) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
 		ec.OperationContext,
@@ -1441,7 +1442,7 @@ func (ec *executionContext) fieldContext_User_id(_ context.Context, field graphq
 	return fc, nil
 }
 
-func (ec *executionContext) _User_email(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
+func (ec *executionContext) _User_email(ctx context.Context, field graphql.CollectedField, obj *model1.User) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
 		ec.OperationContext,
@@ -1470,7 +1471,7 @@ func (ec *executionContext) fieldContext_User_email(_ context.Context, field gra
 	return fc, nil
 }
 
-func (ec *executionContext) _User_preferredUnit(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
+func (ec *executionContext) _User_preferredUnit(ctx context.Context, field graphql.CollectedField, obj *model1.User) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
 		ec.OperationContext,
@@ -1499,7 +1500,7 @@ func (ec *executionContext) fieldContext_User_preferredUnit(_ context.Context, f
 	return fc, nil
 }
 
-func (ec *executionContext) _WorkoutLog_id(ctx context.Context, field graphql.CollectedField, obj *model.WorkoutLog) (ret graphql.Marshaler) {
+func (ec *executionContext) _WorkoutLog_id(ctx context.Context, field graphql.CollectedField, obj *model1.WorkoutLog) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
 		ec.OperationContext,
@@ -1528,7 +1529,7 @@ func (ec *executionContext) fieldContext_WorkoutLog_id(_ context.Context, field 
 	return fc, nil
 }
 
-func (ec *executionContext) _WorkoutLog_name(ctx context.Context, field graphql.CollectedField, obj *model.WorkoutLog) (ret graphql.Marshaler) {
+func (ec *executionContext) _WorkoutLog_name(ctx context.Context, field graphql.CollectedField, obj *model1.WorkoutLog) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
 		ec.OperationContext,
@@ -1557,7 +1558,7 @@ func (ec *executionContext) fieldContext_WorkoutLog_name(_ context.Context, fiel
 	return fc, nil
 }
 
-func (ec *executionContext) _WorkoutLog_startTime(ctx context.Context, field graphql.CollectedField, obj *model.WorkoutLog) (ret graphql.Marshaler) {
+func (ec *executionContext) _WorkoutLog_startTime(ctx context.Context, field graphql.CollectedField, obj *model1.WorkoutLog) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
 		ec.OperationContext,
@@ -1586,7 +1587,7 @@ func (ec *executionContext) fieldContext_WorkoutLog_startTime(_ context.Context,
 	return fc, nil
 }
 
-func (ec *executionContext) _WorkoutLog_endTime(ctx context.Context, field graphql.CollectedField, obj *model.WorkoutLog) (ret graphql.Marshaler) {
+func (ec *executionContext) _WorkoutLog_endTime(ctx context.Context, field graphql.CollectedField, obj *model1.WorkoutLog) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
 		ec.OperationContext,
@@ -1615,7 +1616,7 @@ func (ec *executionContext) fieldContext_WorkoutLog_endTime(_ context.Context, f
 	return fc, nil
 }
 
-func (ec *executionContext) _WorkoutLog_exerciseLogs(ctx context.Context, field graphql.CollectedField, obj *model.WorkoutLog) (ret graphql.Marshaler) {
+func (ec *executionContext) _WorkoutLog_exerciseLogs(ctx context.Context, field graphql.CollectedField, obj *model1.WorkoutLog) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
 		ec.OperationContext,
@@ -1625,7 +1626,7 @@ func (ec *executionContext) _WorkoutLog_exerciseLogs(ctx context.Context, field 
 			return obj.ExerciseLogs, nil
 		},
 		nil,
-		ec.marshalNExerciseLog2ᚕᚖgithubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋgraphᚋmodelᚐExerciseLogᚄ,
+		ec.marshalNExerciseLog2ᚕᚖgithubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋinternalᚋmodelᚐExerciseLogᚄ,
 		true,
 		true,
 	)
@@ -1652,7 +1653,7 @@ func (ec *executionContext) fieldContext_WorkoutLog_exerciseLogs(_ context.Conte
 	return fc, nil
 }
 
-func (ec *executionContext) _WorkoutLog_locationName(ctx context.Context, field graphql.CollectedField, obj *model.WorkoutLog) (ret graphql.Marshaler) {
+func (ec *executionContext) _WorkoutLog_locationName(ctx context.Context, field graphql.CollectedField, obj *model1.WorkoutLog) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
 		ec.OperationContext,
@@ -1681,7 +1682,7 @@ func (ec *executionContext) fieldContext_WorkoutLog_locationName(_ context.Conte
 	return fc, nil
 }
 
-func (ec *executionContext) _WorkoutLog_generalNotes(ctx context.Context, field graphql.CollectedField, obj *model.WorkoutLog) (ret graphql.Marshaler) {
+func (ec *executionContext) _WorkoutLog_generalNotes(ctx context.Context, field graphql.CollectedField, obj *model1.WorkoutLog) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
 		ec.OperationContext,
@@ -3493,7 +3494,7 @@ func (ec *executionContext) _AuthPayload(ctx context.Context, sel ast.SelectionS
 
 var exerciseLogImplementors = []string{"ExerciseLog"}
 
-func (ec *executionContext) _ExerciseLog(ctx context.Context, sel ast.SelectionSet, obj *model.ExerciseLog) graphql.Marshaler {
+func (ec *executionContext) _ExerciseLog(ctx context.Context, sel ast.SelectionSet, obj *model1.ExerciseLog) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, exerciseLogImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -3726,7 +3727,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 
 var setImplementors = []string{"Set"}
 
-func (ec *executionContext) _Set(ctx context.Context, sel ast.SelectionSet, obj *model.Set) graphql.Marshaler {
+func (ec *executionContext) _Set(ctx context.Context, sel ast.SelectionSet, obj *model1.Set) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, setImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -3779,7 +3780,7 @@ func (ec *executionContext) _Set(ctx context.Context, sel ast.SelectionSet, obj 
 
 var userImplementors = []string{"User"}
 
-func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj *model.User) graphql.Marshaler {
+func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj *model1.User) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, userImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -3828,7 +3829,7 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 
 var workoutLogImplementors = []string{"WorkoutLog"}
 
-func (ec *executionContext) _WorkoutLog(ctx context.Context, sel ast.SelectionSet, obj *model.WorkoutLog) graphql.Marshaler {
+func (ec *executionContext) _WorkoutLog(ctx context.Context, sel ast.SelectionSet, obj *model1.WorkoutLog) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, workoutLogImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -4259,7 +4260,7 @@ func (ec *executionContext) unmarshalNCreateWorkoutLogInput2githubᚗcomᚋriver
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNExerciseLog2ᚕᚖgithubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋgraphᚋmodelᚐExerciseLogᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ExerciseLog) graphql.Marshaler {
+func (ec *executionContext) marshalNExerciseLog2ᚕᚖgithubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋinternalᚋmodelᚐExerciseLogᚄ(ctx context.Context, sel ast.SelectionSet, v []*model1.ExerciseLog) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -4283,7 +4284,7 @@ func (ec *executionContext) marshalNExerciseLog2ᚕᚖgithubᚗcomᚋriverajoᚋ
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNExerciseLog2ᚖgithubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋgraphᚋmodelᚐExerciseLog(ctx, sel, v[i])
+			ret[i] = ec.marshalNExerciseLog2ᚖgithubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋinternalᚋmodelᚐExerciseLog(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -4303,7 +4304,7 @@ func (ec *executionContext) marshalNExerciseLog2ᚕᚖgithubᚗcomᚋriverajoᚋ
 	return ret
 }
 
-func (ec *executionContext) marshalNExerciseLog2ᚖgithubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋgraphᚋmodelᚐExerciseLog(ctx context.Context, sel ast.SelectionSet, v *model.ExerciseLog) graphql.Marshaler {
+func (ec *executionContext) marshalNExerciseLog2ᚖgithubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋinternalᚋmodelᚐExerciseLog(ctx context.Context, sel ast.SelectionSet, v *model1.ExerciseLog) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -4391,7 +4392,7 @@ func (ec *executionContext) unmarshalNRegisterInput2githubᚗcomᚋriverajoᚋfi
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNSet2ᚕᚖgithubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋgraphᚋmodelᚐSetᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Set) graphql.Marshaler {
+func (ec *executionContext) marshalNSet2ᚕᚖgithubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋinternalᚋmodelᚐSetᚄ(ctx context.Context, sel ast.SelectionSet, v []*model1.Set) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -4415,7 +4416,7 @@ func (ec *executionContext) marshalNSet2ᚕᚖgithubᚗcomᚋriverajoᚋfitness�
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNSet2ᚖgithubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋgraphᚋmodelᚐSet(ctx, sel, v[i])
+			ret[i] = ec.marshalNSet2ᚖgithubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋinternalᚋmodelᚐSet(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -4435,7 +4436,7 @@ func (ec *executionContext) marshalNSet2ᚕᚖgithubᚗcomᚋriverajoᚋfitness�
 	return ret
 }
 
-func (ec *executionContext) marshalNSet2ᚖgithubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋgraphᚋmodelᚐSet(ctx context.Context, sel ast.SelectionSet, v *model.Set) graphql.Marshaler {
+func (ec *executionContext) marshalNSet2ᚖgithubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋinternalᚋmodelᚐSet(ctx context.Context, sel ast.SelectionSet, v *model1.Set) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -4512,11 +4513,11 @@ func (ec *executionContext) marshalNWeightUnit2githubᚗcomᚋriverajoᚋfitness
 	return v
 }
 
-func (ec *executionContext) marshalNWorkoutLog2githubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋgraphᚋmodelᚐWorkoutLog(ctx context.Context, sel ast.SelectionSet, v model.WorkoutLog) graphql.Marshaler {
+func (ec *executionContext) marshalNWorkoutLog2githubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋinternalᚋmodelᚐWorkoutLog(ctx context.Context, sel ast.SelectionSet, v model1.WorkoutLog) graphql.Marshaler {
 	return ec._WorkoutLog(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNWorkoutLog2ᚕᚖgithubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋgraphᚋmodelᚐWorkoutLogᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.WorkoutLog) graphql.Marshaler {
+func (ec *executionContext) marshalNWorkoutLog2ᚕᚖgithubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋinternalᚋmodelᚐWorkoutLogᚄ(ctx context.Context, sel ast.SelectionSet, v []*model1.WorkoutLog) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -4540,7 +4541,7 @@ func (ec *executionContext) marshalNWorkoutLog2ᚕᚖgithubᚗcomᚋriverajoᚋf
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNWorkoutLog2ᚖgithubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋgraphᚋmodelᚐWorkoutLog(ctx, sel, v[i])
+			ret[i] = ec.marshalNWorkoutLog2ᚖgithubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋinternalᚋmodelᚐWorkoutLog(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -4560,7 +4561,7 @@ func (ec *executionContext) marshalNWorkoutLog2ᚕᚖgithubᚗcomᚋriverajoᚋf
 	return ret
 }
 
-func (ec *executionContext) marshalNWorkoutLog2ᚖgithubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋgraphᚋmodelᚐWorkoutLog(ctx context.Context, sel ast.SelectionSet, v *model.WorkoutLog) graphql.Marshaler {
+func (ec *executionContext) marshalNWorkoutLog2ᚖgithubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋinternalᚋmodelᚐWorkoutLog(ctx context.Context, sel ast.SelectionSet, v *model1.WorkoutLog) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -4889,14 +4890,14 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 	return res
 }
 
-func (ec *executionContext) marshalOUser2ᚖgithubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋgraphᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v *model.User) graphql.Marshaler {
+func (ec *executionContext) marshalOUser2ᚖgithubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋinternalᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v *model1.User) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._User(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOWorkoutLog2ᚖgithubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋgraphᚋmodelᚐWorkoutLog(ctx context.Context, sel ast.SelectionSet, v *model.WorkoutLog) graphql.Marshaler {
+func (ec *executionContext) marshalOWorkoutLog2ᚖgithubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋinternalᚋmodelᚐWorkoutLog(ctx context.Context, sel ast.SelectionSet, v *model1.WorkoutLog) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}

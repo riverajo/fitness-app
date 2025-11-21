@@ -8,12 +8,14 @@ import (
 	"io"
 	"strconv"
 	"time"
+
+	"github.com/riverajo/fitness-app/backend/internal/model"
 )
 
 type AuthPayload struct {
-	Success bool   `json:"success"`
-	Message string `json:"message"`
-	User    *User  `json:"user,omitempty"`
+	Success bool        `json:"success"`
+	Message string      `json:"message"`
+	User    *model.User `json:"user,omitempty"`
 }
 
 type CreateWorkoutLogInput struct {
@@ -23,12 +25,6 @@ type CreateWorkoutLogInput struct {
 	ExerciseLogs []*ExerciseLogInput `json:"exerciseLogs"`
 	LocationName *string             `json:"locationName,omitempty"`
 	GeneralNotes *string             `json:"generalNotes,omitempty"`
-}
-
-type ExerciseLog struct {
-	UniqueExerciseID string  `json:"uniqueExerciseId"`
-	Sets             []*Set  `json:"sets"`
-	Notes            *string `json:"notes,omitempty"`
 }
 
 type ExerciseLogInput struct {
@@ -53,14 +49,6 @@ type RegisterInput struct {
 	Password string `json:"password"`
 }
 
-type Set struct {
-	Reps      int32   `json:"reps"`
-	Weight    float64 `json:"weight"`
-	Rpe       *int32  `json:"rpe,omitempty"`
-	ToFailure *bool   `json:"toFailure,omitempty"`
-	Order     int32   `json:"order"`
-}
-
 type SetInput struct {
 	Reps      int32      `json:"reps"`
 	Weight    float64    `json:"weight"`
@@ -75,22 +63,6 @@ type UpdateUserInput struct {
 	CurrentPassword string  `json:"currentPassword"`
 	NewPassword     *string `json:"newPassword,omitempty"`
 	PreferredUnit   *string `json:"preferredUnit,omitempty"`
-}
-
-type User struct {
-	ID            string `json:"id"`
-	Email         string `json:"email"`
-	PreferredUnit string `json:"preferredUnit"`
-}
-
-type WorkoutLog struct {
-	ID           string         `json:"id"`
-	Name         string         `json:"name"`
-	StartTime    time.Time      `json:"startTime"`
-	EndTime      time.Time      `json:"endTime"`
-	ExerciseLogs []*ExerciseLog `json:"exerciseLogs"`
-	LocationName *string        `json:"locationName,omitempty"`
-	GeneralNotes *string        `json:"generalNotes,omitempty"`
 }
 
 type WeightUnit string

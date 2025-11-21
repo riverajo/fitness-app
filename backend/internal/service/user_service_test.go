@@ -188,7 +188,7 @@ func TestGetUserByID(t *testing.T) {
 			id:   validID.Hex(),
 			mock: &MockUserRepository{
 				FindByIDFunc: func(ctx context.Context, id string) (*model.User, error) {
-					return &model.User{ID: validID}, nil
+					return &model.User{ID: validID.Hex()}, nil
 				},
 			},
 			wantUser: true,

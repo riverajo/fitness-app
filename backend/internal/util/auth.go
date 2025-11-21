@@ -28,7 +28,7 @@ func GenerateJWT(user *model.User) (string, error) {
 
 	// Create the Claims
 	claims := &Claims{
-		UserID: user.ID.Hex(), // Use the MongoDB ObjectID as the user ID in the token
+		UserID: user.ID, // Use the MongoDB ObjectID as the user ID in the token
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expirationTime),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
