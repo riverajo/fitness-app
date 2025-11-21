@@ -6,21 +6,26 @@ import (
 	"net/http"
 	"os"
 
+	"time"
+
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/riverajo/fitness-app/backend/internal/util" // Our JWT utility
+	"github.com/riverajo/fitness-app/backend/internal/model"
 )
 
 // Define a key type for storing the user ID in the context
 type ContextKey string
 
-const UserIDKey ContextKey = "user_id"
+const (
+	UserIDKey      ContextKey = "user_id"
+	AuthCookieName string     = "auth_token"
+)
 
 // AuthMiddleware extracts and verifies the JWT token from the "auth_token" cookie.
 func AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		// 1. Try to read the cookie
-		cookie, err := r.Cookie("auth_token")
+		cookie, err := r.Cookie(AuthCookieName)
 		if err != nil {
 			// If cookie is not present (or bad name), continue without a user ID.
 			// This allows unauthenticated queries (like login/register) to proceed.
@@ -38,7 +43,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		}
 
 		tokenString := cookie.Value
-		claims := &util.Claims{}
+		claims := &Claims{}
 
 		token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (any, error) {
 			// Ensure token signing method is what we expect
@@ -76,4 +81,41 @@ func ResponseWriterMiddleware(next http.Handler) http.Handler {
 // GetResponseWriter is a helper to retrieve the ResponseWriter from the context.
 func GetResponseWriter(ctx context.Context) http.ResponseWriter {
 	return ctx.Value("ResponseWriterKey").(http.ResponseWriter)
+}
+
+// Define the JWT claims structure
+type Claims struct {
+	UserID string `json:"user_id"`
+	jwt.RegisteredClaims
+}
+
+// GenerateJWT creates a new signed JWT for the user.
+func GenerateJWT(user *model.User) (string, error) {
+	// 💡 CRUCIAL: Load the secret key from an environment variable (for production security)
+	jwtSecret := os.Getenv("JWT_SECRET")
+	if jwtSecret == "" {
+		return "", fmt.Errorf("JWT_SECRET environment variable not set")
+	}
+
+	// Token expiration (e.g., 24 hours)
+	expirationTime := time.Now().Add(24 * time.Hour)
+
+	// Create the Claims
+	claims := &Claims{
+		UserID: user.ID, // Use the MongoDB ObjectID as the user ID in the token
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(expirationTime),
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+		},
+	}
+
+	// Create and sign the token
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, err := token.SignedString([]byte(jwtSecret))
+
+	if err != nil {
+		return "", fmt.Errorf("error signing token: %w", err)
+	}
+
+	return tokenString, nil
 }

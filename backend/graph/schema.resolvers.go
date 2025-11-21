@@ -14,7 +14,6 @@ import (
 	model1 "github.com/riverajo/fitness-app/backend/graph/model"
 	"github.com/riverajo/fitness-app/backend/internal/middleware"
 	internalModel "github.com/riverajo/fitness-app/backend/internal/model"
-	"github.com/riverajo/fitness-app/backend/internal/util"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -113,7 +112,7 @@ func (r *mutationResolver) Login(ctx context.Context, input model1.LoginInput) (
 	}
 
 	// 1. Generate the JWT token
-	token, err := util.GenerateJWT(user)
+	token, err := middleware.GenerateJWT(user)
 	if err != nil { /* ... handle error ... */
 		log.Printf("CRITICAL: Failed to generate JWT for user %s: %v", user.ID, err)
 		return nil, fmt.Errorf("internal server error during session creation")
@@ -129,7 +128,7 @@ func (r *mutationResolver) Login(ctx context.Context, input model1.LoginInput) (
 	// 3. SET THE SECURE HTTP-ONLY COOKIE
 	expirationTime := time.Now().Add(24 * time.Hour)
 	cookie := http.Cookie{
-		Name:     "auth_token",
+		Name:     middleware.AuthCookieName,
 		Value:    token,
 		Expires:  expirationTime,
 		HttpOnly: true,                    // Prevents JavaScript access (XSS mitigation)
@@ -180,7 +179,28 @@ func (r *mutationResolver) UpdateUser(ctx context.Context, input model1.UpdateUs
 
 // Logout is the resolver for the logout field.
 func (r *mutationResolver) Logout(ctx context.Context) (*model1.AuthPayload, error) {
-	panic(fmt.Errorf("not implemented: Logout - logout"))
+	// 1. Get the ResponseWriter from context
+	w := middleware.GetResponseWriter(ctx)
+	if w == nil {
+		return nil, fmt.Errorf("internal server error: response writer not available")
+	}
+
+	// 2. Set the cookie with MaxAge -1 to delete it
+	http.SetCookie(w, &http.Cookie{
+		Name:     middleware.AuthCookieName,
+		Value:    "",
+		Path:     "/",
+		MaxAge:   -1,
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteStrictMode,
+	})
+
+	// 3. Return success
+	return &model1.AuthPayload{
+		Success: true,
+		Message: "Logged out successfully.",
+	}, nil
 }
 
 // GetWorkoutLog is the resolver for the getWorkoutLog field.
