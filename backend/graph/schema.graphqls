@@ -129,8 +129,28 @@ extend type Mutation {
 }
 
 # --- QUERY EXTENSION ---
-
 extend type Query {
 	# Get the currently logged-in user (based on the session cookie)
 	me: User
+
+	# Search for exercises (System + User's custom exercises)
+	searchExercises(query: String!): [UniqueExercise!]!
+}
+
+# --- UNIQUE EXERCISE TYPES ---
+
+type UniqueExercise {
+	id: ID!
+	name: String!
+	description: String
+	isCustom: Boolean!
+}
+
+input CreateUniqueExerciseInput {
+	name: String!
+	description: String
+}
+
+extend type Mutation {
+	createUniqueExercise(input: CreateUniqueExerciseInput!): UniqueExercise!
 }

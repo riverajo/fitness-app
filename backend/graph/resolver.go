@@ -13,14 +13,15 @@ import (
 
 type Resolver struct {
 	// 💡 Inject the service dependencies here
-	WorkoutService *service.WorkoutService
-	UserService    *service.UserService // For authentication/user CRUD
-	// Add other services (e.g., ExerciseService) as you create them
+	WorkoutService  *service.WorkoutService
+	UserService     *service.UserService
+	ExerciseService *service.ExerciseService
 }
 
-func NewResolver(userRepo repository.UserRepository, workoutRepo repository.WorkoutRepository) *Resolver {
+func NewResolver(userRepo repository.UserRepository, workoutRepo repository.WorkoutRepository, exerciseRepo repository.ExerciseRepository) *Resolver {
 	return &Resolver{
-		UserService:    service.NewUserService(userRepo),
-		WorkoutService: service.NewWorkoutService(workoutRepo),
+		UserService:     service.NewUserService(userRepo),
+		WorkoutService:  service.NewWorkoutService(workoutRepo),
+		ExerciseService: service.NewExerciseService(exerciseRepo),
 	}
 }

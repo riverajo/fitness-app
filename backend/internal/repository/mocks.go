@@ -66,3 +66,29 @@ func (m *MockWorkoutRepository) ListByUser(ctx context.Context, userID string) (
 	}
 	return args.Get(0).([]*model.WorkoutLog), args.Error(1)
 }
+
+// MockExerciseRepository is a mock implementation of ExerciseRepository
+type MockExerciseRepository struct {
+	mock.Mock
+}
+
+func (m *MockExerciseRepository) Create(ctx context.Context, exercise *model.UniqueExercise) error {
+	args := m.Called(ctx, exercise)
+	return args.Error(0)
+}
+
+func (m *MockExerciseRepository) Search(ctx context.Context, userID *string, query string) ([]*model.UniqueExercise, error) {
+	args := m.Called(ctx, userID, query)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]*model.UniqueExercise), args.Error(1)
+}
+
+func (m *MockExerciseRepository) FindByID(ctx context.Context, id string) (*model.UniqueExercise, error) {
+	args := m.Called(ctx, id)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*model.UniqueExercise), args.Error(1)
+}

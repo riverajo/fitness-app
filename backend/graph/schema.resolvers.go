@@ -203,6 +203,19 @@ func (r *mutationResolver) Logout(ctx context.Context) (*model1.AuthPayload, err
 	}, nil
 }
 
+// CreateUniqueExercise is the resolver for the createUniqueExercise field.
+func (r *mutationResolver) CreateUniqueExercise(ctx context.Context, input model1.CreateUniqueExerciseInput) (*internalModel.UniqueExercise, error) {
+	// 1. Get UserID from context
+	userIDVal := ctx.Value(middleware.UserIDKey)
+	if userIDVal == nil {
+		return nil, fmt.Errorf("unauthorized: must be logged in to create a custom exercise")
+	}
+	userID := userIDVal.(string)
+
+	// 2. Call Service
+	return r.ExerciseService.CreateExercise(ctx, input.Name, input.Description, &userID)
+}
+
 // GetWorkoutLog is the resolver for the getWorkoutLog field.
 func (r *queryResolver) GetWorkoutLog(ctx context.Context, id string) (*internalModel.WorkoutLog, error) {
 	// 1. Fetch from service
@@ -260,11 +273,34 @@ func (r *queryResolver) Me(ctx context.Context) (*internalModel.User, error) {
 	return internalUser, nil
 }
 
+// SearchExercises is the resolver for the searchExercises field.
+func (r *queryResolver) SearchExercises(ctx context.Context, query string) ([]*internalModel.UniqueExercise, error) {
+	// 1. Get UserID from context (optional, but needed to see custom exercises)
+	var userID *string
+	userIDVal := ctx.Value(middleware.UserIDKey)
+	if userIDVal != nil {
+		uid := userIDVal.(string)
+		userID = &uid
+	}
+
+	// 2. Call Service
+	return r.ExerciseService.SearchExercises(ctx, userID, query)
+}
+
+// IsCustom is the resolver for the isCustom field.
+func (r *uniqueExerciseResolver) IsCustom(ctx context.Context, obj *internalModel.UniqueExercise) (bool, error) {
+	return obj.UserID != nil, nil
+}
+
 // Mutation returns MutationResolver implementation.
 func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
 
 // Query returns QueryResolver implementation.
 func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
 
+// UniqueExercise returns UniqueExerciseResolver implementation.
+func (r *Resolver) UniqueExercise() UniqueExerciseResolver { return &uniqueExerciseResolver{r} }
+
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
+type uniqueExerciseResolver struct{ *Resolver }

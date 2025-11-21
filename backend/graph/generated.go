@@ -43,6 +43,7 @@ type Config struct {
 type ResolverRoot interface {
 	Mutation() MutationResolver
 	Query() QueryResolver
+	UniqueExercise() UniqueExerciseResolver
 }
 
 type DirectiveRoot struct {
@@ -62,17 +63,19 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		CreateWorkoutLog func(childComplexity int, input model.CreateWorkoutLogInput) int
-		Login            func(childComplexity int, input model.LoginInput) int
-		Logout           func(childComplexity int) int
-		Register         func(childComplexity int, input model.RegisterInput) int
-		UpdateUser       func(childComplexity int, input model.UpdateUserInput) int
+		CreateUniqueExercise func(childComplexity int, input model.CreateUniqueExerciseInput) int
+		CreateWorkoutLog     func(childComplexity int, input model.CreateWorkoutLogInput) int
+		Login                func(childComplexity int, input model.LoginInput) int
+		Logout               func(childComplexity int) int
+		Register             func(childComplexity int, input model.RegisterInput) int
+		UpdateUser           func(childComplexity int, input model.UpdateUserInput) int
 	}
 
 	Query struct {
 		GetWorkoutLog   func(childComplexity int, id string) int
 		ListWorkoutLogs func(childComplexity int) int
 		Me              func(childComplexity int) int
+		SearchExercises func(childComplexity int, query string) int
 	}
 
 	Set struct {
@@ -81,6 +84,13 @@ type ComplexityRoot struct {
 		Rpe       func(childComplexity int) int
 		ToFailure func(childComplexity int) int
 		Weight    func(childComplexity int) int
+	}
+
+	UniqueExercise struct {
+		Description func(childComplexity int) int
+		ID          func(childComplexity int) int
+		IsCustom    func(childComplexity int) int
+		Name        func(childComplexity int) int
 	}
 
 	User struct {
@@ -106,11 +116,16 @@ type MutationResolver interface {
 	Login(ctx context.Context, input model.LoginInput) (*model.AuthPayload, error)
 	UpdateUser(ctx context.Context, input model.UpdateUserInput) (*model.AuthPayload, error)
 	Logout(ctx context.Context) (*model.AuthPayload, error)
+	CreateUniqueExercise(ctx context.Context, input model.CreateUniqueExerciseInput) (*model1.UniqueExercise, error)
 }
 type QueryResolver interface {
 	GetWorkoutLog(ctx context.Context, id string) (*model1.WorkoutLog, error)
 	ListWorkoutLogs(ctx context.Context) ([]*model1.WorkoutLog, error)
 	Me(ctx context.Context) (*model1.User, error)
+	SearchExercises(ctx context.Context, query string) ([]*model1.UniqueExercise, error)
+}
+type UniqueExerciseResolver interface {
+	IsCustom(ctx context.Context, obj *model1.UniqueExercise) (bool, error)
 }
 
 type executableSchema struct {
@@ -170,6 +185,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.ExerciseLog.UniqueExerciseID(childComplexity), true
 
+	case "Mutation.createUniqueExercise":
+		if e.complexity.Mutation.CreateUniqueExercise == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createUniqueExercise_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateUniqueExercise(childComplexity, args["input"].(model.CreateUniqueExerciseInput)), true
 	case "Mutation.createWorkoutLog":
 		if e.complexity.Mutation.CreateWorkoutLog == nil {
 			break
@@ -244,6 +270,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Query.Me(childComplexity), true
+	case "Query.searchExercises":
+		if e.complexity.Query.SearchExercises == nil {
+			break
+		}
+
+		args, err := ec.field_Query_searchExercises_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.SearchExercises(childComplexity, args["query"].(string)), true
 
 	case "Set.order":
 		if e.complexity.Set.Order == nil {
@@ -275,6 +312,31 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Set.Weight(childComplexity), true
+
+	case "UniqueExercise.description":
+		if e.complexity.UniqueExercise.Description == nil {
+			break
+		}
+
+		return e.complexity.UniqueExercise.Description(childComplexity), true
+	case "UniqueExercise.id":
+		if e.complexity.UniqueExercise.ID == nil {
+			break
+		}
+
+		return e.complexity.UniqueExercise.ID(childComplexity), true
+	case "UniqueExercise.isCustom":
+		if e.complexity.UniqueExercise.IsCustom == nil {
+			break
+		}
+
+		return e.complexity.UniqueExercise.IsCustom(childComplexity), true
+	case "UniqueExercise.name":
+		if e.complexity.UniqueExercise.Name == nil {
+			break
+		}
+
+		return e.complexity.UniqueExercise.Name(childComplexity), true
 
 	case "User.email":
 		if e.complexity.User.Email == nil {
@@ -346,6 +408,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	opCtx := graphql.GetOperationContext(ctx)
 	ec := executionContext{opCtx, e, 0, 0, make(chan graphql.DeferredResult)}
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
+		ec.unmarshalInputCreateUniqueExerciseInput,
 		ec.unmarshalInputCreateWorkoutLogInput,
 		ec.unmarshalInputExerciseLogInput,
 		ec.unmarshalInputLoginInput,
@@ -468,6 +531,17 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 
 // region    ***************************** args.gotpl *****************************
 
+func (ec *executionContext) field_Mutation_createUniqueExercise_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNCreateUniqueExerciseInput2githubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋgraphᚋmodelᚐCreateUniqueExerciseInput)
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_createWorkoutLog_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -531,6 +605,17 @@ func (ec *executionContext) field_Query_getWorkoutLog_args(ctx context.Context, 
 		return nil, err
 	}
 	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_searchExercises_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "query", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["query"] = arg0
 	return args, nil
 }
 
@@ -1021,6 +1106,57 @@ func (ec *executionContext) fieldContext_Mutation_logout(_ context.Context, fiel
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_createUniqueExercise(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_createUniqueExercise,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Mutation().CreateUniqueExercise(ctx, fc.Args["input"].(model.CreateUniqueExerciseInput))
+		},
+		nil,
+		ec.marshalNUniqueExercise2ᚖgithubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋinternalᚋmodelᚐUniqueExercise,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_createUniqueExercise(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_UniqueExercise_id(ctx, field)
+			case "name":
+				return ec.fieldContext_UniqueExercise_name(ctx, field)
+			case "description":
+				return ec.fieldContext_UniqueExercise_description(ctx, field)
+			case "isCustom":
+				return ec.fieldContext_UniqueExercise_isCustom(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type UniqueExercise", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_createUniqueExercise_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_getWorkoutLog(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -1156,6 +1292,57 @@ func (ec *executionContext) fieldContext_Query_me(_ context.Context, field graph
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_searchExercises(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_searchExercises,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Query().SearchExercises(ctx, fc.Args["query"].(string))
+		},
+		nil,
+		ec.marshalNUniqueExercise2ᚕᚖgithubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋinternalᚋmodelᚐUniqueExerciseᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_searchExercises(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_UniqueExercise_id(ctx, field)
+			case "name":
+				return ec.fieldContext_UniqueExercise_name(ctx, field)
+			case "description":
+				return ec.fieldContext_UniqueExercise_description(ctx, field)
+			case "isCustom":
+				return ec.fieldContext_UniqueExercise_isCustom(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type UniqueExercise", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_searchExercises_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
 	}
 	return fc, nil
 }
@@ -1408,6 +1595,122 @@ func (ec *executionContext) fieldContext_Set_order(_ context.Context, field grap
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UniqueExercise_id(ctx context.Context, field graphql.CollectedField, obj *model1.UniqueExercise) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_UniqueExercise_id,
+		func(ctx context.Context) (any, error) {
+			return obj.ID, nil
+		},
+		nil,
+		ec.marshalNID2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_UniqueExercise_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UniqueExercise",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UniqueExercise_name(ctx context.Context, field graphql.CollectedField, obj *model1.UniqueExercise) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_UniqueExercise_name,
+		func(ctx context.Context) (any, error) {
+			return obj.Name, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_UniqueExercise_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UniqueExercise",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UniqueExercise_description(ctx context.Context, field graphql.CollectedField, obj *model1.UniqueExercise) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_UniqueExercise_description,
+		func(ctx context.Context) (any, error) {
+			return obj.Description, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_UniqueExercise_description(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UniqueExercise",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UniqueExercise_isCustom(ctx context.Context, field graphql.CollectedField, obj *model1.UniqueExercise) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_UniqueExercise_isCustom,
+		func(ctx context.Context) (any, error) {
+			return ec.resolvers.UniqueExercise().IsCustom(ctx, obj)
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_UniqueExercise_isCustom(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UniqueExercise",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
 		},
 	}
 	return fc, nil
@@ -3157,6 +3460,40 @@ func (ec *executionContext) fieldContext___Type_isOneOf(_ context.Context, field
 
 // region    **************************** input.gotpl *****************************
 
+func (ec *executionContext) unmarshalInputCreateUniqueExerciseInput(ctx context.Context, obj any) (model.CreateUniqueExerciseInput, error) {
+	var it model.CreateUniqueExerciseInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"name", "description"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "name":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Name = data
+		case "description":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Description = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputCreateWorkoutLogInput(ctx context.Context, obj any) (model.CreateWorkoutLogInput, error) {
 	var it model.CreateWorkoutLogInput
 	asMap := map[string]any{}
@@ -3592,6 +3929,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "createUniqueExercise":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createUniqueExercise(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -3694,6 +4038,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "searchExercises":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_searchExercises(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "__type":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Query___type(ctx, field)
@@ -3755,6 +4121,88 @@ func (ec *executionContext) _Set(ctx context.Context, sel ast.SelectionSet, obj 
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var uniqueExerciseImplementors = []string{"UniqueExercise"}
+
+func (ec *executionContext) _UniqueExercise(ctx context.Context, sel ast.SelectionSet, obj *model1.UniqueExercise) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, uniqueExerciseImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("UniqueExercise")
+		case "id":
+			out.Values[i] = ec._UniqueExercise_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "name":
+			out.Values[i] = ec._UniqueExercise_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "description":
+			out.Values[i] = ec._UniqueExercise_description(ctx, field, obj)
+		case "isCustom":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._UniqueExercise_isCustom(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -4255,6 +4703,11 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
+func (ec *executionContext) unmarshalNCreateUniqueExerciseInput2githubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋgraphᚋmodelᚐCreateUniqueExerciseInput(ctx context.Context, v any) (model.CreateUniqueExerciseInput, error) {
+	res, err := ec.unmarshalInputCreateUniqueExerciseInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNCreateWorkoutLogInput2githubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋgraphᚋmodelᚐCreateWorkoutLogInput(ctx context.Context, v any) (model.CreateWorkoutLogInput, error) {
 	res, err := ec.unmarshalInputCreateWorkoutLogInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -4496,6 +4949,64 @@ func (ec *executionContext) marshalNTime2timeᚐTime(ctx context.Context, sel as
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) marshalNUniqueExercise2githubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋinternalᚋmodelᚐUniqueExercise(ctx context.Context, sel ast.SelectionSet, v model1.UniqueExercise) graphql.Marshaler {
+	return ec._UniqueExercise(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNUniqueExercise2ᚕᚖgithubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋinternalᚋmodelᚐUniqueExerciseᚄ(ctx context.Context, sel ast.SelectionSet, v []*model1.UniqueExercise) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNUniqueExercise2ᚖgithubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋinternalᚋmodelᚐUniqueExercise(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNUniqueExercise2ᚖgithubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋinternalᚋmodelᚐUniqueExercise(ctx context.Context, sel ast.SelectionSet, v *model1.UniqueExercise) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._UniqueExercise(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNUpdateUserInput2githubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋgraphᚋmodelᚐUpdateUserInput(ctx context.Context, v any) (model.UpdateUserInput, error) {

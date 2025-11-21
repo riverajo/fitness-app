@@ -30,9 +30,10 @@ func main() {
 	// Initialize Repositories
 	userRepo := repository.NewMongoUserRepository()
 	workoutRepo := repository.NewMongoWorkoutRepository()
+	exerciseRepo := repository.NewMongoExerciseRepository()
 
 	// The Resolver struct is where you inject services like the WorkoutService
-	resolver := graph.NewResolver(userRepo, workoutRepo)
+	resolver := graph.NewResolver(userRepo, workoutRepo, exerciseRepo)
 
 	port := os.Getenv("PORT")
 	if port == "" {

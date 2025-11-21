@@ -18,8 +18,8 @@ import (
 
 // --- Test Helpers ---
 
-func createTestClient(userRepo *repository.MockUserRepository, workoutRepo *repository.MockWorkoutRepository) *client.Client {
-	resolver := NewResolver(userRepo, workoutRepo)
+func createTestClient(userRepo *repository.MockUserRepository, workoutRepo *repository.MockWorkoutRepository, exerciseRepo *repository.MockExerciseRepository) *client.Client {
+	resolver := NewResolver(userRepo, workoutRepo, exerciseRepo)
 	srv := handler.NewDefaultServer(NewExecutableSchema(Config{Resolvers: resolver}))
 	return client.New(srv)
 }
@@ -29,7 +29,8 @@ func createTestClient(userRepo *repository.MockUserRepository, workoutRepo *repo
 func TestRegister(t *testing.T) {
 	userRepo := new(repository.MockUserRepository)
 	workoutRepo := new(repository.MockWorkoutRepository)
-	c := createTestClient(userRepo, workoutRepo)
+	exerciseRepo := new(repository.MockExerciseRepository)
+	c := createTestClient(userRepo, workoutRepo, exerciseRepo)
 
 	input := model.RegisterInput{
 		Email:    "test@example.com",
@@ -73,7 +74,8 @@ func TestLogin(t *testing.T) {
 	t.Setenv("JWT_SECRET", "testsecret") // Set environment variable for this test
 	userRepo := new(repository.MockUserRepository)
 	workoutRepo := new(repository.MockWorkoutRepository)
-	resolver := NewResolver(userRepo, workoutRepo)
+	exerciseRepo := new(repository.MockExerciseRepository)
+	resolver := NewResolver(userRepo, workoutRepo, exerciseRepo)
 
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("password123"), bcrypt.DefaultCost)
 	user := &internalModel.User{
@@ -120,7 +122,8 @@ func TestLogin(t *testing.T) {
 func TestUpdateUser(t *testing.T) {
 	userRepo := new(repository.MockUserRepository)
 	workoutRepo := new(repository.MockWorkoutRepository)
-	resolver := NewResolver(userRepo, workoutRepo)
+	exerciseRepo := new(repository.MockExerciseRepository)
+	resolver := NewResolver(userRepo, workoutRepo, exerciseRepo)
 
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("password123"), bcrypt.DefaultCost)
 	user := &internalModel.User{
@@ -158,6 +161,7 @@ func TestUpdateUser(t *testing.T) {
 func TestMe(t *testing.T) {
 	userRepo := new(repository.MockUserRepository)
 	workoutRepo := new(repository.MockWorkoutRepository)
+	exerciseRepo := new(repository.MockExerciseRepository)
 
 	user := &internalModel.User{
 		ID:    "user123",
@@ -166,7 +170,7 @@ func TestMe(t *testing.T) {
 
 	userRepo.On("FindByID", mock.Anything, "user123").Return(user, nil)
 
-	resolver := NewResolver(userRepo, workoutRepo)
+	resolver := NewResolver(userRepo, workoutRepo, exerciseRepo)
 	ctx := context.WithValue(context.Background(), middleware.UserIDKey, "user123")
 
 	me, err := resolver.Query().Me(ctx)
@@ -180,7 +184,8 @@ func TestMe(t *testing.T) {
 func TestCreateWorkoutLog(t *testing.T) {
 	userRepo := new(repository.MockUserRepository)
 	workoutRepo := new(repository.MockWorkoutRepository)
-	resolver := NewResolver(userRepo, workoutRepo)
+	exerciseRepo := new(repository.MockExerciseRepository)
+	resolver := NewResolver(userRepo, workoutRepo, exerciseRepo)
 
 	ctx := context.WithValue(context.Background(), middleware.UserIDKey, "user123")
 
@@ -216,7 +221,8 @@ func TestCreateWorkoutLog(t *testing.T) {
 func TestGetWorkoutLog(t *testing.T) {
 	userRepo := new(repository.MockUserRepository)
 	workoutRepo := new(repository.MockWorkoutRepository)
-	resolver := NewResolver(userRepo, workoutRepo)
+	exerciseRepo := new(repository.MockExerciseRepository)
+	resolver := NewResolver(userRepo, workoutRepo, exerciseRepo)
 
 	expectedLog := &internalModel.WorkoutLog{
 		ID:   "log123",
@@ -235,7 +241,8 @@ func TestGetWorkoutLog(t *testing.T) {
 func TestListWorkoutLogs(t *testing.T) {
 	userRepo := new(repository.MockUserRepository)
 	workoutRepo := new(repository.MockWorkoutRepository)
-	resolver := NewResolver(userRepo, workoutRepo)
+	exerciseRepo := new(repository.MockExerciseRepository)
+	resolver := NewResolver(userRepo, workoutRepo, exerciseRepo)
 
 	ctx := context.WithValue(context.Background(), middleware.UserIDKey, "user123")
 
@@ -301,4 +308,57 @@ func TestLogoutMutation(t *testing.T) {
 	if !found {
 		t.Error("auth_token cookie was not set")
 	}
+}
+
+func TestCreateUniqueExercise(t *testing.T) {
+	userRepo := new(repository.MockUserRepository)
+	workoutRepo := new(repository.MockWorkoutRepository)
+	exerciseRepo := new(repository.MockExerciseRepository)
+	resolver := NewResolver(userRepo, workoutRepo, exerciseRepo)
+
+	ctx := context.WithValue(context.Background(), middleware.UserIDKey, "user123")
+
+	input := model.CreateUniqueExerciseInput{
+		Name: "My Custom Bench",
+	}
+
+	exerciseRepo.On("Create", mock.Anything, mock.MatchedBy(func(e *internalModel.UniqueExercise) bool {
+		return e.Name == "My Custom Bench" && *e.UserID == "user123"
+	})).Return(nil).Run(func(args mock.Arguments) {
+		e := args.Get(1).(*internalModel.UniqueExercise)
+		e.ID = "ex123"
+	})
+
+	ex, err := resolver.Mutation().CreateUniqueExercise(ctx, input)
+
+	require.NoError(t, err)
+	require.Equal(t, "My Custom Bench", ex.Name)
+	require.Equal(t, "user123", *ex.UserID)
+	exerciseRepo.AssertExpectations(t)
+}
+
+func TestSearchExercises(t *testing.T) {
+	userRepo := new(repository.MockUserRepository)
+	workoutRepo := new(repository.MockWorkoutRepository)
+	exerciseRepo := new(repository.MockExerciseRepository)
+	resolver := NewResolver(userRepo, workoutRepo, exerciseRepo)
+
+	ctx := context.WithValue(context.Background(), middleware.UserIDKey, "user123")
+
+	expectedExercises := []*internalModel.UniqueExercise{
+		{ID: "ex1", Name: "Bench Press", UserID: nil},
+		{ID: "ex2", Name: "My Bench", UserID: stringPtr("user123")},
+	}
+
+	exerciseRepo.On("Search", mock.Anything, stringPtr("user123"), "Bench").Return(expectedExercises, nil)
+
+	exercises, err := resolver.Query().SearchExercises(ctx, "Bench")
+
+	require.NoError(t, err)
+	require.Len(t, exercises, 2)
+	exerciseRepo.AssertExpectations(t)
+}
+
+func stringPtr(s string) *string {
+	return &s
 }

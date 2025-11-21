@@ -18,6 +18,11 @@ type AuthPayload struct {
 	User    *model.User `json:"user,omitempty"`
 }
 
+type CreateUniqueExerciseInput struct {
+	Name        string  `json:"name"`
+	Description *string `json:"description,omitempty"`
+}
+
 type CreateWorkoutLogInput struct {
 	Name         string              `json:"name"`
 	StartTime    time.Time           `json:"startTime"`
