@@ -21,16 +21,22 @@
     `;
 
     async function handleSubmit(e: Event) {
+        console.log('Submitting form...');
         e.preventDefault();
         loading = true;
         error = '';
 
         try {
-            let result;
-            let client = getContextClient();
-            const createUser = () => {
-                result = mutationStore({client, query: registerMutation, variables: {input: {email, password}}});
-            };
+            const client = getContextClient();
+            const result = await client.mutation(registerMutation, { input: { email, password } }).toPromise();
+
+            if (result.error) {
+                error = result.error.message;
+            } else if (result.data?.register?.success) {
+                goto('/');
+            } else {
+                error = result.data?.register?.message || 'Registration failed';
+            }
         } catch (e) {
             error = 'An unexpected error occurred';
             console.error(e);

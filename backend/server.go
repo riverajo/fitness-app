@@ -65,6 +65,7 @@ func main() {
 		// For local development
 		"http://localhost:3000",
 		"http://localhost:5173",
+		"http://localhost:4173", // Playwright preview port
 		"http://localhost:8080",
 	}
 
