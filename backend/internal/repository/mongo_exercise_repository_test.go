@@ -11,7 +11,8 @@ import (
 
 func TestMongoExerciseRepository_Create(t *testing.T) {
 	cleanupCollection(t, "unique_exercises")
-	repo := NewMongoExerciseRepository()
+	cleanupCollection(t, "unique_exercises")
+	repo := NewMongoExerciseRepository(testDB)
 	ctx := context.Background()
 
 	desc := "A test exercise"
@@ -33,7 +34,8 @@ func TestMongoExerciseRepository_Create(t *testing.T) {
 
 func TestMongoExerciseRepository_FindByID(t *testing.T) {
 	cleanupCollection(t, "unique_exercises")
-	repo := NewMongoExerciseRepository()
+	cleanupCollection(t, "unique_exercises")
+	repo := NewMongoExerciseRepository(testDB)
 	ctx := context.Background()
 
 	exercise := &model.UniqueExercise{
@@ -56,7 +58,8 @@ func TestMongoExerciseRepository_FindByID(t *testing.T) {
 
 func TestMongoExerciseRepository_Search(t *testing.T) {
 	cleanupCollection(t, "unique_exercises")
-	repo := NewMongoExerciseRepository()
+	cleanupCollection(t, "unique_exercises")
+	repo := NewMongoExerciseRepository(testDB)
 	ctx := context.Background()
 
 	userID := "user123"

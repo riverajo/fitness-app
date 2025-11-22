@@ -25,12 +25,17 @@ func main() {
 
 	// 1. 💡 DATABASE CONNECTION: Establish connection to MongoDB/Cloud Datastore
 	// This function will look for MONGO_URI and fatal if it fails to connect.
-	db.Connect()
+	client, err := db.Connect()
+	if err != nil {
+		log.Fatalf("Failed to connect to database: %v", err)
+	}
+
+	database := client.Database("fitness_db")
 
 	// Initialize Repositories
-	userRepo := repository.NewMongoUserRepository()
-	workoutRepo := repository.NewMongoWorkoutRepository()
-	exerciseRepo := repository.NewMongoExerciseRepository()
+	userRepo := repository.NewMongoUserRepository(database)
+	workoutRepo := repository.NewMongoWorkoutRepository(database)
+	exerciseRepo := repository.NewMongoExerciseRepository(database)
 
 	// The Resolver struct is where you inject services like the WorkoutService
 	resolver := graph.NewResolver(userRepo, workoutRepo, exerciseRepo)

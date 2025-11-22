@@ -8,7 +8,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 
-	"github.com/riverajo/fitness-app/backend/internal/db"
 	"github.com/riverajo/fitness-app/backend/internal/model"
 )
 
@@ -16,9 +15,9 @@ type MongoUserRepository struct {
 	collection *mongo.Collection
 }
 
-func NewMongoUserRepository() *MongoUserRepository {
+func NewMongoUserRepository(database *mongo.Database) *MongoUserRepository {
 	return &MongoUserRepository{
-		collection: db.GetCollection("users"),
+		collection: database.Collection("users"),
 	}
 }
 

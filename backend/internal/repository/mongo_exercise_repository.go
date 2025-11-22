@@ -9,7 +9,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
-	"github.com/riverajo/fitness-app/backend/internal/db"
 	"github.com/riverajo/fitness-app/backend/internal/model"
 )
 
@@ -17,9 +16,9 @@ type MongoExerciseRepository struct {
 	collection *mongo.Collection
 }
 
-func NewMongoExerciseRepository() *MongoExerciseRepository {
+func NewMongoExerciseRepository(database *mongo.Database) *MongoExerciseRepository {
 	return &MongoExerciseRepository{
-		collection: db.GetCollection("unique_exercises"),
+		collection: database.Collection("unique_exercises"),
 	}
 }
 

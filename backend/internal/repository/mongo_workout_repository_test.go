@@ -13,7 +13,8 @@ import (
 
 func TestMongoWorkoutRepository_Create(t *testing.T) {
 	cleanupCollection(t, "workout_logs")
-	repo := NewMongoWorkoutRepository()
+	cleanupCollection(t, "workout_logs")
+	repo := NewMongoWorkoutRepository(testDB)
 	ctx := context.Background()
 
 	workout := model.WorkoutLog{
@@ -38,7 +39,8 @@ func TestMongoWorkoutRepository_Create(t *testing.T) {
 
 func TestMongoWorkoutRepository_GetByID(t *testing.T) {
 	cleanupCollection(t, "workout_logs")
-	repo := NewMongoWorkoutRepository()
+	cleanupCollection(t, "workout_logs")
+	repo := NewMongoWorkoutRepository(testDB)
 	ctx := context.Background()
 
 	workout := model.WorkoutLog{
@@ -63,7 +65,8 @@ func TestMongoWorkoutRepository_GetByID(t *testing.T) {
 
 func TestMongoWorkoutRepository_ListByUser(t *testing.T) {
 	cleanupCollection(t, "workout_logs")
-	repo := NewMongoWorkoutRepository()
+	cleanupCollection(t, "workout_logs")
+	repo := NewMongoWorkoutRepository(testDB)
 	ctx := context.Background()
 
 	userID := primitive.NewObjectID().Hex()

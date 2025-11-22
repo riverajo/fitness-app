@@ -8,7 +8,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 
-	"github.com/riverajo/fitness-app/backend/internal/db"
 	"github.com/riverajo/fitness-app/backend/internal/model"
 )
 
@@ -16,9 +15,9 @@ type MongoWorkoutRepository struct {
 	collection *mongo.Collection
 }
 
-func NewMongoWorkoutRepository() *MongoWorkoutRepository {
+func NewMongoWorkoutRepository(database *mongo.Database) *MongoWorkoutRepository {
 	return &MongoWorkoutRepository{
-		collection: db.GetCollection("workout_logs"),
+		collection: database.Collection("workout_logs"),
 	}
 }
 

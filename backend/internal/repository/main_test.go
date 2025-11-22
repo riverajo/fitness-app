@@ -6,11 +6,12 @@ import (
 	"os"
 	"testing"
 
-	"github.com/riverajo/fitness-app/backend/internal/db"
 	"github.com/testcontainers/testcontainers-go/modules/mongodb"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
+
+var testDB *mongo.Database
 
 func TestMain(m *testing.M) {
 	ctx := context.Background()
@@ -30,8 +31,8 @@ func TestMain(m *testing.M) {
 		log.Fatalf("failed to connect to mongo: %s", err)
 	}
 
-	// Set the global MongoClient in the db package to our test client
-	db.MongoClient = client
+	// Set the global testDB
+	testDB = client.Database("fitness_db")
 
 	code := m.Run()
 
@@ -45,10 +46,10 @@ func TestMain(m *testing.M) {
 // Helper to clean up collection after each test
 func cleanupCollection(t *testing.T, collectionName string) {
 	t.Helper()
-	if db.MongoClient == nil {
-		t.Fatal("MongoClient is nil")
+	if testDB == nil {
+		t.Fatal("testDB is nil")
 	}
-	err := db.MongoClient.Database("fitness_db").Collection(collectionName).Drop(context.Background())
+	err := testDB.Collection(collectionName).Drop(context.Background())
 	if err != nil {
 		t.Fatalf("failed to drop collection %s: %v", collectionName, err)
 	}

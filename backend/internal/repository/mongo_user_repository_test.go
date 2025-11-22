@@ -12,7 +12,8 @@ import (
 
 func TestMongoUserRepository_Create(t *testing.T) {
 	cleanupCollection(t, "users")
-	repo := NewMongoUserRepository()
+	cleanupCollection(t, "users")
+	repo := NewMongoUserRepository(testDB)
 	ctx := context.Background()
 
 	user := model.User{
@@ -37,7 +38,8 @@ func TestMongoUserRepository_Create(t *testing.T) {
 
 func TestMongoUserRepository_FindByEmail(t *testing.T) {
 	cleanupCollection(t, "users")
-	repo := NewMongoUserRepository()
+	cleanupCollection(t, "users")
+	repo := NewMongoUserRepository(testDB)
 	ctx := context.Background()
 
 	user := model.User{
@@ -64,7 +66,8 @@ func TestMongoUserRepository_FindByEmail(t *testing.T) {
 
 func TestMongoUserRepository_FindByID(t *testing.T) {
 	cleanupCollection(t, "users")
-	repo := NewMongoUserRepository()
+	cleanupCollection(t, "users")
+	repo := NewMongoUserRepository(testDB)
 	ctx := context.Background()
 
 	user := model.User{
@@ -91,7 +94,8 @@ func TestMongoUserRepository_FindByID(t *testing.T) {
 
 func TestMongoUserRepository_Update(t *testing.T) {
 	cleanupCollection(t, "users")
-	repo := NewMongoUserRepository()
+	cleanupCollection(t, "users")
+	repo := NewMongoUserRepository(testDB)
 	ctx := context.Background()
 
 	user := model.User{
