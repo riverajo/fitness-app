@@ -16,13 +16,17 @@ test('user can register successfully', async ({ page }) => {
     // 3. Submit
     await page.click('button[type="submit"]');
 
-    // 4. Verify redirection to home (or login)
+    // 4. Verify redirection to dashboard
     try {
-        await expect(page).toHaveURL('/', { timeout: 5000 });
+        await expect(page).toHaveURL('/dashboard', { timeout: 5000 });
     } catch (e) {
         // If timeout, check if there's an error message on the page
         const errorMessage = await page.textContent('.text-red-800').catch(() => 'No error message found');
         console.log('Registration failed with error:', errorMessage);
         throw new Error(`Registration failed. URL stayed at /register. UI Error: ${errorMessage}`);
     }
+
+    // 5. Verify user is logged in (dashboard shows email)
+    // We expect the email we registered with to be visible
+    await expect(page.getByText(email)).toBeVisible({ timeout: 5000 });
 });

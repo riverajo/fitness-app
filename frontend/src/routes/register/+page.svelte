@@ -34,7 +34,7 @@
             if (result.error) {
                 error = result.error.message;
             } else if (result.data?.register?.success) {
-                goto('/');
+                goto('/dashboard');
             } else {
                 error = result.data?.register?.message || 'Registration failed';
             }

@@ -81,7 +81,7 @@ func main() {
 		AllowedOrigins: allowedOrigins,
 
 		// Methods required by GraphQL (POST) and preflight checks (OPTIONS)
-		AllowedMethods: []string{http.MethodPost, http.MethodOptions},
+		AllowedMethods: []string{http.MethodPost, http.MethodOptions, http.MethodGet},
 
 		// Headers required by GraphQL (Content-Type) and Auth (Authorization/Cookie)
 		AllowedHeaders: []string{"Content-Type", "Authorization", "Cookie"},

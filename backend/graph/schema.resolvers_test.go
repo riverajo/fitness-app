@@ -27,10 +27,11 @@ func createTestClient(userRepo *repository.MockUserRepository, workoutRepo *repo
 // --- Tests ---
 
 func TestRegister(t *testing.T) {
+	t.Setenv("JWT_SECRET", "testsecret") // Set environment variable for this test
 	userRepo := new(repository.MockUserRepository)
 	workoutRepo := new(repository.MockWorkoutRepository)
 	exerciseRepo := new(repository.MockExerciseRepository)
-	c := createTestClient(userRepo, workoutRepo, exerciseRepo)
+	// c := createTestClient(userRepo, workoutRepo, exerciseRepo) // Unused now that we test resolver directly
 
 	input := model.RegisterInput{
 		Email:    "test@example.com",
@@ -42,31 +43,38 @@ func TestRegister(t *testing.T) {
 		return u.Email == input.Email && u.PasswordHash != ""
 	})).Return(nil)
 
-	var resp struct {
-		Register struct {
-			Success bool
-			Message string
-			User    struct {
-				Email string
-			}
-		}
-	}
+	// Setup context with ResponseWriter (Need to modify createTestClient or use a custom handler for this test)
+	// Since createTestClient hides the server creation, we can't easily inject the middleware there without modifying it.
+	// However, gqlgen's client.Post doesn't easily allow injecting context values that the server sees *unless* we use a middleware or a custom transport.
+	// A simpler approach for this specific unit test, given the helper, is to instantiate the resolver directly like TestLogin does.
+	// This avoids the complexity of the HTTP middleware stack in the test client.
 
-	err := c.Post(`
-		mutation Register($input: RegisterInput!) {
-			register(input: $input) {
-				success
-				message
-				user {
-					email
-				}
-			}
-		}
-	`, &resp, client.Var("input", input))
+	resolver := NewResolver(userRepo, workoutRepo, exerciseRepo)
+	w := httptest.NewRecorder()
+	ctx := context.WithValue(context.Background(), "ResponseWriterKey", w)
+
+	payload, err := resolver.Mutation().Register(ctx, input)
 
 	require.NoError(t, err)
-	require.True(t, resp.Register.Success)
-	require.Equal(t, input.Email, resp.Register.User.Email)
+	require.True(t, payload.Success)
+	require.Equal(t, "Registration successful. You are now logged in.", payload.Message)
+	require.Equal(t, input.Email, payload.User.Email)
+
+	// Verify Cookie
+	result := w.Result()
+	cookies := result.Cookies()
+	require.NotEmpty(t, cookies)
+	found := false
+	for _, c := range cookies {
+		if c.Name == middleware.AuthCookieName {
+			found = true
+			require.NotEmpty(t, c.Value)
+			require.True(t, c.HttpOnly)
+			require.True(t, c.Secure)
+		}
+	}
+	require.True(t, found, "Auth cookie not found after registration")
+
 	userRepo.AssertExpectations(t)
 }
 

@@ -14,12 +14,22 @@ import type { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-
  * Learn more about it here: https://the-guild.dev/graphql/codegen/plugins/presets/preset-client#reducing-bundle-size
  */
 type Documents = {
-    "\n\t\tquery ListWorkouts {\n\t\t\tlistWorkoutLogs {\n\t\t\t\tid\n\t\t\t\tname\n\t\t\t}\n\t\t}\n\t": typeof types.ListWorkoutsDocument,
+    "\n        mutation Login($input: LoginInput!) {\n            login(input: $input) {\n                success\n                message\n                user {\n                    id\n                    email\n                }\n            }\n        }\n    ": typeof types.LoginDocument,
+    "\n        query ListWorkoutLogs {\n            listWorkoutLogs {\n                id\n                name\n                startTime\n                endTime\n                locationName\n                exerciseLogs {\n                    uniqueExerciseId\n                }\n            }\n        }\n    ": typeof types.ListWorkoutLogsDocument,
+    "\n        mutation CreateUniqueExercise($input: CreateUniqueExerciseInput!) {\n            createUniqueExercise(input: $input) {\n                id\n                name\n                isCustom\n            }\n        }\n    ": typeof types.CreateUniqueExerciseDocument,
     "\n        mutation Register($input: RegisterInput!) {\n            register(input: $input) {\n                success\n                message\n                user {\n                    id\n                    email\n                }\n            }\n        }\n    ": typeof types.RegisterDocument,
+    "\n        query GetWorkoutLog($id: ID!) {\n            getWorkoutLog(id: $id) {\n                id\n                name\n                startTime\n                endTime\n                locationName\n                generalNotes\n                exerciseLogs {\n                    uniqueExerciseId\n                    notes\n                    sets {\n                        reps\n                        weight\n                        rpe\n                        toFailure\n                    }\n                }\n            }\n        }\n    ": typeof types.GetWorkoutLogDocument,
+    "\n        mutation CreateWorkoutLog($input: CreateWorkoutLogInput!) {\n            createWorkoutLog(input: $input) {\n                id\n            }\n        }\n    ": typeof types.CreateWorkoutLogDocument,
+    "\n        query SearchExercises($query: String!) {\n            searchExercises(query: $query) {\n                id\n                name\n                description\n                isCustom\n            }\n        }\n    ": typeof types.SearchExercisesDocument,
 };
 const documents: Documents = {
-    "\n\t\tquery ListWorkouts {\n\t\t\tlistWorkoutLogs {\n\t\t\t\tid\n\t\t\t\tname\n\t\t\t}\n\t\t}\n\t": types.ListWorkoutsDocument,
+    "\n        mutation Login($input: LoginInput!) {\n            login(input: $input) {\n                success\n                message\n                user {\n                    id\n                    email\n                }\n            }\n        }\n    ": types.LoginDocument,
+    "\n        query ListWorkoutLogs {\n            listWorkoutLogs {\n                id\n                name\n                startTime\n                endTime\n                locationName\n                exerciseLogs {\n                    uniqueExerciseId\n                }\n            }\n        }\n    ": types.ListWorkoutLogsDocument,
+    "\n        mutation CreateUniqueExercise($input: CreateUniqueExerciseInput!) {\n            createUniqueExercise(input: $input) {\n                id\n                name\n                isCustom\n            }\n        }\n    ": types.CreateUniqueExerciseDocument,
     "\n        mutation Register($input: RegisterInput!) {\n            register(input: $input) {\n                success\n                message\n                user {\n                    id\n                    email\n                }\n            }\n        }\n    ": types.RegisterDocument,
+    "\n        query GetWorkoutLog($id: ID!) {\n            getWorkoutLog(id: $id) {\n                id\n                name\n                startTime\n                endTime\n                locationName\n                generalNotes\n                exerciseLogs {\n                    uniqueExerciseId\n                    notes\n                    sets {\n                        reps\n                        weight\n                        rpe\n                        toFailure\n                    }\n                }\n            }\n        }\n    ": types.GetWorkoutLogDocument,
+    "\n        mutation CreateWorkoutLog($input: CreateWorkoutLogInput!) {\n            createWorkoutLog(input: $input) {\n                id\n            }\n        }\n    ": types.CreateWorkoutLogDocument,
+    "\n        query SearchExercises($query: String!) {\n            searchExercises(query: $query) {\n                id\n                name\n                description\n                isCustom\n            }\n        }\n    ": types.SearchExercisesDocument,
 };
 
 /**
@@ -39,11 +49,31 @@ export function graphql(source: string): unknown;
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n\t\tquery ListWorkouts {\n\t\t\tlistWorkoutLogs {\n\t\t\t\tid\n\t\t\t\tname\n\t\t\t}\n\t\t}\n\t"): (typeof documents)["\n\t\tquery ListWorkouts {\n\t\t\tlistWorkoutLogs {\n\t\t\t\tid\n\t\t\t\tname\n\t\t\t}\n\t\t}\n\t"];
+export function graphql(source: "\n        mutation Login($input: LoginInput!) {\n            login(input: $input) {\n                success\n                message\n                user {\n                    id\n                    email\n                }\n            }\n        }\n    "): (typeof documents)["\n        mutation Login($input: LoginInput!) {\n            login(input: $input) {\n                success\n                message\n                user {\n                    id\n                    email\n                }\n            }\n        }\n    "];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n        query ListWorkoutLogs {\n            listWorkoutLogs {\n                id\n                name\n                startTime\n                endTime\n                locationName\n                exerciseLogs {\n                    uniqueExerciseId\n                }\n            }\n        }\n    "): (typeof documents)["\n        query ListWorkoutLogs {\n            listWorkoutLogs {\n                id\n                name\n                startTime\n                endTime\n                locationName\n                exerciseLogs {\n                    uniqueExerciseId\n                }\n            }\n        }\n    "];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n        mutation CreateUniqueExercise($input: CreateUniqueExerciseInput!) {\n            createUniqueExercise(input: $input) {\n                id\n                name\n                isCustom\n            }\n        }\n    "): (typeof documents)["\n        mutation CreateUniqueExercise($input: CreateUniqueExerciseInput!) {\n            createUniqueExercise(input: $input) {\n                id\n                name\n                isCustom\n            }\n        }\n    "];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n        mutation Register($input: RegisterInput!) {\n            register(input: $input) {\n                success\n                message\n                user {\n                    id\n                    email\n                }\n            }\n        }\n    "): (typeof documents)["\n        mutation Register($input: RegisterInput!) {\n            register(input: $input) {\n                success\n                message\n                user {\n                    id\n                    email\n                }\n            }\n        }\n    "];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n        query GetWorkoutLog($id: ID!) {\n            getWorkoutLog(id: $id) {\n                id\n                name\n                startTime\n                endTime\n                locationName\n                generalNotes\n                exerciseLogs {\n                    uniqueExerciseId\n                    notes\n                    sets {\n                        reps\n                        weight\n                        rpe\n                        toFailure\n                    }\n                }\n            }\n        }\n    "): (typeof documents)["\n        query GetWorkoutLog($id: ID!) {\n            getWorkoutLog(id: $id) {\n                id\n                name\n                startTime\n                endTime\n                locationName\n                generalNotes\n                exerciseLogs {\n                    uniqueExerciseId\n                    notes\n                    sets {\n                        reps\n                        weight\n                        rpe\n                        toFailure\n                    }\n                }\n            }\n        }\n    "];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n        mutation CreateWorkoutLog($input: CreateWorkoutLogInput!) {\n            createWorkoutLog(input: $input) {\n                id\n            }\n        }\n    "): (typeof documents)["\n        mutation CreateWorkoutLog($input: CreateWorkoutLogInput!) {\n            createWorkoutLog(input: $input) {\n                id\n            }\n        }\n    "];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n        query SearchExercises($query: String!) {\n            searchExercises(query: $query) {\n                id\n                name\n                description\n                isCustom\n            }\n        }\n    "): (typeof documents)["\n        query SearchExercises($query: String!) {\n            searchExercises(query: $query) {\n                id\n                name\n                description\n                isCustom\n            }\n        }\n    "];
 
 export function graphql(source: string) {
   return (documents as any)[source] ?? {};

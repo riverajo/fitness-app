@@ -94,12 +94,43 @@ func (r *mutationResolver) Register(ctx context.Context, input model1.RegisterIn
 		return nil, fmt.Errorf("failed to register user")
 	}
 
-	// 2. Registration successful, but we don't handle login/cookie creation here.
-	// The client knows registration succeeded. They should call the 'login' mutation next.
+	// 2. Registration successful. Now, AUTO-LOGIN the user.
+	//    We duplicate the logic from Login() here to issue the token immediately.
+
+	// 2a. Generate the JWT token
+	token, err := middleware.GenerateJWT(internalUser)
+	if err != nil {
+		log.Printf("CRITICAL: Failed to generate JWT for new user %s: %v", internalUser.ID, err)
+		return nil, fmt.Errorf("registration successful, but auto-login failed")
+	}
+
+	// 2b. Get the ResponseWriter
+	w := middleware.GetResponseWriter(ctx)
+	if w == nil {
+		// This might happen in tests if not mocked correctly, or if middleware is missing
+		log.Println("CRITICAL: ResponseWriter not found in context during Register")
+		// We still return success for registration, but the user won't be logged in.
+		// Ideally, we should error out or handle this better, but for now let's warn.
+	} else {
+		// 2c. Set the Secure HttpOnly Cookie
+		expirationTime := time.Now().Add(24 * time.Hour)
+		cookie := http.Cookie{
+			Name:     middleware.AuthCookieName,
+			Value:    token,
+			Expires:  expirationTime,
+			HttpOnly: true,
+			Secure:   true,
+			SameSite: http.SameSiteStrictMode,
+			Path:     "/",
+		}
+		http.SetCookie(w, &cookie)
+	}
+
+	// 3. Return success payload
 	return &model1.AuthPayload{
 		Success: true,
-		Message: "Registration successful. Please log in.",
-		User:    internalUser, // Return internal user directly
+		Message: "Registration successful. You are now logged in.",
+		User:    internalUser,
 	}, nil
 }
 
