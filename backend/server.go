@@ -94,6 +94,21 @@ func main() {
 	})
 
 	// 5. START SERVER
+	http.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("ok"))
+	})
+
+	http.HandleFunc("/readyz", func(w http.ResponseWriter, r *http.Request) {
+		if err := client.Ping(r.Context(), nil); err != nil {
+			w.WriteHeader(http.StatusServiceUnavailable)
+			w.Write([]byte("db not ready"))
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("ready"))
+	})
+
 	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
 	http.Handle("/query", c.Handler(finalHandler))
 

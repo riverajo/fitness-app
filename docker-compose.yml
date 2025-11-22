@@ -27,6 +27,12 @@ services:
       - db
     volumes:
       - ./backend:/app/backend # Mount code for quick recompilation during development
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8080/readyz" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
   # 3. Simple Web GUI for MongoDB
   adminer:
     image: adminer
