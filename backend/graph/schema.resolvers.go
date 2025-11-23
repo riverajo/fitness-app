@@ -17,6 +17,11 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+// UniqueExercise is the resolver for the uniqueExercise field.
+func (r *exerciseLogResolver) UniqueExercise(ctx context.Context, obj *internalModel.ExerciseLog) (*internalModel.UniqueExercise, error) {
+	return r.ExerciseService.GetExercise(ctx, obj.UniqueExerciseID)
+}
+
 // CreateWorkoutLog is the resolver for the createWorkoutLog field.
 func (r *mutationResolver) CreateWorkoutLog(ctx context.Context, input model1.CreateWorkoutLogInput) (*internalModel.WorkoutLog, error) {
 	// 1. Get UserID from context
@@ -341,10 +346,18 @@ func (r *queryResolver) UniqueExercises(ctx context.Context, query *string, limi
 	return r.ExerciseService.SearchExercises(ctx, userID, q, l, o)
 }
 
+// GetUniqueExercise is the resolver for the getUniqueExercise field.
+func (r *queryResolver) GetUniqueExercise(ctx context.Context, id string) (*internalModel.UniqueExercise, error) {
+	return r.ExerciseService.GetExercise(ctx, id)
+}
+
 // IsCustom is the resolver for the isCustom field.
 func (r *uniqueExerciseResolver) IsCustom(ctx context.Context, obj *internalModel.UniqueExercise) (bool, error) {
 	return obj.UserID != nil, nil
 }
+
+// ExerciseLog returns ExerciseLogResolver implementation.
+func (r *Resolver) ExerciseLog() ExerciseLogResolver { return &exerciseLogResolver{r} }
 
 // Mutation returns MutationResolver implementation.
 func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
@@ -355,6 +368,7 @@ func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
 // UniqueExercise returns UniqueExerciseResolver implementation.
 func (r *Resolver) UniqueExercise() UniqueExerciseResolver { return &uniqueExerciseResolver{r} }
 
+type exerciseLogResolver struct{ *Resolver }
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type uniqueExerciseResolver struct{ *Resolver }

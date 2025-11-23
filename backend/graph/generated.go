@@ -41,6 +41,7 @@ type Config struct {
 }
 
 type ResolverRoot interface {
+	ExerciseLog() ExerciseLogResolver
 	Mutation() MutationResolver
 	Query() QueryResolver
 	UniqueExercise() UniqueExerciseResolver
@@ -57,9 +58,9 @@ type ComplexityRoot struct {
 	}
 
 	ExerciseLog struct {
-		Notes            func(childComplexity int) int
-		Sets             func(childComplexity int) int
-		UniqueExerciseID func(childComplexity int) int
+		Notes          func(childComplexity int) int
+		Sets           func(childComplexity int) int
+		UniqueExercise func(childComplexity int) int
 	}
 
 	Mutation struct {
@@ -72,10 +73,11 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		GetWorkoutLog   func(childComplexity int, id string) int
-		ListWorkoutLogs func(childComplexity int, limit *int32, offset *int32) int
-		Me              func(childComplexity int) int
-		UniqueExercises func(childComplexity int, query *string, limit *int32, offset *int32) int
+		GetUniqueExercise func(childComplexity int, id string) int
+		GetWorkoutLog     func(childComplexity int, id string) int
+		ListWorkoutLogs   func(childComplexity int, limit *int32, offset *int32) int
+		Me                func(childComplexity int) int
+		UniqueExercises   func(childComplexity int, query *string, limit *int32, offset *int32) int
 	}
 
 	Set struct {
@@ -110,6 +112,9 @@ type ComplexityRoot struct {
 	}
 }
 
+type ExerciseLogResolver interface {
+	UniqueExercise(ctx context.Context, obj *model1.ExerciseLog) (*model1.UniqueExercise, error)
+}
 type MutationResolver interface {
 	CreateWorkoutLog(ctx context.Context, input model.CreateWorkoutLogInput) (*model1.WorkoutLog, error)
 	Register(ctx context.Context, input model.RegisterInput) (*model.AuthPayload, error)
@@ -123,6 +128,7 @@ type QueryResolver interface {
 	ListWorkoutLogs(ctx context.Context, limit *int32, offset *int32) ([]*model1.WorkoutLog, error)
 	Me(ctx context.Context) (*model1.User, error)
 	UniqueExercises(ctx context.Context, query *string, limit *int32, offset *int32) ([]*model1.UniqueExercise, error)
+	GetUniqueExercise(ctx context.Context, id string) (*model1.UniqueExercise, error)
 }
 type UniqueExerciseResolver interface {
 	IsCustom(ctx context.Context, obj *model1.UniqueExercise) (bool, error)
@@ -178,12 +184,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.ExerciseLog.Sets(childComplexity), true
-	case "ExerciseLog.uniqueExerciseId":
-		if e.complexity.ExerciseLog.UniqueExerciseID == nil {
+	case "ExerciseLog.uniqueExercise":
+		if e.complexity.ExerciseLog.UniqueExercise == nil {
 			break
 		}
 
-		return e.complexity.ExerciseLog.UniqueExerciseID(childComplexity), true
+		return e.complexity.ExerciseLog.UniqueExercise(childComplexity), true
 
 	case "Mutation.createUniqueExercise":
 		if e.complexity.Mutation.CreateUniqueExercise == nil {
@@ -247,6 +253,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.Mutation.UpdateUser(childComplexity, args["input"].(model.UpdateUserInput)), true
 
+	case "Query.getUniqueExercise":
+		if e.complexity.Query.GetUniqueExercise == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getUniqueExercise_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetUniqueExercise(childComplexity, args["id"].(string)), true
 	case "Query.getWorkoutLog":
 		if e.complexity.Query.GetWorkoutLog == nil {
 			break
@@ -602,6 +619,17 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_getUniqueExercise_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalNID2string)
+	if err != nil {
+		return nil, err
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_getWorkoutLog_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -797,30 +825,40 @@ func (ec *executionContext) fieldContext_AuthPayload_user(_ context.Context, fie
 	return fc, nil
 }
 
-func (ec *executionContext) _ExerciseLog_uniqueExerciseId(ctx context.Context, field graphql.CollectedField, obj *model1.ExerciseLog) (ret graphql.Marshaler) {
+func (ec *executionContext) _ExerciseLog_uniqueExercise(ctx context.Context, field graphql.CollectedField, obj *model1.ExerciseLog) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
 		ec.OperationContext,
 		field,
-		ec.fieldContext_ExerciseLog_uniqueExerciseId,
+		ec.fieldContext_ExerciseLog_uniqueExercise,
 		func(ctx context.Context) (any, error) {
-			return obj.UniqueExerciseID, nil
+			return ec.resolvers.ExerciseLog().UniqueExercise(ctx, obj)
 		},
 		nil,
-		ec.marshalNID2string,
+		ec.marshalNUniqueExercise2ᚖgithubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋinternalᚋmodelᚐUniqueExercise,
 		true,
 		true,
 	)
 }
 
-func (ec *executionContext) fieldContext_ExerciseLog_uniqueExerciseId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_ExerciseLog_uniqueExercise(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ExerciseLog",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ID does not have child fields")
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_UniqueExercise_id(ctx, field)
+			case "name":
+				return ec.fieldContext_UniqueExercise_name(ctx, field)
+			case "description":
+				return ec.fieldContext_UniqueExercise_description(ctx, field)
+			case "isCustom":
+				return ec.fieldContext_UniqueExercise_isCustom(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type UniqueExercise", field.Name)
 		},
 	}
 	return fc, nil
@@ -1384,6 +1422,57 @@ func (ec *executionContext) fieldContext_Query_uniqueExercises(ctx context.Conte
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_uniqueExercises_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_getUniqueExercise(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_getUniqueExercise,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Query().GetUniqueExercise(ctx, fc.Args["id"].(string))
+		},
+		nil,
+		ec.marshalOUniqueExercise2ᚖgithubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋinternalᚋmodelᚐUniqueExercise,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_getUniqueExercise(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_UniqueExercise_id(ctx, field)
+			case "name":
+				return ec.fieldContext_UniqueExercise_name(ctx, field)
+			case "description":
+				return ec.fieldContext_UniqueExercise_description(ctx, field)
+			case "isCustom":
+				return ec.fieldContext_UniqueExercise_isCustom(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type UniqueExercise", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_getUniqueExercise_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -1986,8 +2075,8 @@ func (ec *executionContext) fieldContext_WorkoutLog_exerciseLogs(_ context.Conte
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "uniqueExerciseId":
-				return ec.fieldContext_ExerciseLog_uniqueExerciseId(ctx, field)
+			case "uniqueExercise":
+				return ec.fieldContext_ExerciseLog_uniqueExercise(ctx, field)
 			case "sets":
 				return ec.fieldContext_ExerciseLog_sets(ctx, field)
 			case "notes":
@@ -3883,15 +3972,46 @@ func (ec *executionContext) _ExerciseLog(ctx context.Context, sel ast.SelectionS
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("ExerciseLog")
-		case "uniqueExerciseId":
-			out.Values[i] = ec._ExerciseLog_uniqueExerciseId(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
+		case "uniqueExercise":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._ExerciseLog_uniqueExercise(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
 			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "sets":
 			out.Values[i] = ec._ExerciseLog_sets(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "notes":
 			out.Values[i] = ec._ExerciseLog_notes(ctx, field, obj)
@@ -4094,6 +4214,25 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "getUniqueExercise":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getUniqueExercise(ctx, field)
 				return res
 			}
 
@@ -5442,6 +5581,13 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 	_ = ctx
 	res := graphql.MarshalString(*v)
 	return res
+}
+
+func (ec *executionContext) marshalOUniqueExercise2ᚖgithubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋinternalᚋmodelᚐUniqueExercise(ctx context.Context, sel ast.SelectionSet, v *model1.UniqueExercise) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._UniqueExercise(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOUser2ᚖgithubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋinternalᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v *model1.User) graphql.Marshaler {

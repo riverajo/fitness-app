@@ -40,7 +40,7 @@ type Set {
 }
 
 type ExerciseLog {
-	uniqueExerciseId: ID!
+	uniqueExercise: UniqueExercise!
 	sets: [Set!]!
 	notes: String
 }
@@ -135,6 +135,9 @@ extend type Query {
 
 	# Search for exercises (System + User's custom exercises)
 	uniqueExercises(query: String, limit: Int = 50, offset: Int = 0): [UniqueExercise!]!
+
+	# Get a single unique exercise by ID
+	getUniqueExercise(id: ID!): UniqueExercise
 }
 
 # --- UNIQUE EXERCISE TYPES ---

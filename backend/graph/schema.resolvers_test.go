@@ -380,3 +380,48 @@ func stringPtr(s string) *string {
 func int32Ptr(i int32) *int32 {
 	return &i
 }
+func TestGetUniqueExercise(t *testing.T) {
+	userRepo := new(repository.MockUserRepository)
+	workoutRepo := new(repository.MockWorkoutRepository)
+	exerciseRepo := new(repository.MockExerciseRepository)
+	resolver := NewResolver(userRepo, workoutRepo, exerciseRepo)
+
+	expectedExercise := &internalModel.UniqueExercise{
+		ID:   "ex123",
+		Name: "Test Exercise",
+	}
+
+	exerciseRepo.On("FindByID", mock.Anything, "ex123").Return(expectedExercise, nil)
+
+	ex, err := resolver.Query().GetUniqueExercise(context.Background(), "ex123")
+
+	require.NoError(t, err)
+	require.Equal(t, "ex123", ex.ID)
+	require.Equal(t, "Test Exercise", ex.Name)
+	exerciseRepo.AssertExpectations(t)
+}
+
+func TestExerciseLogUniqueExercise(t *testing.T) {
+	userRepo := new(repository.MockUserRepository)
+	workoutRepo := new(repository.MockWorkoutRepository)
+	exerciseRepo := new(repository.MockExerciseRepository)
+	resolver := NewResolver(userRepo, workoutRepo, exerciseRepo)
+
+	exerciseLog := &internalModel.ExerciseLog{
+		UniqueExerciseID: "ex123",
+	}
+
+	expectedExercise := &internalModel.UniqueExercise{
+		ID:   "ex123",
+		Name: "Test Exercise",
+	}
+
+	exerciseRepo.On("FindByID", mock.Anything, "ex123").Return(expectedExercise, nil)
+
+	ex, err := resolver.ExerciseLog().UniqueExercise(context.Background(), exerciseLog)
+
+	require.NoError(t, err)
+	require.Equal(t, "ex123", ex.ID)
+	require.Equal(t, "Test Exercise", ex.Name)
+	exerciseRepo.AssertExpectations(t)
+}

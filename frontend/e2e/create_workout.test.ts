@@ -23,7 +23,11 @@ test('user can create a workout log', async ({ page }) => {
     await page.click('button:has-text("Create Exercise")');
 
     // Wait for redirection to dashboard
-    await expect(page).toHaveURL('/dashboard');
+    // Wait for redirection to exercises list
+    await expect(page).toHaveURL(/\/exercises/);
+
+    // Navigate back to dashboard to log workout
+    await page.goto('/dashboard');
 
     // 3. Create a workout log
     await page.click('text=Log Workout');

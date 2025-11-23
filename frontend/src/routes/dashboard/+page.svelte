@@ -17,7 +17,9 @@
                     startTime
                     endTime
                     exerciseLogs {
-                        uniqueExerciseId
+                        uniqueExercise {
+                            id
+                        }
                         sets {
                             reps
                             weight

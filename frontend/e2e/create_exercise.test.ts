@@ -22,7 +22,7 @@ test('user can create a new unique exercise', async ({ page }) => {
     await page.click('button[type="submit"]');
 
     // 5. Verify redirection to Dashboard
-    await expect(page).toHaveURL('/dashboard');
+    await expect(page).toHaveURL(/\/exercises/);
 
     // Note: Since we don't have a list of exercises on the dashboard yet, 
     // we are just verifying the successful redirection which implies success 

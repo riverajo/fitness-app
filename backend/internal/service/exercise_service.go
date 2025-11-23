@@ -49,3 +49,7 @@ func (s *ExerciseService) CreateExercise(ctx context.Context, name string, descr
 func (s *ExerciseService) SearchExercises(ctx context.Context, userID *string, query string, limit int, offset int) ([]*model.UniqueExercise, error) {
 	return s.repo.Search(ctx, userID, query, limit, offset)
 }
+
+func (s *ExerciseService) GetExercise(ctx context.Context, id string) (*model.UniqueExercise, error) {
+	return s.repo.FindByID(ctx, id)
+}
