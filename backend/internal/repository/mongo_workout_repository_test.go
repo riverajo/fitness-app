@@ -97,7 +97,7 @@ func TestMongoWorkoutRepository_ListByUser(t *testing.T) {
 	_, err = repo.Create(ctx, workout3)
 	require.NoError(t, err)
 
-	workouts, err := repo.ListByUser(ctx, userID)
+	workouts, err := repo.ListByUser(ctx, userID, 10, 0)
 	require.NoError(t, err)
 	assert.Len(t, workouts, 2)
 
