@@ -259,9 +259,11 @@ func TestListWorkoutLogs(t *testing.T) {
 		{ID: "log2", Name: "Log 2"},
 	}
 
-	workoutRepo.On("ListByUser", mock.Anything, "user123").Return(expectedLogs, nil)
+	limit := 10
+	offset := 0
+	workoutRepo.On("ListByUser", mock.Anything, "user123", limit, offset).Return(expectedLogs, nil)
 
-	logs, err := resolver.Query().ListWorkoutLogs(ctx)
+	logs, err := resolver.Query().ListWorkoutLogs(ctx, int32Ptr(int32(limit)), int32Ptr(int32(offset)))
 
 	require.NoError(t, err)
 	require.Len(t, logs, 2)
@@ -373,4 +375,8 @@ func TestUniqueExercises(t *testing.T) {
 
 func stringPtr(s string) *string {
 	return &s
+}
+
+func int32Ptr(i int32) *int32 {
+	return &i
 }
