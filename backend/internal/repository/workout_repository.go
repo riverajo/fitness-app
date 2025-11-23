@@ -10,5 +10,5 @@ import (
 type WorkoutRepository interface {
 	Create(ctx context.Context, log model.WorkoutLog) (*model.WorkoutLog, error)
 	GetByID(ctx context.Context, id string) (*model.WorkoutLog, error)
-	ListByUser(ctx context.Context, userID string) ([]*model.WorkoutLog, error)
+	ListByUser(ctx context.Context, userID string, limit, offset int) ([]*model.WorkoutLog, error)
 }

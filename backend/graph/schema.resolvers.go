@@ -258,7 +258,7 @@ func (r *queryResolver) GetWorkoutLog(ctx context.Context, id string) (*internal
 }
 
 // ListWorkoutLogs is the resolver for the listWorkoutLogs field.
-func (r *queryResolver) ListWorkoutLogs(ctx context.Context) ([]*internalModel.WorkoutLog, error) {
+func (r *queryResolver) ListWorkoutLogs(ctx context.Context, limit *int32, offset *int32) ([]*internalModel.WorkoutLog, error) {
 	// 1. Get UserID from context
 	userIDVal := ctx.Value(middleware.UserIDKey)
 	if userIDVal == nil {
@@ -266,8 +266,17 @@ func (r *queryResolver) ListWorkoutLogs(ctx context.Context) ([]*internalModel.W
 	}
 	userID := userIDVal.(string)
 
+	l := 10
+	if limit != nil {
+		l = int(*limit)
+	}
+	o := 0
+	if offset != nil {
+		o = int(*offset)
+	}
+
 	// 2. Fetch from service
-	logs, err := r.WorkoutService.ListLogs(ctx, userID)
+	logs, err := r.WorkoutService.ListLogs(ctx, userID, l, o)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list workout logs: %w", err)
 	}

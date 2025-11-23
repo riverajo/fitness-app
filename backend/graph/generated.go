@@ -73,7 +73,7 @@ type ComplexityRoot struct {
 
 	Query struct {
 		GetWorkoutLog   func(childComplexity int, id string) int
-		ListWorkoutLogs func(childComplexity int) int
+		ListWorkoutLogs func(childComplexity int, limit *int32, offset *int32) int
 		Me              func(childComplexity int) int
 		UniqueExercises func(childComplexity int, query *string, limit *int32, offset *int32) int
 	}
@@ -120,7 +120,7 @@ type MutationResolver interface {
 }
 type QueryResolver interface {
 	GetWorkoutLog(ctx context.Context, id string) (*model1.WorkoutLog, error)
-	ListWorkoutLogs(ctx context.Context) ([]*model1.WorkoutLog, error)
+	ListWorkoutLogs(ctx context.Context, limit *int32, offset *int32) ([]*model1.WorkoutLog, error)
 	Me(ctx context.Context) (*model1.User, error)
 	UniqueExercises(ctx context.Context, query *string, limit *int32, offset *int32) ([]*model1.UniqueExercise, error)
 }
@@ -263,7 +263,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			break
 		}
 
-		return e.complexity.Query.ListWorkoutLogs(childComplexity), true
+		args, err := ec.field_Query_listWorkoutLogs_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ListWorkoutLogs(childComplexity, args["limit"].(*int32), args["offset"].(*int32)), true
 	case "Query.me":
 		if e.complexity.Query.Me == nil {
 			break
@@ -605,6 +610,22 @@ func (ec *executionContext) field_Query_getWorkoutLog_args(ctx context.Context, 
 		return nil, err
 	}
 	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_listWorkoutLogs_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "limit", ec.unmarshalOInt2ᚖint32)
+	if err != nil {
+		return nil, err
+	}
+	args["limit"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "offset", ec.unmarshalOInt2ᚖint32)
+	if err != nil {
+		return nil, err
+	}
+	args["offset"] = arg1
 	return args, nil
 }
 
@@ -1231,7 +1252,8 @@ func (ec *executionContext) _Query_listWorkoutLogs(ctx context.Context, field gr
 		field,
 		ec.fieldContext_Query_listWorkoutLogs,
 		func(ctx context.Context) (any, error) {
-			return ec.resolvers.Query().ListWorkoutLogs(ctx)
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Query().ListWorkoutLogs(ctx, fc.Args["limit"].(*int32), fc.Args["offset"].(*int32))
 		},
 		nil,
 		ec.marshalNWorkoutLog2ᚕᚖgithubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋinternalᚋmodelᚐWorkoutLogᚄ,
@@ -1240,7 +1262,7 @@ func (ec *executionContext) _Query_listWorkoutLogs(ctx context.Context, field gr
 	)
 }
 
-func (ec *executionContext) fieldContext_Query_listWorkoutLogs(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Query_listWorkoutLogs(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Query",
 		Field:      field,
@@ -1265,6 +1287,17 @@ func (ec *executionContext) fieldContext_Query_listWorkoutLogs(_ context.Context
 			}
 			return nil, fmt.Errorf("no field named %q was found under type WorkoutLog", field.Name)
 		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_listWorkoutLogs_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
 	}
 	return fc, nil
 }

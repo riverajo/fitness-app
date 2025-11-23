@@ -59,8 +59,8 @@ func (m *MockWorkoutRepository) GetByID(ctx context.Context, id string) (*model.
 	return args.Get(0).(*model.WorkoutLog), args.Error(1)
 }
 
-func (m *MockWorkoutRepository) ListByUser(ctx context.Context, userID string) ([]*model.WorkoutLog, error) {
-	args := m.Called(ctx, userID)
+func (m *MockWorkoutRepository) ListByUser(ctx context.Context, userID string, limit, offset int) ([]*model.WorkoutLog, error) {
+	args := m.Called(ctx, userID, limit, offset)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}

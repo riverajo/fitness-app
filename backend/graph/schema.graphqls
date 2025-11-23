@@ -62,7 +62,7 @@ type Query {
 	# Retrieve a single workout log by ID
 	getWorkoutLog(id: ID!): WorkoutLog
 	# Retrieve a list of workouts (add filtering args later)
-	listWorkoutLogs: [WorkoutLog!]!
+	listWorkoutLogs(limit: Int = 10, offset: Int = 0): [WorkoutLog!]!
 }
 
 # Write operations

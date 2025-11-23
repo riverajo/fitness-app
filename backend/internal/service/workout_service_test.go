@@ -12,7 +12,7 @@ import (
 type MockWorkoutRepository struct {
 	CreateFunc     func(ctx context.Context, log model.WorkoutLog) (*model.WorkoutLog, error)
 	GetByIDFunc    func(ctx context.Context, id string) (*model.WorkoutLog, error)
-	ListByUserFunc func(ctx context.Context, userID string) ([]*model.WorkoutLog, error)
+	ListByUserFunc func(ctx context.Context, userID string, limit, offset int) ([]*model.WorkoutLog, error)
 }
 
 func (m *MockWorkoutRepository) Create(ctx context.Context, log model.WorkoutLog) (*model.WorkoutLog, error) {
@@ -29,9 +29,9 @@ func (m *MockWorkoutRepository) GetByID(ctx context.Context, id string) (*model.
 	return nil, nil
 }
 
-func (m *MockWorkoutRepository) ListByUser(ctx context.Context, userID string) ([]*model.WorkoutLog, error) {
+func (m *MockWorkoutRepository) ListByUser(ctx context.Context, userID string, limit, offset int) ([]*model.WorkoutLog, error) {
 	if m.ListByUserFunc != nil {
-		return m.ListByUserFunc(ctx, userID)
+		return m.ListByUserFunc(ctx, userID, limit, offset)
 	}
 	return nil, nil
 }

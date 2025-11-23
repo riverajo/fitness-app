@@ -7,6 +7,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 
 	"github.com/riverajo/fitness-app/backend/internal/model"
 )
@@ -21,12 +22,12 @@ func NewMongoWorkoutRepository(database *mongo.Database) *MongoWorkoutRepository
 	}
 }
 
-func (r *MongoWorkoutRepository) Create(ctx context.Context, log model.WorkoutLog) (*model.WorkoutLog, error) {
-	if log.ID == "" {
-		log.ID = primitive.NewObjectID().Hex()
+func (r *MongoWorkoutRepository) Create(ctx context.Context, logData model.WorkoutLog) (*model.WorkoutLog, error) {
+	if logData.ID == "" {
+		logData.ID = primitive.NewObjectID().Hex()
 	}
 
-	oid, err := primitive.ObjectIDFromHex(log.ID)
+	oid, err := primitive.ObjectIDFromHex(logData.ID)
 	if err != nil {
 		return nil, fmt.Errorf("invalid id format: %w", err)
 	}
@@ -34,7 +35,7 @@ func (r *MongoWorkoutRepository) Create(ctx context.Context, log model.WorkoutLo
 	// Create a separate struct or map to ensure _id is inserted as ObjectID
 	// We can use a map to avoid defining a new struct if we trust the model fields match bson tags
 	// But model.WorkoutLog has `bson:"_id,omitempty"` on ID string.
-	// So we can't just pass log.
+	// So we can't just pass logData.
 	// We'll use a map for simplicity or a struct wrapper.
 	// Given the model is complex (nested slices), map might be easier but we need to be careful with types.
 	// Actually, we can just use the model but overwrite _id if we could, but we can't change type of ID field.
@@ -50,13 +51,13 @@ func (r *MongoWorkoutRepository) Create(ctx context.Context, log model.WorkoutLo
 	// Let's try to just use a map for the top level fields.
 	doc := bson.M{
 		"_id":          oid,
-		"userId":       log.UserID,
-		"name":         log.Name,
-		"startTime":    log.StartTime,
-		"endTime":      log.EndTime,
-		"exerciseLogs": log.ExerciseLogs,
-		"locationName": log.LocationName,
-		"generalNotes": log.GeneralNotes,
+		"userId":       logData.UserID,
+		"name":         logData.Name,
+		"startTime":    logData.StartTime,
+		"endTime":      logData.EndTime,
+		"exerciseLogs": logData.ExerciseLogs,
+		"locationName": logData.LocationName,
+		"generalNotes": logData.GeneralNotes,
 	}
 
 	_, err = r.collection.InsertOne(ctx, doc)
@@ -64,7 +65,7 @@ func (r *MongoWorkoutRepository) Create(ctx context.Context, log model.WorkoutLo
 		return nil, fmt.Errorf("failed to insert workout log: %w", err)
 	}
 
-	return &log, nil
+	return &logData, nil
 }
 
 func (r *MongoWorkoutRepository) GetByID(ctx context.Context, id string) (*model.WorkoutLog, error) {
@@ -87,8 +88,9 @@ func (r *MongoWorkoutRepository) GetByID(ctx context.Context, id string) (*model
 	return &log, nil
 }
 
-func (r *MongoWorkoutRepository) ListByUser(ctx context.Context, userID string) ([]*model.WorkoutLog, error) {
-	cursor, err := r.collection.Find(ctx, primitive.M{"userId": userID})
+func (r *MongoWorkoutRepository) ListByUser(ctx context.Context, userID string, limit, offset int) ([]*model.WorkoutLog, error) {
+	opts := options.Find().SetLimit(int64(limit)).SetSkip(int64(offset)).SetSort(bson.D{{Key: "startTime", Value: -1}})
+	cursor, err := r.collection.Find(ctx, primitive.M{"userId": userID}, opts)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list workout logs: %w", err)
 	}

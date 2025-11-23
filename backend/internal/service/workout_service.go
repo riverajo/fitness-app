@@ -30,6 +30,6 @@ func (s *WorkoutService) GetLog(ctx context.Context, id string) (*model.WorkoutL
 }
 
 // ListLogs retrieves all workout logs for a specific user.
-func (s *WorkoutService) ListLogs(ctx context.Context, userID string) ([]*model.WorkoutLog, error) {
-	return s.repo.ListByUser(ctx, userID)
+func (s *WorkoutService) ListLogs(ctx context.Context, userID string, limit, offset int) ([]*model.WorkoutLog, error) {
+	return s.repo.ListByUser(ctx, userID, limit, offset)
 }
