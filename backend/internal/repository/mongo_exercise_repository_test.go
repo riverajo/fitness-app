@@ -90,7 +90,7 @@ func TestMongoExerciseRepository_Search(t *testing.T) {
 	// Search for "Push" as user123
 	// Should find "Push Up" (system) and "Push Press" (user123)
 	// Should NOT find "Push Jerk" (user456)
-	results, err := repo.Search(ctx, &userID, "Push")
+	results, err := repo.Search(ctx, &userID, "Push", 50, 0)
 	assert.NoError(t, err)
 	assert.Len(t, results, 2)
 
@@ -104,7 +104,7 @@ func TestMongoExerciseRepository_Search(t *testing.T) {
 
 	// Search for "Push" as anonymous (nil userID)
 	// Should only find "Push Up"
-	results, err = repo.Search(ctx, nil, "Push")
+	results, err = repo.Search(ctx, nil, "Push", 50, 0)
 	assert.NoError(t, err)
 	assert.Len(t, results, 1)
 	assert.Equal(t, "Push Up", results[0].Name)

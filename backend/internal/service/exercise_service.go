@@ -46,6 +46,6 @@ func (s *ExerciseService) CreateExercise(ctx context.Context, name string, descr
 	return exercise, nil
 }
 
-func (s *ExerciseService) SearchExercises(ctx context.Context, userID *string, query string) ([]*model.UniqueExercise, error) {
-	return s.repo.Search(ctx, userID, query)
+func (s *ExerciseService) SearchExercises(ctx context.Context, userID *string, query string, limit int, offset int) ([]*model.UniqueExercise, error) {
+	return s.repo.Search(ctx, userID, query, limit, offset)
 }

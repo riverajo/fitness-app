@@ -304,8 +304,8 @@ func (r *queryResolver) Me(ctx context.Context) (*internalModel.User, error) {
 	return internalUser, nil
 }
 
-// SearchExercises is the resolver for the searchExercises field.
-func (r *queryResolver) SearchExercises(ctx context.Context, query string) ([]*internalModel.UniqueExercise, error) {
+// UniqueExercises is the resolver for the uniqueExercises field.
+func (r *queryResolver) UniqueExercises(ctx context.Context, query *string, limit *int32, offset *int32) ([]*internalModel.UniqueExercise, error) {
 	// 1. Get UserID from context (optional, but needed to see custom exercises)
 	var userID *string
 	userIDVal := ctx.Value(middleware.UserIDKey)
@@ -314,8 +314,22 @@ func (r *queryResolver) SearchExercises(ctx context.Context, query string) ([]*i
 		userID = &uid
 	}
 
-	// 2. Call Service
-	return r.ExerciseService.SearchExercises(ctx, userID, query)
+	// 2. Handle optional args
+	q := ""
+	if query != nil {
+		q = *query
+	}
+	l := 50
+	if limit != nil {
+		l = int(*limit)
+	}
+	o := 0
+	if offset != nil {
+		o = int(*offset)
+	}
+
+	// 3. Call Service
+	return r.ExerciseService.SearchExercises(ctx, userID, q, l, o)
 }
 
 // IsCustom is the resolver for the isCustom field.

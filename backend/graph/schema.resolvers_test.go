@@ -345,7 +345,7 @@ func TestCreateUniqueExercise(t *testing.T) {
 	exerciseRepo.AssertExpectations(t)
 }
 
-func TestSearchExercises(t *testing.T) {
+func TestUniqueExercises(t *testing.T) {
 	userRepo := new(repository.MockUserRepository)
 	workoutRepo := new(repository.MockWorkoutRepository)
 	exerciseRepo := new(repository.MockExerciseRepository)
@@ -358,9 +358,13 @@ func TestSearchExercises(t *testing.T) {
 		{ID: "ex2", Name: "My Bench", UserID: stringPtr("user123")},
 	}
 
-	exerciseRepo.On("Search", mock.Anything, stringPtr("user123"), "Bench").Return(expectedExercises, nil)
+	// Expect Search with default limit 50 and offset 0
+	exerciseRepo.On("Search", mock.Anything, stringPtr("user123"), "Bench", 50, 0).Return(expectedExercises, nil)
 
-	exercises, err := resolver.Query().SearchExercises(ctx, "Bench")
+	query := "Bench"
+	limit := int32(50)
+	offset := int32(0)
+	exercises, err := resolver.Query().UniqueExercises(ctx, &query, &limit, &offset)
 
 	require.NoError(t, err)
 	require.Len(t, exercises, 2)

@@ -23,8 +23,8 @@
     let toFailure = false;
 
     const searchExercisesQuery = gql`
-        query SearchExercises($query: String!) {
-            searchExercises(query: $query) {
+        query SearchUniqueExercises($query: String) {
+            uniqueExercises(query: $query, limit: 10) {
                 id
                 name
                 description
@@ -46,7 +46,7 @@
         if (!searchQuery) return;
         const result = await client.query(searchExercisesQuery, { query: searchQuery }).toPromise();
         if (result.data) {
-            searchResults = result.data.searchExercises;
+            searchResults = result.data.uniqueExercises;
         }
     }
 

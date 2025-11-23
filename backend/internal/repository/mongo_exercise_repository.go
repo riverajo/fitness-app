@@ -52,20 +52,30 @@ func (r *MongoExerciseRepository) Create(ctx context.Context, exercise *model.Un
 	return nil
 }
 
-func (r *MongoExerciseRepository) Search(ctx context.Context, userID *string, query string) ([]*model.UniqueExercise, error) {
-	// Filter: (userId == nil OR userId == currentUserId) AND name matches query
-	filter := bson.M{
-		"name": bson.M{"$regex": query, "$options": "i"},
+func (r *MongoExerciseRepository) Search(ctx context.Context, userID *string, query string, limit int, offset int) ([]*model.UniqueExercise, error) {
+	// Filter: (userId == nil OR userId == currentUserId) AND name matches query (if provided)
+	filter := bson.M{}
+
+	if query != "" {
+		filter["name"] = bson.M{"$regex": query, "$options": "i"}
 	}
 
 	userFilter := bson.A{bson.M{"userId": nil}} // System exercises
 	if userID != nil {
 		userFilter = append(userFilter, bson.M{"userId": *userID})
 	}
+	// If filter is empty so far, just use $or. If it has name, use $and with $or.
+	// Actually, we can just add $or to the top level map, MongoDB handles implicit AND.
 	filter["$or"] = userFilter
 
 	// Limit results to prevent overload
-	opts := options.Find().SetLimit(50)
+	if limit <= 0 {
+		limit = 50
+	}
+	if offset < 0 {
+		offset = 0
+	}
+	opts := options.Find().SetLimit(int64(limit)).SetSkip(int64(offset))
 
 	cursor, err := r.collection.Find(ctx, filter, opts)
 	if err != nil {

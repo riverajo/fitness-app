@@ -77,8 +77,8 @@ func (m *MockExerciseRepository) Create(ctx context.Context, exercise *model.Uni
 	return args.Error(0)
 }
 
-func (m *MockExerciseRepository) Search(ctx context.Context, userID *string, query string) ([]*model.UniqueExercise, error) {
-	args := m.Called(ctx, userID, query)
+func (m *MockExerciseRepository) Search(ctx context.Context, userID *string, query string, limit int, offset int) ([]*model.UniqueExercise, error) {
+	args := m.Called(ctx, userID, query, limit, offset)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}

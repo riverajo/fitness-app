@@ -134,7 +134,7 @@ extend type Query {
 	me: User
 
 	# Search for exercises (System + User's custom exercises)
-	searchExercises(query: String!): [UniqueExercise!]!
+	uniqueExercises(query: String, limit: Int = 50, offset: Int = 0): [UniqueExercise!]!
 }
 
 # --- UNIQUE EXERCISE TYPES ---

@@ -31,7 +31,7 @@
         if (result.error) {
             error = result.error.message;
         } else {
-            goto('/dashboard');
+            goto('/exercises');
         }
     }
 </script>
