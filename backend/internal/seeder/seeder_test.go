@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -158,5 +159,44 @@ func TestSeedSystemExercises(t *testing.T) {
 		err = testDB.Collection(MetadataCollection).FindOne(ctx, bson.M{"_id": "system_exercises_version"}).Decode(&metadata)
 		require.NoError(t, err)
 		assert.Equal(t, 2, metadata.Version)
+	})
+
+	t.Run("Handles concurrent locking", func(t *testing.T) {
+		require.NoError(t, testDB.Drop(ctx))
+
+		// Manually acquire lock
+		_, err := testDB.Collection(LocksCollection).InsertOne(ctx, bson.M{
+			"_id":       LockID,
+			"createdAt": time.Now(),
+		})
+		require.NoError(t, err)
+
+		// Try to seed (should fail/skip due to lock)
+		data := SystemExercisesData{
+			Version: 1,
+			Exercises: []SystemExercise{
+				{Name: "Push Up", Description: "Basic push up", Category: "Strength"},
+			},
+		}
+		err = SeedSystemExercises(ctx, testDB, createTempJSON(t, data))
+		require.NoError(t, err) // Should return nil (no error, just skipped)
+
+		// Verify seeding did NOT happen
+		count, err := testDB.Collection(ExercisesCollection).CountDocuments(ctx, bson.M{})
+		require.NoError(t, err)
+		assert.Equal(t, int64(0), count)
+
+		// Release lock
+		_, err = testDB.Collection(LocksCollection).DeleteOne(ctx, bson.M{"_id": LockID})
+		require.NoError(t, err)
+
+		// Try to seed again (should succeed)
+		err = SeedSystemExercises(ctx, testDB, createTempJSON(t, data))
+		require.NoError(t, err)
+
+		// Verify seeding happened
+		count, err = testDB.Collection(ExercisesCollection).CountDocuments(ctx, bson.M{})
+		require.NoError(t, err)
+		assert.Equal(t, int64(1), count)
 	})
 }
