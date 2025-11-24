@@ -1,6 +1,5 @@
 <script lang="ts">
     import { gql, getContextClient, queryStore } from '@urql/svelte';
-    import { page } from '$app/stores';
 
     const client = getContextClient();
 

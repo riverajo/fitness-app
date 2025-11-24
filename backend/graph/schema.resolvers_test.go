@@ -5,8 +5,6 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/99designs/gqlgen/client"
-	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/riverajo/fitness-app/backend/graph/model"
 	"github.com/riverajo/fitness-app/backend/internal/middleware"
 	internalModel "github.com/riverajo/fitness-app/backend/internal/model"
@@ -15,14 +13,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/bcrypt"
 )
-
-// --- Test Helpers ---
-
-func createTestClient(userRepo *repository.MockUserRepository, workoutRepo *repository.MockWorkoutRepository, exerciseRepo *repository.MockExerciseRepository) *client.Client {
-	resolver := NewResolver(userRepo, workoutRepo, exerciseRepo)
-	srv := handler.NewDefaultServer(NewExecutableSchema(Config{Resolvers: resolver}))
-	return client.New(srv)
-}
 
 // --- Tests ---
 
