@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
 	"os"
@@ -17,6 +18,7 @@ import (
 	"github.com/riverajo/fitness-app/backend/internal/db"
 	"github.com/riverajo/fitness-app/backend/internal/middleware"
 	"github.com/riverajo/fitness-app/backend/internal/repository"
+	"github.com/riverajo/fitness-app/backend/internal/seeder"
 )
 
 const defaultPort = "8080"
@@ -31,6 +33,12 @@ func main() {
 	}
 
 	database := client.Database("fitness_db")
+
+	// Seed System Exercises
+	if err := seeder.SeedSystemExercises(context.Background(), database, "data/system_exercises.json"); err != nil {
+		log.Printf("Warning: Failed to seed system exercises: %v", err)
+		// We don't fatal here because the server should still run even if seeding fails
+	}
 
 	// Initialize Repositories
 	userRepo := repository.NewMongoUserRepository(database)

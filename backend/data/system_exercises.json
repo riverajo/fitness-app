@@ -1,0 +1,120 @@
+{
+    "version": 2,
+    "exercises": [
+        {
+            "name": "Bench Press",
+            "description": "A compound exercise that targets the chest, shoulders, and triceps.",
+            "category": "Strength"
+        },
+        {
+            "name": "Squat",
+            "description": "A compound exercise that targets the quadriceps, hamstrings, and glutes.",
+            "category": "Strength"
+        },
+        {
+            "name": "Deadlift",
+            "description": "A compound exercise that targets the entire posterior chain.",
+            "category": "Strength"
+        },
+        {
+            "name": "Overhead Press",
+            "description": "A compound exercise that targets the shoulders and triceps.",
+            "category": "Strength"
+        },
+        {
+            "name": "Pull Up",
+            "description": "A compound exercise that targets the back and biceps.",
+            "category": "Strength"
+        },
+        {
+            "name": "Dumbbell Row",
+            "description": "A compound exercise that targets the back and biceps.",
+            "category": "Strength"
+        },
+        {
+            "name": "Lunges",
+            "description": "A unilateral leg exercise.",
+            "category": "Strength"
+        },
+        {
+            "name": "Plank",
+            "description": "An isometric core exercise.",
+            "category": "Core"
+        },
+        {
+            "name": "Lateral Raises",
+            "description": "An isolation exercise for the side deltoids.",
+            "category": "Strength"
+        },
+        {
+            "name": "Romanian Deadlift",
+            "description": "A deadlift variation focusing on the hamstrings and glutes.",
+            "category": "Strength"
+        },
+        {
+            "name": "Lat Pulldown",
+            "description": "A machine exercise targeting the latissimus dorsi.",
+            "category": "Strength"
+        },
+        {
+            "name": "Bicep Curl",
+            "description": "An isolation exercise for the biceps.",
+            "category": "Strength"
+        },
+        {
+            "name": "Incline Bench Press",
+            "description": "A bench press variation targeting the upper chest.",
+            "category": "Strength"
+        },
+        {
+            "name": "Decline Bench Press",
+            "description": "A bench press variation targeting the lower chest.",
+            "category": "Strength"
+        },
+        {
+            "name": "Cable Triceps Pushdown",
+            "description": "An isolation exercise for the triceps using a cable machine.",
+            "category": "Strength"
+        },
+        {
+            "name": "Cable Crunch",
+            "description": "A weighted core exercise using a cable machine.",
+            "category": "Core"
+        },
+        {
+            "name": "Suitcase Carry",
+            "description": "A loaded carry exercise for core stability and grip strength.",
+            "category": "Core"
+        },
+        {
+            "name": "Leg Press",
+            "description": "A machine exercise targeting the quadriceps, hamstrings, and glutes.",
+            "category": "Strength"
+        },
+        {
+            "name": "Leg Extension",
+            "description": "An isolation exercise for the quadriceps.",
+            "category": "Strength"
+        },
+        {
+            "name": "Leg Curl",
+            "description": "An isolation exercise for the hamstrings.",
+            "category": "Strength"
+        },
+        {
+            "name": "Face Pull",
+            "description": "A cable exercise targeting the rear deltoids and rotator cuff.",
+            "category": "Strength"
+        },
+        {
+            "name": "Hammer Curl",
+            "description": "A bicep curl variation targeting the brachialis and forearms.",
+            "category": "Strength"
+        },
+        {
+            "name": "Tricep Dips",
+            "description": "A bodyweight exercise targeting the triceps and chest.",
+            "category": "Strength"
+        }
+    ]
+}
