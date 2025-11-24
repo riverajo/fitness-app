@@ -65,6 +65,7 @@ test('user can view workout details', async ({ page }) => {
     // 5. Verify Details Page
     await expect(page.locator(`h1:has-text("${workoutName}")`)).toBeVisible();
     await expect(page.locator(`text=${exerciseName}`)).toBeVisible();
-    await expect(page.locator('text=12')).toBeVisible(); // Reps
-    await expect(page.locator('text=60')).toBeVisible(); // Weight
+    // Use specific cell locators to avoid ambiguity with date/time text
+    await expect(page.getByRole('cell', { name: '12', exact: true })).toBeVisible(); // Reps
+    await expect(page.getByRole('cell', { name: '60', exact: true })).toBeVisible(); // Weight
 });

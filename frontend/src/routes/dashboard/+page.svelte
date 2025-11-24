@@ -1,5 +1,6 @@
 <script lang="ts">
     import { gql, getContextClient, queryStore } from '@urql/svelte';
+    import { Heading, Button, Card, P, Alert, Spinner } from 'flowbite-svelte';
 
     const client = getContextClient();
 
@@ -56,64 +57,66 @@
 
 <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
     {#if $meQuery.fetching}
-        <p>Loading...</p>
+        <div class="text-center"><Spinner /></div>
     {:else if $meQuery.error}
-        <p class="text-red-600">Error: {$meQuery.error.message}</p>
+        <Alert color="red">Error: {$meQuery.error.message}</Alert>
     {:else if $meQuery.data?.me}
-        <h1 class="text-3xl font-bold tracking-tight text-gray-900">Dashboard</h1>
-        <div class="mt-6 flex gap-4">
-            <p class="text-lg text-gray-700">Welcome, <span class="font-semibold">{$meQuery.data.me.email}</span>!</p>
+        <Heading tag="h1" class="mb-4">Dashboard</Heading>
+        <div class="mt-6 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+            <P class="text-lg">Welcome, <span class="font-semibold">{$meQuery.data.me.email}</span>!</P>
             <div class="flex gap-2">
-                <a href="/workouts/new" class="rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600">Log Workout</a>
-                <a href="/exercises/new" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Create Exercise</a>
+                <Button href="/workouts/new" color="green">Log Workout</Button>
+                <Button href="/exercises/new" color="purple">Create Exercise</Button>
             </div>
         </div>
 
         <div class="mt-8">
-            <h2 class="text-2xl font-bold tracking-tight text-gray-900">Past Workouts</h2>
+            <Heading tag="h2" class="mb-4 text-xl">Past Workouts</Heading>
             {#if $workoutsQuery.fetching}
-                <p>Loading workouts...</p>
+                <div class="text-center"><Spinner /></div>
             {:else if $workoutsQuery.error}
-                <p class="text-red-600">Error loading workouts: {$workoutsQuery.error.message}</p>
+                <Alert color="red">Error loading workouts: {$workoutsQuery.error.message}</Alert>
             {:else if $workoutsQuery.data?.listWorkoutLogs}
                 <div class="mt-4 space-y-4">
                     {#each $workoutsQuery.data.listWorkoutLogs as workout}
-                        <div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+                        <Card href="/workouts/{workout.id}" class="w-full max-w-none hover:bg-gray-100 dark:hover:bg-gray-700">
                             <div class="flex items-center justify-between">
-                                <h3 class="text-lg font-medium text-gray-900">
-                                    <a href="/workouts/{workout.id}" class="hover:underline focus:outline-none">
-                                        {workout.name}
-                                    </a>
-                                </h3>
-                                <p class="text-sm text-gray-500">{new Date(workout.startTime).toLocaleDateString()}</p>
+                                <h5 class="text-xl font-bold tracking-tight text-gray-900 dark:text-white">
+                                    {workout.name}
+                                </h5>
+                                <span class="text-sm text-gray-500 dark:text-gray-400">
+                                    {new Date(workout.startTime).toLocaleDateString()}
+                                </span>
                             </div>
-                            <p class="mt-2 text-sm text-gray-600">Exercises: {workout.exerciseLogs.length}</p>
-                        </div>
+                            <p class="mt-2 font-normal text-gray-700 dark:text-gray-400">
+                                Exercises: {workout.exerciseLogs.length}
+                            </p>
+                        </Card>
                     {/each}
                     {#if $workoutsQuery.data.listWorkoutLogs.length === 0}
-                        <p class="text-gray-500">No workouts found.</p>
+                        <P class="text-gray-500">No workouts found.</P>
                     {/if}
                 </div>
 
                 <div class="mt-6 flex justify-between">
-                    <button
-                        on:click={prevPage}
+                    <Button
+                        onclick={prevPage}
                         disabled={offset === 0}
-                        class="rounded-md bg-gray-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-gray-500 disabled:opacity-50"
+                        color="dark"
                     >
                         Previous
-                    </button>
-                    <button
-                        on:click={nextPage}
+                    </Button>
+                    <Button
+                        onclick={nextPage}
                         disabled={$workoutsQuery.data.listWorkoutLogs.length < limit}
-                        class="rounded-md bg-gray-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-gray-500 disabled:opacity-50"
+                        color="dark"
                     >
                         Next
-                    </button>
+                    </Button>
                 </div>
             {/if}
         </div>
     {:else}
-        <p>Please log in.</p>
+        <P>Please log in.</P>
     {/if}
 </div>

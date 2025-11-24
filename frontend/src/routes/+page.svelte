@@ -1,6 +1,7 @@
 <script lang="ts">
     import { gql, getContextClient } from '@urql/svelte';
     import { goto } from '$app/navigation';
+    import { Card, Button, Label, Input, Checkbox, Alert } from 'flowbite-svelte';
 
     let email = $state('');
     let password = $state('');
@@ -33,12 +34,6 @@
             if (result.error) {
                 error = result.error.message;
             } else if (result.data?.login?.success) {
-                // Login successful
-                // For now, just show a success message or maybe redirect to a dashboard if we had one.
-                // Since we don't have a dashboard yet, we can just clear the error and maybe show a success state.
-                // Or we could redirect to the same page to refresh state if we were checking for auth.
-                // But the requirements just said "simple login form".
-                // Let's just log it for now and maybe show a success message in the UI.
                 alert('Login successful!');
             } else {
                 error = result.data?.login?.message || 'Login failed';
@@ -52,48 +47,34 @@
     }
 </script>
 
-<div class="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
-    <div class="w-full max-w-md space-y-8">
-        <div>
-            <h2 class="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900">Sign in to your account</h2>
-        </div>
+<div class="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 dark:bg-gray-900 sm:px-6 lg:px-8">
+    <Card class="w-full max-w-md">
+        <h2 class="text-center text-2xl font-bold text-gray-900 dark:text-white">Sign in to your account</h2>
         <form class="mt-8 space-y-6" onsubmit={handleSubmit}>
-            <div class="-space-y-px rounded-md shadow-sm">
+            <div class="space-y-4">
                 <div>
-                    <label for="email-address" class="sr-only">Email address</label>
-                    <input id="email-address" name="email" type="email" autocomplete="email" required class="relative block w-full rounded-t-md border-0 py-1.5 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" placeholder="Email address" bind:value={email}>
+                    <Label for="email" class="mb-2">Email address</Label>
+                    <Input id="email" name="email" type="email" placeholder="name@company.com" required bind:value={email} />
                 </div>
                 <div>
-                    <label for="password" class="sr-only">Password</label>
-                    <input id="password" name="password" type="password" autocomplete="current-password" required class="relative block w-full rounded-b-md border-0 py-1.5 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" placeholder="Password" bind:value={password}>
+                    <Label for="password" class="mb-2">Password</Label>
+                    <Input id="password" name="password" type="password" placeholder="••••••••" required bind:value={password} />
                 </div>
             </div>
 
             {#if error}
-                <div class="rounded-md bg-red-50 p-4">
-                    <div class="flex">
-                        <div class="ml-3">
-                            <h3 class="text-sm font-medium text-red-800">{error}</h3>
-                        </div>
-                    </div>
-                </div>
+                <Alert color="red" class="mt-4">
+                    <span class="font-medium">Error!</span> {error}
+                </Alert>
             {/if}
 
-            <div>
-                <button type="submit" disabled={loading} class="group relative flex w-full justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:opacity-50">
-                    {#if loading}
-                        Signing in...
-                    {:else}
-                        Sign in
-                    {/if}
-                </button>
-            </div>
+            <Button type="submit" class="w-full" disabled={loading}>
+                {#if loading}Signing in...{:else}Sign in{/if}
+            </Button>
             
-            <div class="text-sm text-center">
-                <a href="/register" class="font-medium text-indigo-600 hover:text-indigo-500">
-                    Don't have an account? Register
-                </a>
+            <div class="text-sm text-center font-medium text-gray-500 dark:text-gray-300">
+                Don't have an account? <a href="/register" class="text-primary-700 hover:underline dark:text-primary-500">Register</a>
             </div>
         </form>
-    </div>
+    </Card>
 </div>

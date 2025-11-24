@@ -2,6 +2,7 @@
     import { gql, getContextClient, queryStore } from '@urql/svelte';
     import { page } from '$app/stores';
     import { goto } from '$app/navigation';
+    import { Heading, Button, Input, Card, Badge, Spinner, Alert } from 'flowbite-svelte';
 
     const client = getContextClient();
 
@@ -46,65 +47,61 @@
 
 <div class="container mx-auto p-4 max-w-2xl">
     <div class="flex justify-between items-center mb-6">
-        <h1 class="text-2xl font-bold">Exercises</h1>
-        <a href="/exercises/new" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">
-            Create Exercise
-        </a>
+        <Heading tag="h1">Exercises</Heading>
+        <Button href="/exercises/new" color="blue">Create Exercise</Button>
     </div>
 
     <div class="mb-6 flex gap-2">
-        <input
-            type="text"
-            bind:value={searchInput}
-            placeholder="Search exercises..."
-            class="flex-1 p-2 border rounded bg-gray-800 border-gray-700 text-white"
-            onkeydown={(e) => e.key === 'Enter' && handleSearch()}
-        />
-        <button onclick={handleSearch} class="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-600">
-            Search
-        </button>
+        <div class="flex-1">
+            <Input 
+                bind:value={searchInput} 
+                placeholder="Search exercises..." 
+                onkeydown={(e) => e.key === 'Enter' && handleSearch()}
+            />
+        </div>
+        <Button onclick={handleSearch} color="dark">Search</Button>
     </div>
 
     {#if $exercisesQuery.fetching}
-        <div class="text-center py-8">Loading...</div>
+        <div class="text-center py-8"><Spinner /></div>
     {:else if $exercisesQuery.error}
-        <div class="text-center py-8 text-red-500">Error: {$exercisesQuery.error.message}</div>
+        <Alert color="red">Error: {$exercisesQuery.error.message}</Alert>
     {:else if $exercisesQuery.data?.uniqueExercises.length === 0}
         <div class="text-center py-8 text-gray-400">No exercises found.</div>
     {:else}
         <div class="space-y-2">
             {#each $exercisesQuery.data?.uniqueExercises || [] as exercise}
-                <div class="p-4 bg-gray-800 rounded border border-gray-700 flex justify-between items-center">
+                <Card class="w-full max-w-none flex-row justify-between items-center p-4">
                     <div>
-                        <h3 class="font-semibold text-lg">{exercise.name}</h3>
+                        <h3 class="font-semibold text-lg text-gray-900 dark:text-white">{exercise.name}</h3>
                         {#if exercise.description}
-                            <p class="text-sm text-gray-400">{exercise.description}</p>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">{exercise.description}</p>
                         {/if}
                     </div>
                     {#if exercise.isCustom}
-                        <span class="text-xs bg-purple-900 text-purple-200 px-2 py-1 rounded">Custom</span>
+                        <Badge color="purple">Custom</Badge>
                     {:else}
-                        <span class="text-xs bg-gray-700 text-gray-300 px-2 py-1 rounded">System</span>
+                        <Badge color="gray">System</Badge>
                     {/if}
-                </div>
+                </Card>
             {/each}
         </div>
 
-        <div class="mt-6 flex justify-center gap-4">
-            <button
+        <div class="mt-6 flex justify-center gap-4 items-center">
+            <Button
                 disabled={currentPage <= 1}
                 onclick={() => handlePageChange(currentPage - 1)}
-                class="px-4 py-2 bg-gray-700 rounded disabled:opacity-50 hover:bg-gray-600"
+                color="dark"
             >
                 Previous
-            </button>
-            <span class="py-2">Page {currentPage}</span>
-            <button
+            </Button>
+            <span class="py-2 text-gray-700 dark:text-gray-300">Page {currentPage}</span>
+            <Button
                 onclick={() => handlePageChange(currentPage + 1)}
-                class="px-4 py-2 bg-gray-700 rounded hover:bg-gray-600"
+                color="dark"
             >
                 Next
-            </button>
+            </Button>
         </div>
     {/if}
 </div>
