@@ -1,3 +1,6 @@
+---
+description: Strategy for backend API testing using k6.
+---
 # 002: API Testing Strategy
 
 ## Status

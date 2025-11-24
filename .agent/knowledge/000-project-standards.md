@@ -1,3 +1,6 @@
+---
+description: Core project standards and rules for frontend and backend.
+---
 # Project Standards
 
 ## Frontend

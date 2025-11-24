@@ -1,3 +1,6 @@
+---
+description: ADR and guide for the Flowbite-Svelte frontend component library.
+---
 # ADR 001: Frontend Component Library
 
 ## Status

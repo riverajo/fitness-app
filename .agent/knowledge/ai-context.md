@@ -1,3 +1,6 @@
+---
+description: Context and patterns for AI agents working on this project.
+---
 # AI Context: Flowbite-Svelte
 
 ## Overview

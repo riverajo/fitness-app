@@ -1,3 +1,6 @@
+---
+description: Overview of backend architecture, patterns, and workflows.
+---
 # Fitness App Backend Architecture
 
 ## Core Pattern: gqlgen Auto-Bind
