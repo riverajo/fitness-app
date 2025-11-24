@@ -3,7 +3,7 @@
 	import favicon from '$lib/assets/favicon.svg';
 	import { setContextClient } from '@urql/svelte';
 	import { client } from '$lib/client';
-	import { Navbar, NavBrand, NavHamburger, NavUl, NavLi } from 'flowbite-svelte';
+	import { Navbar, NavBrand, NavHamburger, NavUl, NavLi, DarkMode } from 'flowbite-svelte';
 	import { page } from '$app/stores';
 
 	setContextClient(client);
@@ -20,7 +20,10 @@
 		<img src={favicon} class="mr-3 h-6 sm:h-9" alt="Fitness App Logo" />
 		<span class="self-center whitespace-nowrap text-xl font-semibold dark:text-white">Fitness App</span>
 	</NavBrand>
-	<NavHamburger />
+	<div class="flex items-center md:order-2">
+		<DarkMode />
+		<NavHamburger class="ml-3" />
+	</div>
 	<NavUl>
 		<NavLi href="/dashboard" active={$page.url.pathname === '/dashboard'}>Dashboard</NavLi>
 		<NavLi href="/exercises" active={$page.url.pathname.startsWith('/exercises')}>Exercises</NavLi>

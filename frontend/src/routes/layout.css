@@ -2,3 +2,5 @@
 @plugin '@tailwindcss/forms';
 @plugin '@tailwindcss/typography';
 @source "../../node_modules/flowbite-svelte";
+
+@variant dark (&:where(.dark, .dark *));
