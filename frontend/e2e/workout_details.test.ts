@@ -22,7 +22,7 @@ test('user can view workout details', async ({ page }) => {
 
     // 3. Create a workout
     await page.click('text=Log Workout');
-    await expect(page).toHaveURL('/dashboard/create-workout');
+    await expect(page).toHaveURL('/workouts/new');
 
     const workoutName = `Details Workout ${Date.now()}`;
     await page.fill('input[id="name"]', workoutName);

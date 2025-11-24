@@ -31,7 +31,7 @@ test('user can create a workout log', async ({ page }) => {
 
     // 3. Create a workout log
     await page.click('text=Log Workout');
-    await expect(page).toHaveURL('/dashboard/create-workout');
+    await expect(page).toHaveURL('/workouts/new');
 
     const workoutName = 'My E2E Workout';
     await page.fill('input[id="name"]', workoutName);

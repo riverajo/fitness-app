@@ -24,7 +24,7 @@ test('user can view past workouts with pagination', async ({ page }) => {
     // We need at least 6 workouts.
     for (let i = 1; i <= 6; i++) {
         await page.click('text=Log Workout');
-        await expect(page).toHaveURL('/dashboard/create-workout');
+        await expect(page).toHaveURL('/workouts/new');
 
         const workoutName = `Workout ${i}`;
         await page.fill('input[id="name"]', workoutName);

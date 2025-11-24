@@ -65,7 +65,7 @@
         <div class="mt-6 flex gap-4">
             <p class="text-lg text-gray-700">Welcome, <span class="font-semibold">{$meQuery.data.me.email}</span>!</p>
             <div class="flex gap-2">
-                <a href="/dashboard/create-workout" class="rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600">Log Workout</a>
+                <a href="/workouts/new" class="rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600">Log Workout</a>
                 <a href="/exercises/new" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Create Exercise</a>
             </div>
         </div>
