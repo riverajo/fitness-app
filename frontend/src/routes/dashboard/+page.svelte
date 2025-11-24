@@ -81,7 +81,11 @@
                     {#each $workoutsQuery.data.listWorkoutLogs as workout}
                         <div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
                             <div class="flex items-center justify-between">
-                                <h3 class="text-lg font-medium text-gray-900">{workout.name}</h3>
+                                <h3 class="text-lg font-medium text-gray-900">
+                                    <a href="/workouts/{workout.id}" class="hover:underline focus:outline-none">
+                                        {workout.name}
+                                    </a>
+                                </h3>
                                 <p class="text-sm text-gray-500">{new Date(workout.startTime).toLocaleDateString()}</p>
                             </div>
                             <p class="mt-2 text-sm text-gray-600">Exercises: {workout.exerciseLogs.length}</p>
