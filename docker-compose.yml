@@ -33,14 +33,6 @@ services:
       timeout: 5s
       retries: 10
       start_period: 5s
-  # 3. Simple Web GUI for MongoDB
-  adminer:
-    image: adminer
-    container_name: fitness_adminer
-    ports:
-      - "8088:8080"
-    depends_on:
-      - db
   frontend:
     build:
       context: ./frontend
