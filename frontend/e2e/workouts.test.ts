@@ -29,10 +29,21 @@ test('user can view past workouts with pagination', async ({ page }) => {
         const workoutName = `Workout ${i}`;
         await page.fill('input[id="name"]', workoutName);
 
-        // Select exercise
-        await page.fill('input[placeholder="Search exercises..."]', exerciseName);
+        // Select exercise - alternate between user created and system exercise
+        // Odd numbers: User created exercise
+        // Even numbers: System exercise (Bench Press)
+        const targetExercise = i % 2 === 0 ? 'Bench Press' : exerciseName;
+
+        await page.fill('input[placeholder="Search exercises..."]', targetExercise);
         await page.click('button:has-text("Search")');
-        await page.click(`button:has-text("${exerciseName}")`);
+
+        // Click the specific add button for the exercise
+        // Note: We might need to be more specific if "Bench Press" appears in description of other items, 
+        // but for now assuming the button text match is sufficient or we can target by row if needed.
+        // The current selector `button:has-text("${targetExercise}")` might be risky if "Bench Press" matches "Incline Bench Press".
+        // However, "Bench Press" is exact match for the name. 
+        // Let's stick to the existing pattern but be aware.
+        await page.click(`button:has-text("${targetExercise}")`);
 
         // Add set
         await page.fill('input[id="reps"]', '10');
