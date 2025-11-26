@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"embed"
+	"io/fs"
 	"log"
 	"net/http"
 	"os"
@@ -19,9 +21,13 @@ import (
 	"github.com/riverajo/fitness-app/backend/internal/middleware"
 	"github.com/riverajo/fitness-app/backend/internal/repository"
 	"github.com/riverajo/fitness-app/backend/internal/seeder"
+	"github.com/riverajo/fitness-app/backend/internal/spa"
 )
 
 const defaultPort = "8080"
+
+//go:embed public
+var publicFS embed.FS
 
 func main() {
 
@@ -117,8 +123,32 @@ func main() {
 		w.Write([]byte("ready"))
 	})
 
-	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
-	http.Handle("/query", c.Handler(finalHandler))
+	// Determine environment
+	appEnv := os.Getenv("APP_ENV")
+	if appEnv == "production" {
+		// Production: Serve Embedded SPA + API
+		log.Println("Running in PRODUCTION mode (Single Binary)")
+
+		// Sub-filesystem for "public" folder
+		publicFiles, err := fs.Sub(publicFS, "public")
+		if err != nil {
+			log.Fatalf("Failed to create sub-filesystem for public: %v", err)
+		}
+
+		// Handle GraphQL API
+		http.Handle("/query", c.Handler(finalHandler))
+
+		// Handle SPA for everything else
+		spaHandler := spa.NewHandler(publicFiles, "index.html")
+		http.Handle("/", spaHandler)
+
+	} else {
+		// Development: API Only (Playground enabled)
+		log.Println("Running in DEVELOPMENT mode")
+
+		http.Handle("/", playground.Handler("GraphQL playground", "/query"))
+		http.Handle("/query", c.Handler(finalHandler))
+	}
 
 	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
 	log.Fatal(http.ListenAndServe(":"+port, nil))
