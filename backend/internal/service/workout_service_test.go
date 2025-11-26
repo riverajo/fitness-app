@@ -13,6 +13,7 @@ type MockWorkoutRepository struct {
 	CreateFunc     func(ctx context.Context, log model.WorkoutLog) (*model.WorkoutLog, error)
 	GetByIDFunc    func(ctx context.Context, id string) (*model.WorkoutLog, error)
 	ListByUserFunc func(ctx context.Context, userID string, limit, offset int) ([]*model.WorkoutLog, error)
+	UpdateFunc     func(ctx context.Context, log model.WorkoutLog) (*model.WorkoutLog, error)
 }
 
 func (m *MockWorkoutRepository) Create(ctx context.Context, log model.WorkoutLog) (*model.WorkoutLog, error) {
@@ -34,6 +35,13 @@ func (m *MockWorkoutRepository) ListByUser(ctx context.Context, userID string, l
 		return m.ListByUserFunc(ctx, userID, limit, offset)
 	}
 	return nil, nil
+}
+
+func (m *MockWorkoutRepository) Update(ctx context.Context, log model.WorkoutLog) (*model.WorkoutLog, error) {
+	if m.UpdateFunc != nil {
+		return m.UpdateFunc(ctx, log)
+	}
+	return &log, nil
 }
 
 func TestCreateLog(t *testing.T) {

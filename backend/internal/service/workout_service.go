@@ -33,3 +33,8 @@ func (s *WorkoutService) GetLog(ctx context.Context, id string) (*model.WorkoutL
 func (s *WorkoutService) ListLogs(ctx context.Context, userID string, limit, offset int) ([]*model.WorkoutLog, error) {
 	return s.repo.ListByUser(ctx, userID, limit, offset)
 }
+
+// UpdateLog updates an existing WorkoutLog.
+func (s *WorkoutService) UpdateLog(ctx context.Context, log model.WorkoutLog) (*model.WorkoutLog, error) {
+	return s.repo.Update(ctx, log)
+}

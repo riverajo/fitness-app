@@ -30,6 +30,16 @@ input CreateWorkoutLogInput {
 	generalNotes: String
 }
 
+input UpdateWorkoutLogInput {
+	id: ID!
+	name: String
+	startTime: Time
+	endTime: Time
+	exerciseLogs: [ExerciseLogInput!]
+	locationName: String
+	generalNotes: String
+}
+
 # --- OBJECT TYPES (What the Server Returns) ---
 type Set {
 	reps: Int!
@@ -69,6 +79,8 @@ type Query {
 type Mutation {
 	# Create a new workout log
 	createWorkoutLog(input: CreateWorkoutLogInput!): WorkoutLog!
+	# Update an existing workout log
+	updateWorkoutLog(input: UpdateWorkoutLogInput!): WorkoutLog!
 }
 
 # Scalar types for standard data

@@ -70,6 +70,7 @@ type ComplexityRoot struct {
 		Logout               func(childComplexity int) int
 		Register             func(childComplexity int, input model.RegisterInput) int
 		UpdateUser           func(childComplexity int, input model.UpdateUserInput) int
+		UpdateWorkoutLog     func(childComplexity int, input model.UpdateWorkoutLogInput) int
 	}
 
 	Query struct {
@@ -117,6 +118,7 @@ type ExerciseLogResolver interface {
 }
 type MutationResolver interface {
 	CreateWorkoutLog(ctx context.Context, input model.CreateWorkoutLogInput) (*model1.WorkoutLog, error)
+	UpdateWorkoutLog(ctx context.Context, input model.UpdateWorkoutLogInput) (*model1.WorkoutLog, error)
 	Register(ctx context.Context, input model.RegisterInput) (*model.AuthPayload, error)
 	Login(ctx context.Context, input model.LoginInput) (*model.AuthPayload, error)
 	UpdateUser(ctx context.Context, input model.UpdateUserInput) (*model.AuthPayload, error)
@@ -252,6 +254,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.UpdateUser(childComplexity, args["input"].(model.UpdateUserInput)), true
+	case "Mutation.updateWorkoutLog":
+		if e.complexity.Mutation.UpdateWorkoutLog == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateWorkoutLog_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateWorkoutLog(childComplexity, args["input"].(model.UpdateWorkoutLogInput)), true
 
 	case "Query.getUniqueExercise":
 		if e.complexity.Query.GetUniqueExercise == nil {
@@ -437,6 +450,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputRegisterInput,
 		ec.unmarshalInputSetInput,
 		ec.unmarshalInputUpdateUserInput,
+		ec.unmarshalInputUpdateWorkoutLogInput,
 	)
 	first := true
 
@@ -601,6 +615,17 @@ func (ec *executionContext) field_Mutation_updateUser_args(ctx context.Context, 
 	var err error
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNUpdateUserInput2githubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋgraphᚋmodelᚐUpdateUserInput)
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateWorkoutLog_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNUpdateWorkoutLogInput2githubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋgraphᚋmodelᚐUpdateWorkoutLogInput)
 	if err != nil {
 		return nil, err
 	}
@@ -985,6 +1010,63 @@ func (ec *executionContext) fieldContext_Mutation_createWorkoutLog(ctx context.C
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_createWorkoutLog_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_updateWorkoutLog(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_updateWorkoutLog,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Mutation().UpdateWorkoutLog(ctx, fc.Args["input"].(model.UpdateWorkoutLogInput))
+		},
+		nil,
+		ec.marshalNWorkoutLog2ᚖgithubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋinternalᚋmodelᚐWorkoutLog,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_updateWorkoutLog(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_WorkoutLog_id(ctx, field)
+			case "name":
+				return ec.fieldContext_WorkoutLog_name(ctx, field)
+			case "startTime":
+				return ec.fieldContext_WorkoutLog_startTime(ctx, field)
+			case "endTime":
+				return ec.fieldContext_WorkoutLog_endTime(ctx, field)
+			case "exerciseLogs":
+				return ec.fieldContext_WorkoutLog_exerciseLogs(ctx, field)
+			case "locationName":
+				return ec.fieldContext_WorkoutLog_locationName(ctx, field)
+			case "generalNotes":
+				return ec.fieldContext_WorkoutLog_generalNotes(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type WorkoutLog", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_updateWorkoutLog_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -3907,6 +3989,75 @@ func (ec *executionContext) unmarshalInputUpdateUserInput(ctx context.Context, o
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputUpdateWorkoutLogInput(ctx context.Context, obj any) (model.UpdateWorkoutLogInput, error) {
+	var it model.UpdateWorkoutLogInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"id", "name", "startTime", "endTime", "exerciseLogs", "locationName", "generalNotes"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "id":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+			data, err := ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ID = data
+		case "name":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Name = data
+		case "startTime":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("startTime"))
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.StartTime = data
+		case "endTime":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("endTime"))
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.EndTime = data
+		case "exerciseLogs":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("exerciseLogs"))
+			data, err := ec.unmarshalOExerciseLogInput2ᚕᚖgithubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋgraphᚋmodelᚐExerciseLogInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ExerciseLogs = data
+		case "locationName":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("locationName"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.LocationName = data
+		case "generalNotes":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("generalNotes"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.GeneralNotes = data
+		}
+	}
+
+	return it, nil
+}
+
 // endregion **************************** input.gotpl *****************************
 
 // region    ************************** interface.gotpl ***************************
@@ -4060,6 +4211,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "createWorkoutLog":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_createWorkoutLog(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "updateWorkoutLog":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_updateWorkoutLog(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -5196,6 +5354,11 @@ func (ec *executionContext) unmarshalNUpdateUserInput2githubᚗcomᚋriverajoᚋ
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalNUpdateWorkoutLogInput2githubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋgraphᚋmodelᚐUpdateWorkoutLogInput(ctx context.Context, v any) (model.UpdateWorkoutLogInput, error) {
+	res, err := ec.unmarshalInputUpdateWorkoutLogInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNWeightUnit2githubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋgraphᚋmodelᚐWeightUnit(ctx context.Context, v any) (model.WeightUnit, error) {
 	var res model.WeightUnit
 	err := res.UnmarshalGQL(v)
@@ -5547,6 +5710,24 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	return res
 }
 
+func (ec *executionContext) unmarshalOExerciseLogInput2ᚕᚖgithubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋgraphᚋmodelᚐExerciseLogInputᚄ(ctx context.Context, v any) ([]*model.ExerciseLogInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []any
+	vSlice = graphql.CoerceList(v)
+	var err error
+	res := make([]*model.ExerciseLogInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNExerciseLogInput2ᚖgithubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋgraphᚋmodelᚐExerciseLogInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
 func (ec *executionContext) unmarshalOInt2ᚖint32(ctx context.Context, v any) (*int32, error) {
 	if v == nil {
 		return nil, nil
@@ -5580,6 +5761,24 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 	_ = sel
 	_ = ctx
 	res := graphql.MarshalString(*v)
+	return res
+}
+
+func (ec *executionContext) unmarshalOTime2ᚖtimeᚐTime(ctx context.Context, v any) (*time.Time, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := graphql.UnmarshalTime(v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOTime2ᚖtimeᚐTime(ctx context.Context, sel ast.SelectionSet, v *time.Time) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	_ = sel
+	_ = ctx
+	res := graphql.MarshalTime(*v)
 	return res
 }
 

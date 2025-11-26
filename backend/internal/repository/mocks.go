@@ -67,6 +67,14 @@ func (m *MockWorkoutRepository) ListByUser(ctx context.Context, userID string, l
 	return args.Get(0).([]*model.WorkoutLog), args.Error(1)
 }
 
+func (m *MockWorkoutRepository) Update(ctx context.Context, log model.WorkoutLog) (*model.WorkoutLog, error) {
+	args := m.Called(ctx, log)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*model.WorkoutLog), args.Error(1)
+}
+
 // MockExerciseRepository is a mock implementation of ExerciseRepository
 type MockExerciseRepository struct {
 	mock.Mock

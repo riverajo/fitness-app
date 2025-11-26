@@ -77,6 +77,77 @@ func (r *mutationResolver) CreateWorkoutLog(ctx context.Context, input model1.Cr
 	return createdLog, nil
 }
 
+// UpdateWorkoutLog is the resolver for the updateWorkoutLog field.
+func (r *mutationResolver) UpdateWorkoutLog(ctx context.Context, input model1.UpdateWorkoutLogInput) (*internalModel.WorkoutLog, error) {
+	// 1. Get UserID from context
+	userIDVal := ctx.Value(middleware.UserIDKey)
+	if userIDVal == nil {
+		return nil, fmt.Errorf("unauthorized: must be logged in to update a workout log")
+	}
+	userID := userIDVal.(string)
+
+	// 2. Fetch existing log to verify ownership
+	existingLog, err := r.WorkoutService.GetLog(ctx, input.ID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch workout log: %w", err)
+	}
+	if existingLog.UserID != userID {
+		return nil, fmt.Errorf("unauthorized: you do not own this workout log")
+	}
+
+	// 3. Map input to internal model (handling partial updates if needed, but here we replace fields if provided)
+	// Since input fields are pointers (optional), we check if they are non-nil.
+	// For exerciseLogs, if provided, we REPLACE the list.
+
+	updatedLog := *existingLog
+
+	if input.Name != nil {
+		updatedLog.Name = *input.Name
+	}
+	if input.StartTime != nil {
+		updatedLog.StartTime = *input.StartTime
+	}
+	if input.EndTime != nil {
+		updatedLog.EndTime = *input.EndTime
+	}
+	if input.LocationName != nil {
+		updatedLog.LocationName = input.LocationName
+	}
+	if input.GeneralNotes != nil {
+		updatedLog.GeneralNotes = input.GeneralNotes
+	}
+
+	if input.ExerciseLogs != nil {
+		var internalExerciseLogs []*internalModel.ExerciseLog
+		for _, el := range input.ExerciseLogs {
+			var internalSets []*internalModel.Set
+			for _, s := range el.Sets {
+				internalSets = append(internalSets, &internalModel.Set{
+					Reps:      s.Reps,
+					Weight:    s.Weight,
+					Rpe:       s.Rpe,
+					ToFailure: s.ToFailure,
+					Order:     s.Order,
+				})
+			}
+			internalExerciseLogs = append(internalExerciseLogs, &internalModel.ExerciseLog{
+				UniqueExerciseID: el.UniqueExerciseID,
+				Sets:             internalSets,
+				Notes:            el.Notes,
+			})
+		}
+		updatedLog.ExerciseLogs = internalExerciseLogs
+	}
+
+	// 4. Call Service
+	result, err := r.WorkoutService.UpdateLog(ctx, updatedLog)
+	if err != nil {
+		return nil, fmt.Errorf("failed to update workout log: %w", err)
+	}
+
+	return result, nil
+}
+
 // Register is the resolver for the register field.
 func (r *mutationResolver) Register(ctx context.Context, input model1.RegisterInput) (*model1.AuthPayload, error) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)

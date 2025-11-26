@@ -111,3 +111,40 @@ func (r *MongoWorkoutRepository) ListByUser(ctx context.Context, userID string, 
 
 	return logs, nil
 }
+
+func (r *MongoWorkoutRepository) Update(ctx context.Context, logData model.WorkoutLog) (*model.WorkoutLog, error) {
+	oid, err := primitive.ObjectIDFromHex(logData.ID)
+	if err != nil {
+		return nil, fmt.Errorf("invalid id format: %w", err)
+	}
+
+	update := bson.M{
+		"$set": bson.M{
+			"name":         logData.Name,
+			"startTime":    logData.StartTime,
+			"endTime":      logData.EndTime,
+			"exerciseLogs": logData.ExerciseLogs,
+			"locationName": logData.LocationName,
+			"generalNotes": logData.GeneralNotes,
+		},
+	}
+
+	// Ensure we only update if it belongs to the user (though resolver checks too, good to be safe if we passed userId)
+	// But here we just update by ID. The resolver should check ownership before calling this.
+	// Or we can include userId in the filter.
+	filter := primitive.M{"_id": oid}
+	if logData.UserID != "" {
+		filter["userId"] = logData.UserID
+	}
+
+	result, err := r.collection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return nil, fmt.Errorf("failed to update workout log: %w", err)
+	}
+
+	if result.MatchedCount == 0 {
+		return nil, fmt.Errorf("workout log not found or unauthorized")
+	}
+
+	return &logData, nil
+}

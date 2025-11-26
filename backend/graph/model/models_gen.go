@@ -70,6 +70,16 @@ type UpdateUserInput struct {
 	PreferredUnit   *string `json:"preferredUnit,omitempty"`
 }
 
+type UpdateWorkoutLogInput struct {
+	ID           string              `json:"id"`
+	Name         *string             `json:"name,omitempty"`
+	StartTime    *time.Time          `json:"startTime,omitempty"`
+	EndTime      *time.Time          `json:"endTime,omitempty"`
+	ExerciseLogs []*ExerciseLogInput `json:"exerciseLogs,omitempty"`
+	LocationName *string             `json:"locationName,omitempty"`
+	GeneralNotes *string             `json:"generalNotes,omitempty"`
+}
+
 type WeightUnit string
 
 const (

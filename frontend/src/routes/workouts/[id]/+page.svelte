@@ -37,8 +37,9 @@
 </script>
 
 <div class="mx-auto max-w-3xl px-4 py-6 sm:px-6 lg:px-8">
-    <div class="mb-6">
+    <div class="mb-6 flex justify-between items-center">
         <Button color="light" href="/dashboard" size="xs">&larr; Back to Dashboard</Button>
+        <Button color="alternative" href="/workouts/{workoutId}/edit" size="xs">Edit Workout</Button>
     </div>
 
     {#if $workoutQuery.fetching}
