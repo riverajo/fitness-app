@@ -1,6 +1,7 @@
 <script lang="ts">
     import { gql, getContextClient } from '@urql/svelte';
     import { goto } from '$app/navigation';
+    import { onMount } from 'svelte';
     import { Card, Button, Label, Input, Checkbox, Alert } from 'flowbite-svelte';
 
     let email = $state('');
@@ -21,7 +22,23 @@
         }
     `;
 
+    const meQuery = gql`
+        query Me {
+            me {
+                id
+                email
+            }
+        }
+    `;
+
     const client = getContextClient();
+
+    onMount(async () => {
+        const result = await client.query(meQuery, {}).toPromise();
+        if (result.data?.me) {
+            goto('/dashboard');
+        }
+    });
 
     async function handleSubmit(e: Event) {
         e.preventDefault();
@@ -34,7 +51,7 @@
             if (result.error) {
                 error = result.error.message;
             } else if (result.data?.login?.success) {
-                alert('Login successful!');
+                goto('/dashboard');
             } else {
                 error = result.data?.login?.message || 'Login failed';
             }
