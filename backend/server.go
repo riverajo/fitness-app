@@ -13,7 +13,7 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler/lru"
 	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/99designs/gqlgen/graphql/playground"
-	"github.com/rs/cors"
+
 	"github.com/vektah/gqlparser/v2/ast"
 
 	"github.com/riverajo/fitness-app/backend/graph"
@@ -78,35 +78,6 @@ func main() {
 		Cache: lru.New[string](100),
 	})
 
-	allowedOrigins := []string{
-		// 🚨 REPLACE THIS WITH YOUR PRODUCTION SVELTEKIT DOMAIN
-		"https://app.your-domain.com",
-
-		// For local development
-		"http://localhost:3000",
-		"http://localhost:5173",
-		"http://localhost:4173", // Playwright preview port
-		"http://localhost:8080",
-	}
-
-	// Create the CORS handler configuration
-	c := cors.New(cors.Options{
-		// Which origins are allowed to make requests
-		AllowedOrigins: allowedOrigins,
-
-		// Methods required by GraphQL (POST) and preflight checks (OPTIONS)
-		AllowedMethods: []string{http.MethodPost, http.MethodOptions, http.MethodGet},
-
-		// Headers required by GraphQL (Content-Type) and Auth (Authorization/Cookie)
-		AllowedHeaders: []string{"Content-Type", "Authorization", "Cookie"},
-
-		// CRITICAL: Allows the browser to send cookies/auth headers
-		AllowCredentials: true,
-
-		// Optional: Preflight cache time
-		MaxAge: 300,
-	})
-
 	// 5. START SERVER
 	http.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
@@ -136,7 +107,7 @@ func main() {
 		}
 
 		// Handle GraphQL API
-		http.Handle("/query", c.Handler(finalHandler))
+		http.Handle("/query", finalHandler)
 
 		// Handle SPA for everything else
 		spaHandler := spa.NewHandler(publicFiles, "index.html")
@@ -147,7 +118,7 @@ func main() {
 		log.Println("Running in DEVELOPMENT mode")
 
 		http.Handle("/", playground.Handler("GraphQL playground", "/query"))
-		http.Handle("/query", c.Handler(finalHandler))
+		http.Handle("/query", finalHandler)
 	}
 
 	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)

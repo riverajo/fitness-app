@@ -1,7 +1,7 @@
 import { Client, cacheExchange, fetchExchange } from '@urql/svelte';
 
 export const client = new Client({
-    url: 'http://localhost:8080/query',
+    url: '/query',
     fetchOptions: {
         credentials: 'include',
     },

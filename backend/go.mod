@@ -5,7 +5,6 @@ go 1.25.3
 require (
 	github.com/99designs/gqlgen v0.17.83
 	github.com/golang-jwt/jwt/v5 v5.3.0
-	github.com/rs/cors v1.11.1
 	github.com/stretchr/testify v1.11.1
 	github.com/testcontainers/testcontainers-go/modules/mongodb v0.40.0
 	github.com/vektah/gqlparser/v2 v2.5.31
