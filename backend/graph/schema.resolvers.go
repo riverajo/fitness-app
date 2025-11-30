@@ -7,7 +7,7 @@ package graph
 import (
 	"context"
 	"fmt"
-	"log"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -176,7 +176,7 @@ func (r *mutationResolver) Register(ctx context.Context, input model1.RegisterIn
 	// 2a. Generate the JWT token
 	token, err := middleware.GenerateJWT(internalUser)
 	if err != nil {
-		log.Printf("CRITICAL: Failed to generate JWT for new user %s: %v", internalUser.ID, err)
+		slog.Error("CRITICAL: Failed to generate JWT for new user", "user_id", internalUser.ID, "error", err)
 		return nil, fmt.Errorf("registration successful, but auto-login failed")
 	}
 
@@ -184,7 +184,7 @@ func (r *mutationResolver) Register(ctx context.Context, input model1.RegisterIn
 	w := middleware.GetResponseWriter(ctx)
 	if w == nil {
 		// This might happen in tests if not mocked correctly, or if middleware is missing
-		log.Println("CRITICAL: ResponseWriter not found in context during Register")
+		slog.Error("CRITICAL: ResponseWriter not found in context during Register")
 		// We still return success for registration, but the user won't be logged in.
 		// Ideally, we should error out or handle this better, but for now let's warn.
 	} else {
@@ -221,7 +221,7 @@ func (r *mutationResolver) Login(ctx context.Context, input model1.LoginInput) (
 	// 1. Generate the JWT token
 	token, err := middleware.GenerateJWT(user)
 	if err != nil { /* ... handle error ... */
-		log.Printf("CRITICAL: Failed to generate JWT for user %s: %v", user.ID, err)
+		slog.Error("CRITICAL: Failed to generate JWT for user", "user_id", user.ID, "error", err)
 		return nil, fmt.Errorf("internal server error during session creation")
 	}
 

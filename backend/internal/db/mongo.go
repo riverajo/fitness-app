@@ -3,7 +3,7 @@ package db
 import (
 	"context"
 	"fmt"
-	"log"
+	"log/slog"
 	"os"
 	"time"
 
@@ -32,6 +32,6 @@ func Connect() (*mongo.Client, error) {
 		return nil, fmt.Errorf("failed to ping MongoDB: %w", err)
 	}
 
-	log.Println("Successfully connected to MongoDB/Cloud Datastore.")
+	slog.Info("Successfully connected to MongoDB/Cloud Datastore.")
 	return client, nil
 }

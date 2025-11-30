@@ -4,7 +4,7 @@ import (
 	"context"
 	"embed"
 	"io/fs"
-	"log"
+	"log/slog"
 	"net/http"
 	"os"
 
@@ -33,16 +33,21 @@ func main() {
 
 	// 1. 💡 DATABASE CONNECTION: Establish connection to MongoDB/Cloud Datastore
 	// This function will look for MONGO_URI and fatal if it fails to connect.
+	// Initialize structured logging
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+	slog.SetDefault(logger)
+
 	client, err := db.Connect()
 	if err != nil {
-		log.Fatalf("Failed to connect to database: %v", err)
+		slog.Error("Failed to connect to database", "error", err)
+		os.Exit(1)
 	}
 
 	database := client.Database("fitness_db")
 
 	// Seed System Exercises
 	if err := seeder.SeedSystemExercises(context.Background(), database, "data/system_exercises.json"); err != nil {
-		log.Printf("Warning: Failed to seed system exercises: %v", err)
+		slog.Warn("Failed to seed system exercises", "error", err)
 		// We don't fatal here because the server should still run even if seeding fails
 	}
 
@@ -98,12 +103,13 @@ func main() {
 	appEnv := os.Getenv("APP_ENV")
 	if appEnv == "production" {
 		// Production: Serve Embedded SPA + API
-		log.Println("Running in PRODUCTION mode (Single Binary)")
+		slog.Info("Running in PRODUCTION mode (Single Binary)")
 
 		// Sub-filesystem for "public" folder
 		publicFiles, err := fs.Sub(publicFS, "public")
 		if err != nil {
-			log.Fatalf("Failed to create sub-filesystem for public: %v", err)
+			slog.Error("Failed to create sub-filesystem for public", "error", err)
+			os.Exit(1)
 		}
 
 		// Handle GraphQL API
@@ -115,12 +121,15 @@ func main() {
 
 	} else {
 		// Development: API Only (Playground enabled)
-		log.Println("Running in DEVELOPMENT mode")
+		slog.Info("Running in DEVELOPMENT mode")
 
 		http.Handle("/", playground.Handler("GraphQL playground", "/query"))
 		http.Handle("/query", finalHandler)
 	}
 
-	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
-	log.Fatal(http.ListenAndServe(":"+port, nil))
+	slog.Info("connect to GraphQL playground", "url", "http://localhost:"+port+"/")
+	if err := http.ListenAndServe(":"+port, nil); err != nil {
+		slog.Error("Server failed", "error", err)
+		os.Exit(1)
+	}
 }
