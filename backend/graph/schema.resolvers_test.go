@@ -41,7 +41,7 @@ func TestRegister(t *testing.T) {
 
 	resolver := NewResolver(userRepo, workoutRepo, exerciseRepo)
 	w := httptest.NewRecorder()
-	ctx := context.WithValue(context.Background(), "ResponseWriterKey", w)
+	ctx := context.WithValue(context.Background(), middleware.ResponseWriterKey, w)
 
 	payload, err := resolver.Mutation().Register(ctx, input)
 
@@ -86,7 +86,7 @@ func TestLogin(t *testing.T) {
 
 	// Setup context with ResponseWriter
 	w := httptest.NewRecorder()
-	ctx := context.WithValue(context.Background(), "ResponseWriterKey", w)
+	ctx := context.WithValue(context.Background(), middleware.ResponseWriterKey, w)
 
 	input := model.LoginInput{
 		Email:    "test@example.com",
@@ -269,7 +269,7 @@ func TestLogoutMutation(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	// Create a context with the ResponseWriter injected (using the key from middleware)
-	ctx := context.WithValue(context.Background(), "ResponseWriterKey", w)
+	ctx := context.WithValue(context.Background(), middleware.ResponseWriterKey, w)
 
 	// 2. Execute
 	payload, err := resolver.Mutation().Logout(ctx)

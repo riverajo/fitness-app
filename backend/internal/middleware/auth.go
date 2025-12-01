@@ -16,8 +16,9 @@ import (
 type ContextKey string
 
 const (
-	UserIDKey      ContextKey = "user_id"
-	AuthCookieName string     = "auth_token"
+	UserIDKey         ContextKey = "user_id"
+	AuthCookieName    string     = "auth_token"
+	ResponseWriterKey ContextKey = "ResponseWriterKey"
 )
 
 // AuthMiddleware extracts and verifies the JWT token from the "auth_token" cookie.
@@ -73,14 +74,18 @@ func AuthMiddleware(next http.Handler) http.Handler {
 func ResponseWriterMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Use a different context key for the ResponseWriter
-		ctx := context.WithValue(r.Context(), "ResponseWriterKey", w)
+		ctx := context.WithValue(r.Context(), ResponseWriterKey, w)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
 
 // GetResponseWriter is a helper to retrieve the ResponseWriter from the context.
 func GetResponseWriter(ctx context.Context) http.ResponseWriter {
-	return ctx.Value("ResponseWriterKey").(http.ResponseWriter)
+	val := ctx.Value(ResponseWriterKey)
+	if val == nil {
+		return nil
+	}
+	return val.(http.ResponseWriter)
 }
 
 // Define the JWT claims structure

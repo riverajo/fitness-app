@@ -81,7 +81,9 @@ func (r *MongoExerciseRepository) Search(ctx context.Context, userID *string, qu
 	if err != nil {
 		return nil, fmt.Errorf("database error searching exercises: %w", err)
 	}
-	defer cursor.Close(ctx)
+	defer func() {
+		_ = cursor.Close(ctx)
+	}()
 
 	var exercises []*model.UniqueExercise
 	for cursor.Next(ctx) {

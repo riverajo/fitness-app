@@ -35,7 +35,7 @@ func (h *SPAHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	f, err := h.staticFS.Open(strings.TrimPrefix(upath, "/"))
 	if err == nil {
 		// File exists, serve it
-		defer f.Close()
+		defer func() { _ = f.Close() }()
 		stat, err := f.Stat()
 		if err == nil {
 			// If it's a directory, we want to fall through to index.html (unless it has an index.html inside, but SvelteKit usually handles this)
@@ -53,7 +53,7 @@ func (h *SPAHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "index.html not found", http.StatusInternalServerError)
 		return
 	}
-	defer indexFile.Close()
+	defer func() { _ = indexFile.Close() }()
 
 	// Serve index.html
 	// We read it into memory or use http.ServeContent.

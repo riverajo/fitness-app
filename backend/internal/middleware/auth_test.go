@@ -12,8 +12,15 @@ import (
 
 func TestGenerateJWT(t *testing.T) {
 	// Setup
-	os.Setenv("JWT_SECRET", "testsecret")
-	defer os.Unsetenv("JWT_SECRET")
+	err := os.Setenv("JWT_SECRET", "testsecret")
+	if err != nil {
+		t.Fatalf("Failed to set JWT_SECRET: %v", err)
+	}
+	defer func() {
+		if err := os.Unsetenv("JWT_SECRET"); err != nil {
+			t.Errorf("Failed to unset JWT_SECRET: %v", err)
+		}
+	}()
 
 	user := &model.User{
 		ID:    "user123",
@@ -45,7 +52,9 @@ func TestGenerateJWT(t *testing.T) {
 	}
 
 	// Test Missing Secret
-	os.Unsetenv("JWT_SECRET")
+	if err := os.Unsetenv("JWT_SECRET"); err != nil {
+		t.Fatalf("Failed to unset JWT_SECRET: %v", err)
+	}
 	_, err = GenerateJWT(user)
 	if err == nil {
 		t.Error("Expected error when JWT_SECRET is missing, got nil")
@@ -53,8 +62,15 @@ func TestGenerateJWT(t *testing.T) {
 }
 
 func TestAuthMiddleware(t *testing.T) {
-	os.Setenv("JWT_SECRET", "testsecret")
-	defer os.Unsetenv("JWT_SECRET")
+	err := os.Setenv("JWT_SECRET", "testsecret")
+	if err != nil {
+		t.Fatalf("Failed to set JWT_SECRET: %v", err)
+	}
+	defer func() {
+		if err := os.Unsetenv("JWT_SECRET"); err != nil {
+			t.Errorf("Failed to unset JWT_SECRET: %v", err)
+		}
+	}()
 
 	nextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		userID := r.Context().Value(UserIDKey)

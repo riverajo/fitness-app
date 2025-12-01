@@ -94,7 +94,9 @@ func (r *MongoWorkoutRepository) ListByUser(ctx context.Context, userID string, 
 	if err != nil {
 		return nil, fmt.Errorf("failed to list workout logs: %w", err)
 	}
-	defer cursor.Close(ctx)
+	defer func() {
+		_ = cursor.Close(ctx)
+	}()
 
 	var logs []*model.WorkoutLog
 	for cursor.Next(ctx) {
