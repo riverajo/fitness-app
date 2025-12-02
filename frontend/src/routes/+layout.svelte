@@ -9,6 +9,7 @@
 	setContextClient(client);
 
 	let { children } = $props();
+	let activeUrl = $derived($page.url.pathname);
 </script>
 
 <svelte:head>
@@ -29,9 +30,9 @@
 		<DarkMode />
 		<NavHamburger class="ml-3" />
 	</div>
-	<NavUl>
-		<NavLi href="/dashboard" active={$page.url.pathname === '/dashboard'}>Dashboard</NavLi>
-		<NavLi href="/exercises" active={$page.url.pathname.startsWith('/exercises')}>Exercises</NavLi>
+	<NavUl {activeUrl}>
+		<NavLi href="/dashboard">Dashboard</NavLi>
+		<NavLi href="/exercises">Exercises</NavLi>
 	</NavUl>
 </Navbar>
 
