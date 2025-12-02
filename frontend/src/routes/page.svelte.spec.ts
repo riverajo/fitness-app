@@ -7,9 +7,9 @@ vi.mock('@urql/svelte', () => {
 	return {
 		getContextClient: () => ({
 			query: vi.fn(),
-			mutation: vi.fn(),
+			mutation: vi.fn()
 		}),
-		gql: (t: any) => t,
+		gql: (t: TemplateStringsArray) => t
 	};
 });
 

@@ -15,10 +15,15 @@
 	<link rel="icon" href={favicon} />
 </svelte:head>
 
-<Navbar fluid={true} class="border-b border-gray-200 bg-white px-4 py-2.5 dark:border-gray-700 dark:bg-gray-800 sm:px-4">
+<Navbar
+	fluid={true}
+	class="border-b border-gray-200 bg-white px-4 py-2.5 sm:px-4 dark:border-gray-700 dark:bg-gray-800"
+>
 	<NavBrand href="/dashboard">
 		<img src={favicon} class="mr-3 h-6 sm:h-9" alt="Fitness App Logo" />
-		<span class="self-center whitespace-nowrap text-xl font-semibold dark:text-white">Fitness App</span>
+		<span class="self-center text-xl font-semibold whitespace-nowrap dark:text-white"
+			>Fitness App</span
+		>
 	</NavBrand>
 	<div class="flex items-center md:order-2">
 		<DarkMode />
