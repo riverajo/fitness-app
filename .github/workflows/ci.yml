@@ -101,9 +101,6 @@ jobs:
       - name: Run Playwright Tests
         working-directory: frontend
         run: pnpm exec playwright test
-        env:
-          BASE_URL: http://localhost:5173
-          CI: true
 
   e2e-prod:
     name: E2E (Production Mode)
