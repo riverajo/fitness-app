@@ -26,7 +26,7 @@ import (
 
 const defaultPort = "8080"
 
-//go:embed public
+//go:embed all:public
 var publicFS embed.FS
 
 func main() {
@@ -125,9 +125,9 @@ func main() {
 
 		http.Handle("/", playground.Handler("GraphQL playground", "/query"))
 		http.Handle("/query", finalHandler)
+		slog.Info("connect to GraphQL playground", "url", "http://localhost:"+port+"/")
 	}
 
-	slog.Info("connect to GraphQL playground", "url", "http://localhost:"+port+"/")
 	if err := http.ListenAndServe(":"+port, nil); err != nil {
 		slog.Error("Server failed", "error", err)
 		os.Exit(1)
