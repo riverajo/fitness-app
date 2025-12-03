@@ -28,8 +28,6 @@ import (
 	"github.com/riverajo/fitness-app/backend/telemetry"
 )
 
-const defaultPort = "8080"
-
 //go:embed all:public
 var publicFS embed.FS
 
