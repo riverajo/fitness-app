@@ -30,7 +30,9 @@ func InitOTel(ctx context.Context, appEnv string) (func(context.Context) error, 
 	}
 
 	var traceExporter sdktrace.SpanExporter
-	var logExporter log.Exporter
+	loggerProviderOptions := []log.LoggerProviderOption{
+		log.WithResource(res),
+	}
 
 	if appEnv == "production" {
 		// Production: Use OTLP Exporters (Alloy)
@@ -39,10 +41,20 @@ func InitOTel(ctx context.Context, appEnv string) (func(context.Context) error, 
 			return nil, fmt.Errorf("failed to create OTLP trace exporter: %w", err)
 		}
 
-		logExporter, err = otlploggrpc.New(ctx, otlploggrpc.WithInsecure())
+		// 1. OTLP Log Exporter
+		otlpLogExporter, err := otlploggrpc.New(ctx, otlploggrpc.WithInsecure())
 		if err != nil {
 			return nil, fmt.Errorf("failed to create OTLP log exporter: %w", err)
 		}
+		loggerProviderOptions = append(loggerProviderOptions, log.WithProcessor(log.NewBatchProcessor(otlpLogExporter)))
+
+		// 2. Stdout Log Exporter (for Docker logs)
+		stdoutLogExporter, err := stdoutlog.New()
+		if err != nil {
+			return nil, fmt.Errorf("failed to create stdout log exporter: %w", err)
+		}
+		loggerProviderOptions = append(loggerProviderOptions, log.WithProcessor(log.NewBatchProcessor(stdoutLogExporter)))
+
 	} else {
 		// Development: Use Stdout Exporters (Console)
 		traceExporter, err = stdouttrace.New(stdouttrace.WithPrettyPrint())
@@ -50,10 +62,11 @@ func InitOTel(ctx context.Context, appEnv string) (func(context.Context) error, 
 			return nil, fmt.Errorf("failed to create stdout trace exporter: %w", err)
 		}
 
-		logExporter, err = stdoutlog.New()
+		stdoutLogExporter, err := stdoutlog.New()
 		if err != nil {
 			return nil, fmt.Errorf("failed to create stdout log exporter: %w", err)
 		}
+		loggerProviderOptions = append(loggerProviderOptions, log.WithProcessor(log.NewBatchProcessor(stdoutLogExporter)))
 	}
 
 	// 2. Create the TracerProvider
@@ -64,10 +77,7 @@ func InitOTel(ctx context.Context, appEnv string) (func(context.Context) error, 
 	otel.SetTracerProvider(tp)
 
 	// 3. Create the LoggerProvider
-	lp := log.NewLoggerProvider(
-		log.WithProcessor(log.NewBatchProcessor(logExporter)),
-		log.WithResource(res),
-	)
+	lp := log.NewLoggerProvider(loggerProviderOptions...)
 	global.SetLoggerProvider(lp)
 
 	// 4. Set the global Propagator

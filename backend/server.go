@@ -59,6 +59,10 @@ func main() {
 	client, err := db.Connect(cfg.MongoURI)
 	if err != nil {
 		slog.Error("Failed to connect to database", "error", err)
+		// Ensure logs are flushed before exiting
+		if shutdown != nil {
+			_ = shutdown(context.Background())
+		}
 		os.Exit(1)
 	}
 
