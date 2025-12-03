@@ -13,6 +13,8 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler/lru"
 	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/99designs/gqlgen/graphql/playground"
+	"go.opentelemetry.io/contrib/bridges/otelslog"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 
 	"github.com/vektah/gqlparser/v2/ast"
 
@@ -22,6 +24,7 @@ import (
 	"github.com/riverajo/fitness-app/backend/internal/repository"
 	"github.com/riverajo/fitness-app/backend/internal/seeder"
 	"github.com/riverajo/fitness-app/backend/internal/spa"
+	"github.com/riverajo/fitness-app/backend/telemetry"
 )
 
 const defaultPort = "8080"
@@ -33,8 +36,23 @@ func main() {
 
 	// 1. 💡 DATABASE CONNECTION: Establish connection to MongoDB/Cloud Datastore
 	// This function will look for MONGO_URI and fatal if it fails to connect.
-	// Initialize structured logging
-	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+	// Initialize OpenTelemetry
+	shutdown, err := telemetry.InitOTel(context.Background())
+	if err != nil {
+		slog.Error("Failed to initialize OpenTelemetry", "error", err)
+		// We might not want to crash if telemetry fails, but for now let's log it.
+		// Depending on requirements, we could os.Exit(1) here.
+		// For now, we'll proceed without tracing if it fails, but log heavily.
+	} else {
+		defer func() {
+			if err := shutdown(context.Background()); err != nil {
+				slog.Error("Failed to shutdown OpenTelemetry", "error", err)
+			}
+		}()
+	}
+
+	// Initialize structured logging with OTel support
+	logger := otelslog.NewLogger("fitness-app")
 	slog.SetDefault(logger)
 
 	client, err := db.Connect()
@@ -113,18 +131,18 @@ func main() {
 		}
 
 		// Handle GraphQL API
-		http.Handle("/query", finalHandler)
+		http.Handle("/query", otelhttp.NewHandler(finalHandler, "GraphQL"))
 
 		// Handle SPA for everything else
 		spaHandler := spa.NewHandler(publicFiles, "index.html")
-		http.Handle("/", spaHandler)
+		http.Handle("/", otelhttp.NewHandler(spaHandler, "SPA"))
 
 	} else {
 		// Development: API Only (Playground enabled)
 		slog.Info("Running in DEVELOPMENT mode")
 
-		http.Handle("/", playground.Handler("GraphQL playground", "/query"))
-		http.Handle("/query", finalHandler)
+		http.Handle("/", otelhttp.NewHandler(playground.Handler("GraphQL playground", "/query"), "Playground"))
+		http.Handle("/query", otelhttp.NewHandler(finalHandler, "GraphQL"))
 		slog.Info("connect to GraphQL playground", "url", "http://localhost:"+port+"/")
 	}
 
