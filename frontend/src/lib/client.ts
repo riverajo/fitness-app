@@ -20,10 +20,15 @@ export const client = new Client({
 				didAuthError(error, operation) {
 					// Ignore auth errors for the 'Me' query to prevent infinite loops,
 					// as it's expected to fail when not logged in.
-					if (operation.kind === 'query' && operation.query.definitions.some((d: any) => d.name?.value === 'Me')) {
+					if (
+						operation.kind === 'query' &&
+						operation.query.definitions.some((d: any) => d.name?.value === 'Me')
+					) {
 						return false;
 					}
-					return error.graphQLErrors.some((e) => e.message.includes('unauthorized') || e.extensions?.code === 'UNAUTHENTICATED');
+					return error.graphQLErrors.some(
+						(e) => e.message.includes('unauthorized') || e.extensions?.code === 'UNAUTHENTICATED'
+					);
 				},
 				async refreshAuth() {
 					// If we get an auth error (401), it means our cookie is invalid/expired.
