@@ -144,6 +144,7 @@ jobs:
             -e MONGO_URI="mongodb://user:password@localhost:27017/fitness_db?authSource=admin" \
             -e PORT=8080 \
             -e JWT_SECRET="your-super-long-development-secret-key-12345" \
+            -e APP_ENV="production" \
             fitness-app:test
 
       - name: Wait for App
