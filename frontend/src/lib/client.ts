@@ -6,7 +6,7 @@ export const client = new Client({
 	url: '/query',
 	exchanges: [
 		cacheExchange,
-		authExchange(async (_utils) => {
+		authExchange(async () => {
 			return {
 				getAuth: async () => {
 					// We don't manage tokens client-side, so we just return null.
