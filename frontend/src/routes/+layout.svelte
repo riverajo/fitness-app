@@ -5,7 +5,6 @@
 	import { client } from '$lib/client';
 	import { Navbar, NavBrand, NavHamburger, NavUl, NavLi, DarkMode } from 'flowbite-svelte';
 	import { page } from '$app/stores';
-	import { goto } from '$app/navigation';
 
 	setContextClient(client);
 
