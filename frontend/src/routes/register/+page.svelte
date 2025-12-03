@@ -22,6 +22,15 @@
 		}
 	`;
 
+	const meQuery = gql`
+		query Me {
+			me {
+				id
+				email
+			}
+		}
+	`;
+
 	const client = getContextClient();
 
 	async function handleSubmit(e: Event) {
@@ -38,6 +47,8 @@
 			if (result.error) {
 				error = result.error.message;
 			} else if (result.data?.register?.success) {
+				// Refresh the Me query to ensure the layout and dashboard are updated
+				await client.query(meQuery, {}, { requestPolicy: 'network-only' }).toPromise();
 				await goto(resolve('/dashboard'));
 			} else {
 				error = result.data?.register?.message || 'Registration failed';

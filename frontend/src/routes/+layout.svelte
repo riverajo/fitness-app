@@ -1,12 +1,42 @@
 <script lang="ts">
 	import './layout.css';
 	import favicon from '$lib/assets/favicon.svg';
-	import { setContextClient } from '@urql/svelte';
+	import { setContextClient, gql, queryStore } from '@urql/svelte';
 	import { client } from '$lib/client';
 	import { Navbar, NavBrand, NavHamburger, NavUl, NavLi, DarkMode } from 'flowbite-svelte';
 	import { page } from '$app/stores';
+	import { goto } from '$app/navigation';
 
 	setContextClient(client);
+
+	const ME_QUERY = gql`
+		query Me {
+			me {
+				id
+				email
+			}
+		}
+	`;
+
+	const meQuery = queryStore({
+		client,
+		query: ME_QUERY
+	});
+
+	const logoutMutation = gql`
+		mutation Logout {
+			logout {
+				success
+				message
+			}
+		}
+	`;
+
+	async function handleLogout() {
+		await client.mutation(logoutMutation, {}).toPromise();
+		// Force a full page reload to clear the urql cache and ensure a fresh state
+		window.location.href = '/';
+	}
 
 	let { children } = $props();
 	let activeUrl = $derived($page.url.pathname);
@@ -33,6 +63,9 @@
 	<NavUl {activeUrl}>
 		<NavLi href="/dashboard">Dashboard</NavLi>
 		<NavLi href="/exercises">Exercises</NavLi>
+		{#if $meQuery.data?.me}
+			<NavLi class="cursor-pointer" onclick={handleLogout}>Logout</NavLi>
+		{/if}
 	</NavUl>
 </Navbar>
 

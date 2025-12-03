@@ -33,4 +33,13 @@ test('user can register successfully', async ({ page }) => {
 	// 5. Verify user is logged in (dashboard shows email)
 	// We expect the email we registered with to be visible
 	await expect(page.getByText(email)).toBeVisible({ timeout: 5000 });
+
+	// 6. Logout
+	await page.click('text=Logout');
+
+	// 7. Verify redirection to login page
+	await expect(page).toHaveURL('/');
+
+	// 8. Verify Logout link is gone
+	await expect(page.getByText('Logout')).not.toBeVisible();
 });

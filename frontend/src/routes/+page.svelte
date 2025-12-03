@@ -54,6 +54,8 @@
 			if (result.error) {
 				error = result.error.message;
 			} else if (result.data?.login?.success) {
+				// Refresh the Me query to ensure the layout and dashboard are updated
+				await client.query(meQuery, {}, { requestPolicy: 'network-only' }).toPromise();
 				await goto(resolve('/dashboard'));
 			} else {
 				error = result.data?.login?.message || 'Login failed';
