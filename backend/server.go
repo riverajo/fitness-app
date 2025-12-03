@@ -19,6 +19,7 @@ import (
 	"github.com/vektah/gqlparser/v2/ast"
 
 	"github.com/riverajo/fitness-app/backend/graph"
+	"github.com/riverajo/fitness-app/backend/internal/config"
 	"github.com/riverajo/fitness-app/backend/internal/db"
 	"github.com/riverajo/fitness-app/backend/internal/middleware"
 	"github.com/riverajo/fitness-app/backend/internal/repository"
@@ -33,16 +34,17 @@ const defaultPort = "8080"
 var publicFS embed.FS
 
 func main() {
+	// 1. Load Configuration
+	cfg, err := config.Load()
+	if err != nil {
+		slog.Error("Failed to load configuration", "error", err)
+		os.Exit(1)
+	}
 
-	// 1. 💡 DATABASE CONNECTION: Establish connection to MongoDB/Cloud Datastore
-	// This function will look for MONGO_URI and fatal if it fails to connect.
-	// Initialize OpenTelemetry
-	shutdown, err := telemetry.InitOTel(context.Background())
+	// 2. Initialize OpenTelemetry
+	shutdown, err := telemetry.InitOTel(context.Background(), cfg.AppEnv)
 	if err != nil {
 		slog.Error("Failed to initialize OpenTelemetry", "error", err)
-		// We might not want to crash if telemetry fails, but for now let's log it.
-		// Depending on requirements, we could os.Exit(1) here.
-		// For now, we'll proceed without tracing if it fails, but log heavily.
 	} else {
 		defer func() {
 			if err := shutdown(context.Background()); err != nil {
@@ -55,7 +57,8 @@ func main() {
 	logger := otelslog.NewLogger("fitness-app")
 	slog.SetDefault(logger)
 
-	client, err := db.Connect()
+	// 3. Connect to Database
+	client, err := db.Connect(cfg.MongoURI)
 	if err != nil {
 		slog.Error("Failed to connect to database", "error", err)
 		os.Exit(1)
@@ -66,7 +69,6 @@ func main() {
 	// Seed System Exercises
 	if err := seeder.SeedSystemExercises(context.Background(), database, "data/system_exercises.json"); err != nil {
 		slog.Warn("Failed to seed system exercises", "error", err)
-		// We don't fatal here because the server should still run even if seeding fails
 	}
 
 	// Initialize Repositories
@@ -75,23 +77,16 @@ func main() {
 	exerciseRepo := repository.NewMongoExerciseRepository(database)
 
 	// The Resolver struct is where you inject services like the WorkoutService
-	resolver := graph.NewResolver(userRepo, workoutRepo, exerciseRepo)
+	resolver := graph.NewResolver(userRepo, workoutRepo, exerciseRepo, cfg.JWTSecret)
 
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = defaultPort
-	}
-
-	// 3. GRAPHQL SERVER SETUP (Uses the generated code and our custom resolver)
-	// The original line: srv := handler.New(graph.NewExecutableSchema(graph.Config{Resolvers: &graph.Resolver{}}))
-	// Is now updated to use our prepared resolver:
+	// 4. GRAPHQL SERVER SETUP
 	srv := handler.New(graph.NewExecutableSchema(graph.Config{Resolvers: resolver}))
+
 	// Wrap the GraphQL server with the necessary middleware chain
-	// The outer-most handler (last one applied) runs first.
-	finalHandler := middleware.AuthMiddleware(srv)                   // 1. Run Auth to validate token and put user ID in context
+	finalHandler := middleware.AuthMiddleware(srv, cfg.JWTSecret)    // 1. Run Auth to validate token and put user ID in context
 	finalHandler = middleware.ResponseWriterMiddleware(finalHandler) // 2. Run ResponseWriter injector (needed for setting the cookie)
 
-	// 4. STANDARD GQLGEN CONFIGURATION (Keep these from the generated file)
+	// 5. STANDARD GQLGEN CONFIGURATION
 	srv.AddTransport(transport.Options{})
 	srv.AddTransport(transport.GET{})
 	srv.AddTransport(transport.POST{})
@@ -101,7 +96,7 @@ func main() {
 		Cache: lru.New[string](100),
 	})
 
-	// 5. START SERVER
+	// 6. START SERVER
 	http.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write([]byte("ok"))
@@ -118,8 +113,7 @@ func main() {
 	})
 
 	// Determine environment
-	appEnv := os.Getenv("APP_ENV")
-	if appEnv == "production" {
+	if cfg.AppEnv == "production" {
 		// Production: Serve Embedded SPA + API
 		slog.Info("Running in PRODUCTION mode (Single Binary)")
 
@@ -143,10 +137,10 @@ func main() {
 
 		http.Handle("/", otelhttp.NewHandler(playground.Handler("GraphQL playground", "/query"), "Playground"))
 		http.Handle("/query", otelhttp.NewHandler(finalHandler, "GraphQL"))
-		slog.Info("connect to GraphQL playground", "url", "http://localhost:"+port+"/")
+		slog.Info("connect to GraphQL playground", "url", "http://localhost:"+cfg.Port+"/")
 	}
 
-	if err := http.ListenAndServe(":"+port, nil); err != nil {
+	if err := http.ListenAndServe(":"+cfg.Port, nil); err != nil {
 		slog.Error("Server failed", "error", err)
 		os.Exit(1)
 	}

@@ -174,7 +174,7 @@ func (r *mutationResolver) Register(ctx context.Context, input model1.RegisterIn
 	//    We duplicate the logic from Login() here to issue the token immediately.
 
 	// 2a. Generate the JWT token
-	token, err := middleware.GenerateJWT(internalUser)
+	token, err := middleware.GenerateJWT(internalUser, r.JWTSecret)
 	if err != nil {
 		slog.Error("CRITICAL: Failed to generate JWT for new user", "user_id", internalUser.ID, "error", err)
 		return nil, fmt.Errorf("registration successful, but auto-login failed")
@@ -219,7 +219,7 @@ func (r *mutationResolver) Login(ctx context.Context, input model1.LoginInput) (
 	}
 
 	// 1. Generate the JWT token
-	token, err := middleware.GenerateJWT(user)
+	token, err := middleware.GenerateJWT(user, r.JWTSecret)
 	if err != nil { /* ... handle error ... */
 		slog.Error("CRITICAL: Failed to generate JWT for user", "user_id", user.ID, "error", err)
 		return nil, fmt.Errorf("internal server error during session creation")

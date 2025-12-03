@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"os"
 
 	"time"
 
@@ -22,7 +21,7 @@ const (
 )
 
 // AuthMiddleware extracts and verifies the JWT token from the "auth_token" cookie.
-func AuthMiddleware(next http.Handler) http.Handler {
+func AuthMiddleware(next http.Handler, jwtSecret string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		// 1. Try to read the cookie
@@ -35,7 +34,6 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		}
 
 		// 2. Validate the token
-		jwtSecret := os.Getenv("JWT_SECRET")
 		if jwtSecret == "" {
 			// CRITICAL: Handle missing secret gracefully (or fatal on startup)
 			fmt.Println("CRITICAL: JWT_SECRET not set in environment.")
@@ -95,11 +93,9 @@ type Claims struct {
 }
 
 // GenerateJWT creates a new signed JWT for the user.
-func GenerateJWT(user *model.User) (string, error) {
-	// 💡 CRUCIAL: Load the secret key from an environment variable (for production security)
-	jwtSecret := os.Getenv("JWT_SECRET")
+func GenerateJWT(user *model.User, jwtSecret string) (string, error) {
 	if jwtSecret == "" {
-		return "", fmt.Errorf("JWT_SECRET environment variable not set")
+		return "", fmt.Errorf("jwtSecret is required")
 	}
 
 	// Token expiration (e.g., 24 hours)

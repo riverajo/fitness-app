@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
-	"os"
 	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
@@ -13,17 +12,15 @@ import (
 )
 
 // Connect establishes a connection to MongoDB using the URI from environment variables.
-func Connect() (*mongo.Client, error) {
-	// The MONGO_URI is set in the docker-compose.yml (or GCP environment)
-	uri := os.Getenv("MONGO_URI")
-	if uri == "" {
-		return nil, fmt.Errorf("MONGO_URI environment variable not set")
+func Connect(mongoURI string) (*mongo.Client, error) {
+	if mongoURI == "" {
+		return nil, fmt.Errorf("mongoURI is required")
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	opts := options.Client().ApplyURI(uri)
+	opts := options.Client().ApplyURI(mongoURI)
 	opts.Monitor = otelmongo.NewMonitor()
 	client, err := mongo.Connect(ctx, opts)
 	if err != nil {

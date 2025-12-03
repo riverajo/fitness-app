@@ -3,7 +3,6 @@ package middleware
 import (
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"testing"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -12,15 +11,7 @@ import (
 
 func TestGenerateJWT(t *testing.T) {
 	// Setup
-	err := os.Setenv("JWT_SECRET", "testsecret")
-	if err != nil {
-		t.Fatalf("Failed to set JWT_SECRET: %v", err)
-	}
-	defer func() {
-		if err := os.Unsetenv("JWT_SECRET"); err != nil {
-			t.Errorf("Failed to unset JWT_SECRET: %v", err)
-		}
-	}()
+	jwtSecret := "testsecret"
 
 	user := &model.User{
 		ID:    "user123",
@@ -28,7 +19,7 @@ func TestGenerateJWT(t *testing.T) {
 	}
 
 	// Test Success
-	tokenString, err := GenerateJWT(user)
+	tokenString, err := GenerateJWT(user, jwtSecret)
 	if err != nil {
 		t.Fatalf("GenerateJWT failed: %v", err)
 	}
@@ -52,25 +43,14 @@ func TestGenerateJWT(t *testing.T) {
 	}
 
 	// Test Missing Secret
-	if err := os.Unsetenv("JWT_SECRET"); err != nil {
-		t.Fatalf("Failed to unset JWT_SECRET: %v", err)
-	}
-	_, err = GenerateJWT(user)
+	_, err = GenerateJWT(user, "")
 	if err == nil {
 		t.Error("Expected error when JWT_SECRET is missing, got nil")
 	}
 }
 
 func TestAuthMiddleware(t *testing.T) {
-	err := os.Setenv("JWT_SECRET", "testsecret")
-	if err != nil {
-		t.Fatalf("Failed to set JWT_SECRET: %v", err)
-	}
-	defer func() {
-		if err := os.Unsetenv("JWT_SECRET"); err != nil {
-			t.Errorf("Failed to unset JWT_SECRET: %v", err)
-		}
-	}()
+	jwtSecret := "testsecret"
 
 	nextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		userID := r.Context().Value(UserIDKey)
@@ -79,7 +59,7 @@ func TestAuthMiddleware(t *testing.T) {
 		}
 	})
 
-	handler := AuthMiddleware(nextHandler)
+	handler := AuthMiddleware(nextHandler, jwtSecret)
 
 	t.Run("No Cookie", func(t *testing.T) {
 		req := httptest.NewRequest("GET", "/", nil)
@@ -106,7 +86,7 @@ func TestAuthMiddleware(t *testing.T) {
 
 	t.Run("Valid Token", func(t *testing.T) {
 		user := &model.User{ID: "user123"}
-		token, _ := GenerateJWT(user)
+		token, _ := GenerateJWT(user, jwtSecret)
 
 		req := httptest.NewRequest("GET", "/", nil)
 		req.AddCookie(&http.Cookie{Name: AuthCookieName, Value: token})

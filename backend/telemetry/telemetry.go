@@ -3,7 +3,6 @@ package telemetry
 import (
 	"context"
 	"fmt"
-	"os"
 
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc"
@@ -19,7 +18,7 @@ import (
 )
 
 // InitOTel initializes the OpenTelemetry tracer and logger providers.
-func InitOTel(ctx context.Context) (func(context.Context) error, error) {
+func InitOTel(ctx context.Context, appEnv string) (func(context.Context) error, error) {
 	// 1. Create the Resource
 	res, err := resource.New(ctx,
 		resource.WithAttributes(
@@ -33,7 +32,7 @@ func InitOTel(ctx context.Context) (func(context.Context) error, error) {
 	var traceExporter sdktrace.SpanExporter
 	var logExporter log.Exporter
 
-	if os.Getenv("APP_ENV") == "production" {
+	if appEnv == "production" {
 		// Production: Use OTLP Exporters (Alloy)
 		traceExporter, err = otlptracegrpc.New(ctx, otlptracegrpc.WithInsecure())
 		if err != nil {
