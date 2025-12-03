@@ -1,11 +1,12 @@
-import { Client, cacheExchange, fetchExchange, mapExchange } from '@urql/svelte';
+import { Client, cacheExchange, fetchExchange } from '@urql/svelte';
 import { authExchange } from '@urql/exchange-auth';
+import { Kind, type DefinitionNode } from 'graphql';
 
 export const client = new Client({
 	url: '/query',
 	exchanges: [
 		cacheExchange,
-		authExchange(async (utils) => {
+		authExchange(async (_utils) => {
 			return {
 				getAuth: async () => {
 					// We don't manage tokens client-side, so we just return null.
@@ -22,7 +23,9 @@ export const client = new Client({
 					// as it's expected to fail when not logged in.
 					if (
 						operation.kind === 'query' &&
-						operation.query.definitions.some((d: any) => d.name?.value === 'Me')
+						operation.query.definitions.some(
+							(d: DefinitionNode) => d.kind === Kind.OPERATION_DEFINITION && d.name?.value === 'Me'
+						)
 					) {
 						return false;
 					}
