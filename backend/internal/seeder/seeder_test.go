@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"log"
 	"os"
-	"path/filepath"
 	"testing"
 	"time"
 
@@ -51,15 +50,11 @@ func TestMain(m *testing.M) {
 func TestSeedSystemExercises(t *testing.T) {
 	ctx := context.Background()
 
-	// Helper to create a temp json file
-	createTempJSON := func(t *testing.T, data SystemExercisesData) string {
-		tmpDir := t.TempDir()
-		filePath := filepath.Join(tmpDir, "exercises.json")
-		fileContent, err := json.Marshal(data)
+	// Helper to create json data
+	createJSONData := func(t *testing.T, data SystemExercisesData) []byte {
+		jsonData, err := json.Marshal(data)
 		require.NoError(t, err)
-		err = os.WriteFile(filePath, fileContent, 0644)
-		require.NoError(t, err)
-		return filePath
+		return jsonData
 	}
 
 	t.Run("Seeds exercises when DB is empty", func(t *testing.T) {
@@ -71,9 +66,9 @@ func TestSeedSystemExercises(t *testing.T) {
 				{Name: "Push Up", Description: "Basic push up", Category: "Strength"},
 			},
 		}
-		filePath := createTempJSON(t, data)
+		jsonData := createJSONData(t, data)
 
-		err := SeedSystemExercises(ctx, testDB, filePath)
+		err := SeedSystemExercises(ctx, testDB, jsonData)
 		require.NoError(t, err)
 
 		// Verify exercise exists
@@ -100,7 +95,7 @@ func TestSeedSystemExercises(t *testing.T) {
 				{Name: "Push Up", Description: "Original description", Category: "Strength"},
 			},
 		}
-		err := SeedSystemExercises(ctx, testDB, createTempJSON(t, initialData))
+		err := SeedSystemExercises(ctx, testDB, createJSONData(t, initialData))
 		require.NoError(t, err)
 
 		// Try to seed same version with different data
@@ -110,7 +105,7 @@ func TestSeedSystemExercises(t *testing.T) {
 				{Name: "Push Up", Description: "Changed description", Category: "Strength"},
 			},
 		}
-		err = SeedSystemExercises(ctx, testDB, createTempJSON(t, newData))
+		err = SeedSystemExercises(ctx, testDB, createJSONData(t, newData))
 		require.NoError(t, err)
 
 		// Verify description did NOT change
@@ -129,7 +124,7 @@ func TestSeedSystemExercises(t *testing.T) {
 				{Name: "Push Up", Description: "Original description", Category: "Strength"},
 			},
 		}
-		err := SeedSystemExercises(ctx, testDB, createTempJSON(t, initialData))
+		err := SeedSystemExercises(ctx, testDB, createJSONData(t, initialData))
 		require.NoError(t, err)
 
 		// Seed Version 2
@@ -140,7 +135,7 @@ func TestSeedSystemExercises(t *testing.T) {
 				{Name: "Pull Up", Description: "New exercise", Category: "Strength"},
 			},
 		}
-		err = SeedSystemExercises(ctx, testDB, createTempJSON(t, newData))
+		err = SeedSystemExercises(ctx, testDB, createJSONData(t, newData))
 		require.NoError(t, err)
 
 		// Verify updates
@@ -178,7 +173,7 @@ func TestSeedSystemExercises(t *testing.T) {
 				{Name: "Push Up", Description: "Basic push up", Category: "Strength"},
 			},
 		}
-		err = SeedSystemExercises(ctx, testDB, createTempJSON(t, data))
+		err = SeedSystemExercises(ctx, testDB, createJSONData(t, data))
 		require.NoError(t, err) // Should return nil (no error, just skipped)
 
 		// Verify seeding did NOT happen
@@ -191,7 +186,7 @@ func TestSeedSystemExercises(t *testing.T) {
 		require.NoError(t, err)
 
 		// Try to seed again (should succeed)
-		err = SeedSystemExercises(ctx, testDB, createTempJSON(t, data))
+		err = SeedSystemExercises(ctx, testDB, createJSONData(t, data))
 		require.NoError(t, err)
 
 		// Verify seeding happened

@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"os"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -43,23 +42,18 @@ func ensureLockIndex(ctx context.Context, db *mongo.Database) error {
 	return err
 }
 
-// SeedSystemExercises loads system exercises from a JSON file if the version is newer than what's in the DB.
-func SeedSystemExercises(ctx context.Context, db *mongo.Database, filePath string) error {
-	// 1. Read JSON file
-	fileContent, err := os.ReadFile(filePath)
-	if err != nil {
-		return fmt.Errorf("failed to read system exercises file: %w", err)
-	}
-
+// SeedSystemExercises loads system exercises from the provided JSON data if the version is newer than what's in the DB.
+func SeedSystemExercises(ctx context.Context, db *mongo.Database, jsonData []byte) error {
+	// 1. Parse JSON data
 	var data SystemExercisesData
-	if err := json.Unmarshal(fileContent, &data); err != nil {
+	if err := json.Unmarshal(jsonData, &data); err != nil {
 		return fmt.Errorf("failed to parse system exercises json: %w", err)
 	}
 
 	// 2. Check current version in DB (Optimization: check before locking)
 	metadataColl := db.Collection(MetadataCollection)
 	var metadata SystemMetadata
-	err = metadataColl.FindOne(ctx, bson.M{"_id": "system_exercises_version"}).Decode(&metadata)
+	err := metadataColl.FindOne(ctx, bson.M{"_id": "system_exercises_version"}).Decode(&metadata)
 
 	if err == mongo.ErrNoDocuments {
 		metadata.Version = 0

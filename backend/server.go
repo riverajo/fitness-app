@@ -31,6 +31,9 @@ import (
 //go:embed all:public
 var publicFS embed.FS
 
+//go:embed data/system_exercises.json
+var systemExercisesData []byte
+
 func main() {
 	// 1. Load Configuration
 	cfg, err := config.Load()
@@ -69,7 +72,7 @@ func main() {
 	database := client.Database("fitness_db")
 
 	// Seed System Exercises
-	if err := seeder.SeedSystemExercises(context.Background(), database, "data/system_exercises.json"); err != nil {
+	if err := seeder.SeedSystemExercises(context.Background(), database, systemExercisesData); err != nil {
 		slog.Warn("Failed to seed system exercises", "error", err)
 	}
 
