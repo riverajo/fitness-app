@@ -5,6 +5,24 @@
 	import { client } from '$lib/client';
 	import { Navbar, NavBrand, NavHamburger, NavUl, NavLi, DarkMode } from 'flowbite-svelte';
 	import { page } from '$app/stores';
+	import { browser } from '$app/environment';
+	import { initializeFaro, getWebInstrumentations, LogLevel } from '@grafana/faro-web-sdk';
+	import { TracingInstrumentation } from '@grafana/faro-web-tracing';
+
+	if (browser) {
+		initializeFaro({
+			url: '/faro/collect',
+			app: {
+				name: 'fitness-app',
+				version: '0.0.1',
+				environment: 'production'
+			},
+			instrumentations: [
+				...getWebInstrumentations(),
+				new TracingInstrumentation(),
+			],
+		});
+	}
 
 	setContextClient(client);
 

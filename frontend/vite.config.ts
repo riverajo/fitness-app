@@ -11,6 +11,10 @@ export default defineConfig({
 			'/query': {
 				target: 'http://localhost:8080',
 				changeOrigin: true
+			},
+			'/faro': {
+				target: 'http://localhost:8080',
+				changeOrigin: true
 			}
 		}
 	},

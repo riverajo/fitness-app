@@ -6,6 +6,8 @@ import (
 	"io/fs"
 	"log/slog"
 	"net/http"
+	"net/http/httputil"
+	"net/url"
 	"os"
 
 	"github.com/99designs/gqlgen/graphql/handler"
@@ -107,6 +109,9 @@ func main() {
 		_, _ = w.Write([]byte("ok"))
 	})
 
+	// Handle Faro Collection Proxy
+	http.Handle("/faro/collect", otelhttp.NewHandler(faroProxyHandler(cfg.FaroURL), "FaroProxy"))
+
 	http.HandleFunc("/readyz", func(w http.ResponseWriter, r *http.Request) {
 		if err := client.Ping(r.Context(), nil); err != nil {
 			w.WriteHeader(http.StatusServiceUnavailable)
@@ -149,4 +154,21 @@ func main() {
 		slog.Error("Server failed", "error", err)
 		os.Exit(1)
 	}
+}
+
+func faroProxyHandler(target string) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		targetURL, err := url.Parse(target)
+		if err != nil {
+			slog.Error("Failed to parse Faro URL", "error", err)
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
+		proxy := httputil.NewSingleHostReverseProxy(targetURL)
+		r.URL.Host = targetURL.Host
+		r.URL.Scheme = targetURL.Scheme
+		r.Header.Set("X-Forwarded-Host", r.Header.Get("Host"))
+		r.Host = targetURL.Host
+		proxy.ServeHTTP(w, r)
+	})
 }

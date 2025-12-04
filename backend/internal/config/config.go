@@ -11,6 +11,7 @@ type Config struct {
 	AppEnv    string `env:"APP_ENV" envDefault:"development"`
 	MongoURI  string `env:"MONGO_URI,required"`
 	JWTSecret string `env:"JWT_SECRET,required"`
+	FaroURL   string `env:"FARO_URL" envDefault:"http://alloy:12347/collect"`
 }
 
 func Load() (*Config, error) {
