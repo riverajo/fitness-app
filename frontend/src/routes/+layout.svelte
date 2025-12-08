@@ -17,10 +17,7 @@
 				version: '0.0.1',
 				environment: 'production'
 			},
-			instrumentations: [
-				...getWebInstrumentations(),
-				new TracingInstrumentation(),
-			],
+			instrumentations: [...getWebInstrumentations(), new TracingInstrumentation()]
 		});
 	}
 
