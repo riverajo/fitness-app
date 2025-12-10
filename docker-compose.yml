@@ -42,5 +42,7 @@ services:
       - ./frontend/src:/app/src
     ports:
       - 5173:5173
+    environment:
+      API_URL: http://api:8080
 volumes:
   mongo_data:

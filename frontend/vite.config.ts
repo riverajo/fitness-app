@@ -9,7 +9,7 @@ export default defineConfig({
 	server: {
 		proxy: {
 			'/query': {
-				target: 'http://localhost:8080',
+				target: 'http://api:8080',
 				changeOrigin: true
 			},
 			'/faro': {
