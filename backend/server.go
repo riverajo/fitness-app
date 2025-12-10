@@ -9,6 +9,9 @@ import (
 	"net/http/httputil"
 	"net/url"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/extension"
@@ -131,6 +134,9 @@ func main() {
 		publicFiles, err := fs.Sub(publicFS, "public")
 		if err != nil {
 			slog.Error("Failed to create sub-filesystem for public", "error", err)
+			if shutdown != nil {
+				_ = shutdown(context.Background())
+			}
 			os.Exit(1)
 		}
 
@@ -150,10 +156,54 @@ func main() {
 		slog.Info("connect to GraphQL playground", "url", "http://localhost:"+cfg.Port+"/")
 	}
 
-	if err := http.ListenAndServe(":"+cfg.Port, nil); err != nil {
-		slog.Error("Server failed", "error", err)
-		os.Exit(1)
+	// 6. START SERVER
+	server := &http.Server{
+		Addr:    ":" + cfg.Port,
+		Handler: nil, // Use DefaultServeMux
 	}
+
+	// Run server in a goroutine so it doesn't block
+	go func() {
+		slog.Info("Server starting", "port", cfg.Port)
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			slog.Error("Server failed", "error", err)
+			if shutdown != nil {
+				_ = shutdown(context.Background())
+			}
+			os.Exit(1)
+		}
+	}()
+
+	// Wait for interrupt signal to gracefully shutdown the server with a timeout of 5 seconds.
+	quit := make(chan os.Signal, 1)
+	// kill (no param) default send syscall.SIGTERM
+	// kill -2 is syscall.SIGINT
+	// kill -9 is syscall.SIGKILL but can't be caught, so don't need to add it
+	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
+	<-quit
+	slog.Info("Shutdown signal received")
+
+	// The context is used to inform the server it has 5 seconds to finish
+	// the request it is currently handling
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err := server.Shutdown(ctx); err != nil {
+		slog.Error("Server forced to shutdown", "error", err)
+	}
+
+	// Clean up resources
+	if shutdown != nil {
+		if err := shutdown(context.Background()); err != nil {
+			slog.Error("Failed to shutdown OpenTelemetry", "error", err)
+		}
+	}
+
+	if err := client.Disconnect(context.Background()); err != nil {
+		slog.Error("Failed to disconnect from database", "error", err)
+	}
+
+	slog.Info("Shutdown complete")
 }
 
 func faroProxyHandler(target string) http.Handler {
