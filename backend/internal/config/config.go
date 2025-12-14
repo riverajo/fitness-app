@@ -7,11 +7,13 @@ import (
 )
 
 type Config struct {
-	Port      string `env:"PORT" envDefault:"8080"`
-	AppEnv    string `env:"APP_ENV" envDefault:"development"`
-	MongoURI  string `env:"MONGO_URI,required"`
-	JWTSecret string `env:"JWT_SECRET,required"`
-	FaroURL   string `env:"FARO_URL" envDefault:"http://alloy:12347/collect"`
+	Port             string `env:"PORT" envDefault:"8080"`
+	AppEnv           string `env:"APP_ENV" envDefault:"development"`
+	MongoURI         string `env:"MONGO_URI,required"`
+	JWTSecret        string `env:"JWT_SECRET,required"`
+	FaroURL          string `env:"FARO_URL" envDefault:"http://alloy:12347/collect"`
+	PyroscopeURL     string `env:"PYROSCOPE_URL"`
+	PyroscopeAppName string `env:"PYROSCOPE_APP_NAME" envDefault:"fitness-app-backend"`
 }
 
 func Load() (*Config, error) {

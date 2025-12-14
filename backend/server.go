@@ -18,6 +18,7 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler/lru"
 	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/99designs/gqlgen/graphql/playground"
+	"github.com/grafana/pyroscope-go"
 	"go.opentelemetry.io/contrib/bridges/otelslog"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 
@@ -57,6 +58,28 @@ func main() {
 				slog.Error("Failed to shutdown OpenTelemetry", "error", err)
 			}
 		}()
+	}
+
+	// 3. Initialize Pyroscope (if configured)
+	if cfg.PyroscopeURL != "" {
+		slog.Info("Initializing Pyroscope", "url", cfg.PyroscopeURL, "app_name", cfg.PyroscopeAppName)
+		_, err := pyroscope.Start(pyroscope.Config{
+			ApplicationName: cfg.PyroscopeAppName,
+			ServerAddress:   cfg.PyroscopeURL,
+			Logger:          nil, // Use default logger or nil to avoid noise
+			ProfileTypes: []pyroscope.ProfileType{
+				pyroscope.ProfileCPU,
+				pyroscope.ProfileAllocObjects,
+				pyroscope.ProfileAllocSpace,
+				pyroscope.ProfileInuseObjects,
+				pyroscope.ProfileInuseSpace,
+			},
+		})
+		if err != nil {
+			slog.Error("Failed to start Pyroscope", "error", err)
+		}
+	} else {
+		slog.Info("Pyroscope disabled (PYROSCOPE_URL not set)")
 	}
 
 	// Initialize structured logging with OTel support
