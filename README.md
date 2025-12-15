@@ -41,7 +41,6 @@ docker compose up --build
 This will spin up the following services:
 *   **Frontend:** [http://localhost:5173](http://localhost:5173)
 *   **Backend API:** [http://localhost:8080](http://localhost:8080) (GraphQL Playground available in dev mode)
-*   **Adminer (DB GUI):** [http://localhost:8088](http://localhost:8088)
 *   **MongoDB:** Exposed on port `27017`
 
 ### Development
