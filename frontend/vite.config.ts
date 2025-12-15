@@ -9,11 +9,11 @@ export default defineConfig({
 	server: {
 		proxy: {
 			'/query': {
-				target: 'http://api:8080',
+				target: process.env.API_URL || 'http://localhost:8080',
 				changeOrigin: true
 			},
 			'/faro': {
-				target: 'http://localhost:8080',
+				target: process.env.API_URL || 'http://localhost:8080',
 				changeOrigin: true
 			}
 		}

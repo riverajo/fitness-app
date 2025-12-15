@@ -25,7 +25,7 @@ test('login flow redirects to dashboard and auto-redirects if logged in', async 
 	await page.fill('input[name="password"]', 'password123');
 	await page.click('button[type="submit"]');
 
-	// 4. Verify redirect to dashboard (This should fail currently as it stays on login page)
+	// 4. Verify redirect to dashboard
 	await expect(page).toHaveURL('/dashboard');
 
 	// 5. Verify auto-redirect
@@ -33,4 +33,11 @@ test('login flow redirects to dashboard and auto-redirects if logged in', async 
 	await page.goto('/');
 	// Should be redirected back to dashboard
 	await expect(page).toHaveURL('/dashboard');
+});
+
+test('accessing dashboard without login redirects to login', async ({ page }) => {
+	await page.goto('/dashboard');
+	// Ensure we don't see dashboard content while verifying
+	await expect(page.getByRole('heading', { name: 'Dashboard' })).not.toBeVisible();
+	await expect(page).toHaveURL('/');
 });

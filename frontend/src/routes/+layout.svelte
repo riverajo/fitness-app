@@ -6,7 +6,9 @@
 	import { Navbar, NavBrand, NavHamburger, NavUl, NavLi, DarkMode } from 'flowbite-svelte';
 	import { page } from '$app/stores';
 	import { browser } from '$app/environment';
-	import { initializeFaro, getWebInstrumentations, LogLevel } from '@grafana/faro-web-sdk';
+	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
+	import { initializeFaro, getWebInstrumentations } from '@grafana/faro-web-sdk';
 	import { TracingInstrumentation } from '@grafana/faro-web-tracing';
 
 	if (browser) {
@@ -54,6 +56,16 @@
 
 	let { children } = $props();
 	let activeUrl = $derived($page.url.pathname);
+
+	const publicRoutes = ['/', '/register'];
+
+	$effect(() => {
+		if (browser && !$meQuery.fetching && !$meQuery.data?.me) {
+			if (!publicRoutes.includes(activeUrl)) {
+				goto(resolve('/'));
+			}
+		}
+	});
 </script>
 
 <svelte:head>
@@ -75,8 +87,10 @@
 		<NavHamburger class="ml-3" />
 	</div>
 	<NavUl {activeUrl}>
-		<NavLi href="/dashboard">Dashboard</NavLi>
-		<NavLi href="/exercises">Exercises</NavLi>
+		{#if $meQuery.data?.me}
+			<NavLi href="/dashboard">Dashboard</NavLi>
+			<NavLi href="/exercises">Exercises</NavLi>
+		{/if}
 		{#if $meQuery.data?.me}
 			<NavLi class="cursor-pointer" onclick={handleLogout}>Logout</NavLi>
 		{/if}
@@ -84,5 +98,13 @@
 </Navbar>
 
 <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
-	{@render children()}
+	{#if $meQuery.fetching}
+		<div class="flex h-screen items-center justify-center">
+			<div
+				class="h-8 w-8 animate-spin rounded-full border-b-2 border-gray-900 dark:border-white"
+			></div>
+		</div>
+	{:else if publicRoutes.includes(activeUrl) || $meQuery.data?.me}
+		{@render children()}
+	{/if}
 </div>
