@@ -195,10 +195,11 @@ jobs:
         run: |
           timeout 60s bash -c 'until curl -s http://localhost:8080/readyz > /dev/null; do sleep 2; done'
 
+      - name: Setup k6
+        uses: grafana/setup-k6-action@v1
+
       - name: Run k6 Tests
-        uses: grafana/k6-action@v0.3.1
-        with:
-          filename: backend/k6/main.js
+        run: k6 run backend/k6/main.js
         env:
           BASE_URL: http://localhost:8080
 
