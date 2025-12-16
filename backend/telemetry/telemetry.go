@@ -4,14 +4,17 @@ import (
 	"context"
 	"fmt"
 
+	"go.opentelemetry.io/contrib/instrumentation/runtime"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc"
+	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/exporters/stdout/stdoutlog"
 	"go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
 	"go.opentelemetry.io/otel/log/global"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/log"
+	"go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.24.0"
@@ -27,6 +30,21 @@ func InitOTel(ctx context.Context, appEnv string) (func(context.Context) error, 
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create resource: %w", err)
+	}
+
+	// 2. Metrics (OTLP)
+	metricsExporter, err := otlpmetricgrpc.New(ctx, otlpmetricgrpc.WithInsecure())
+	if err != nil {
+		return nil, fmt.Errorf("failed to create otlp metric exporter: %w", err)
+	}
+	meterProvider := metric.NewMeterProvider(
+		metric.WithReader(metric.NewPeriodicReader(metricsExporter)),
+		metric.WithResource(res),
+	)
+	otel.SetMeterProvider(meterProvider)
+
+	if err := runtime.Start(runtime.WithMeterProvider(meterProvider)); err != nil {
+		return nil, fmt.Errorf("failed to start runtime metrics: %w", err)
 	}
 
 	var traceExporter sdktrace.SpanExporter
@@ -94,6 +112,9 @@ func InitOTel(ctx context.Context, appEnv string) (func(context.Context) error, 
 		}
 		if err := lp.Shutdown(ctx); err != nil {
 			errs = append(errs, fmt.Errorf("failed to shutdown LoggerProvider: %w", err))
+		}
+		if err := meterProvider.Shutdown(ctx); err != nil {
+			errs = append(errs, fmt.Errorf("failed to shutdown MeterProvider: %w", err))
 		}
 		if len(errs) > 0 {
 			return fmt.Errorf("shutdown errors: %v", errs)
