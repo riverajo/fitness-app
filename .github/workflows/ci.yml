@@ -160,3 +160,45 @@ jobs:
         env:
           BASE_URL: http://localhost:8080/
           CI: true
+
+  load-test:
+    name: Load Tests (k6)
+    runs-on: ubuntu-latest
+    services:
+      mongo:
+        image: mongo:latest
+        ports:
+          - 27017:27017
+        env:
+          MONGO_INITDB_ROOT_USERNAME: user
+          MONGO_INITDB_ROOT_PASSWORD: password
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Build Docker Image
+        run: docker build . -t fitness-app:test
+
+      - name: Run Production Container
+        run: |
+          docker run -d \
+            --name fitness-app \
+            --network host \
+            -e MONGO_URI="mongodb://user:password@localhost:27017/fitness_db?authSource=admin" \
+            -e PORT=8080 \
+            -e JWT_SECRET="your-super-long-development-secret-key-12345" \
+            -e APP_ENV="production" \
+            fitness-app:test
+
+      - name: Wait for App
+        run: |
+          timeout 60s bash -c 'until curl -s http://localhost:8080/readyz > /dev/null; do sleep 2; done'
+
+      - name: Run k6 Tests
+        uses: grafana/k6-action@v0.3.1
+        with:
+          filename: backend/k6/main.js
+        env:
+          BASE_URL: http://localhost:8080
+
