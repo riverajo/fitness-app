@@ -69,41 +69,41 @@ jobs:
         working-directory: frontend
         run: pnpm run check
 
+# comment out e2e-dev jobs for now, runner is not powerful enough
+# e2e-dev:
+#   name: E2E (Dev Mode)
+#   runs-on: ubuntu-latest
+#   steps:
+#     - name: Checkout code
+#       uses: actions/checkout@v6
 
-  e2e-dev:
-    name: E2E (Dev Mode)
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
+#     - name: Setup Node.js
+#       uses: actions/setup-node@v6
+#       with:
+#         node-version: '24'
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: '24'
+#     - name: Install Frontend Dependencies
+#       uses: pnpm/action-setup@v4
+#       with:
+#         version: latest
+#         run_install: true
 
-      - name: Install Frontend Dependencies
-        uses: pnpm/action-setup@v4
-        with:
-          version: latest
-          run_install: true
+#     - name: Install Playwright Browsers
+#       working-directory: frontend
+#       run: pnpm exec playwright install --with-deps
 
-      - name: Install Playwright Browsers
-        working-directory: frontend
-        run: pnpm exec playwright install --with-deps
+#     - name: Start Docker Compose Stack
+#       run: docker compose up -d --build
 
-      - name: Start Docker Compose Stack
-        run: docker compose up -d --build
+#     - name: Wait for Backend
+#       run: |
+#         timeout 60s bash -c 'until curl -s http://localhost:8080/readyz > /dev/null; do sleep 2; done'
 
-      - name: Wait for Backend
-        run: |
-          timeout 60s bash -c 'until curl -s http://localhost:8080/readyz > /dev/null; do sleep 2; done'
-
-      - name: Run Playwright Tests
-        working-directory: frontend
-        run: pnpm run test:e2e
-        env:
-          CI: false
+#     - name: Run Playwright Tests
+#       working-directory: frontend
+#       run: pnpm run test:e2e
+#       env:
+#         CI: false
 
   e2e-prod:
     name: E2E (Production Mode)
