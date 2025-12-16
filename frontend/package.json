@@ -24,7 +24,7 @@
 		"@graphql-codegen/cli": "^6.1.0",
 		"@graphql-codegen/client-preset": "^5.2.1",
 		"@graphql-typed-document-node/core": "^3.2.0",
-		"@playwright/test": "^1.56.1",
+		"@playwright/test": "^1.57.0",
 		"@sveltejs/adapter-static": "^3.0.10",
 		"@sveltejs/kit": "^2.49.2",
 		"@sveltejs/vite-plugin-svelte": "^6.2.1",
