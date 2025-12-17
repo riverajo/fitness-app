@@ -199,7 +199,9 @@ jobs:
         uses: grafana/setup-k6-action@v1
 
       - name: Run k6 Tests
-        run: k6 run backend/k6/main.js
+        uses: grafana/run-k6-action@v1
+        with:
+          path: backend/k6/main.js
         env:
           BASE_URL: http://localhost:8080
 
