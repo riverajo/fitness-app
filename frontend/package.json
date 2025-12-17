@@ -34,7 +34,7 @@
 		"@types/node": "^25",
 		"@vitest/browser-playwright": "^4.0.5",
 		"clsx": "^2.1.1",
-		"eslint": "^9.38.0",
+		"eslint": "^9.39.2",
 		"eslint-config-prettier": "^10.1.8",
 		"eslint-plugin-svelte": "^3.13.1",
 		"flowbite": "^4.0.1",
