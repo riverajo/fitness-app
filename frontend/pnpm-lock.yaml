@@ -12,8 +12,8 @@ importers:
         specifier: ^2.1.0
         version: 2.1.0
       '@grafana/faro-web-tracing':
-        specifier: ^2.0.2
-        version: 2.0.2
+        specifier: ^2.1.0
+        version: 2.1.0
       '@urql/exchange-auth':
         specifier: ^3.0.0
         version: 3.0.0(@urql/core@6.0.1(graphql@16.12.0))
@@ -481,8 +481,8 @@ packages:
   '@grafana/faro-web-sdk@2.1.0':
     resolution: {integrity: sha512-ozutA3rN1h+JLphXGOz3B0jb81ew0lBHJEXg47EvWozyZtwtsMWTAX+4PP63Sm5P/BMO/Jm3rt3LtOORXnsPPg==}
 
-  '@grafana/faro-web-tracing@2.0.2':
-    resolution: {integrity: sha512-jFKpXkAGI4SO1wlDQfZ6I0ZBeGq1VykT4TiGWFY7VnMnQZeiEUA/KfpJpEya+CdkDmd+c9hiBmSZDLzplu8dNA==}
+  '@grafana/faro-web-tracing@2.1.0':
+    resolution: {integrity: sha512-S8Pkq+mU2LjRuyzbRvY2eSFJn3i9cJTN7dzmiv0CQJHEpzFcCMsTEdY4UhrdO3moPIF5qipl3RJvb6fCfOaDLw==}
 
   '@graphql-codegen/add@6.0.0':
     resolution: {integrity: sha512-biFdaURX0KTwEJPQ1wkT6BRgNasqgQ5KbCI1a3zwtLtO7XTo7/vKITPylmiU27K5DSOWYnY/1jfSqUAEBuhZrQ==}
@@ -3612,7 +3612,7 @@ snapshots:
       ua-parser-js: 1.0.41
       web-vitals: 5.1.0
 
-  '@grafana/faro-web-tracing@2.0.2':
+  '@grafana/faro-web-tracing@2.1.0':
     dependencies:
       '@grafana/faro-web-sdk': 2.1.0
       '@opentelemetry/api': 1.9.0
