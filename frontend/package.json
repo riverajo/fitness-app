@@ -60,7 +60,7 @@
 	"packageManager": "pnpm@10.26.0",
 	"dependencies": {
 		"@grafana/faro-web-sdk": "^2.1.0",
-		"@grafana/faro-web-tracing": "^2.0.2",
+		"@grafana/faro-web-tracing": "^2.1.0",
 		"@urql/exchange-auth": "^3.0.0",
 		"@urql/svelte": "^5.0.0",
 		"graphql": "^16.12.0",
