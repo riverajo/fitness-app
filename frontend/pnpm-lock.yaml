@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@grafana/faro-web-sdk':
-        specifier: ^2.0.2
-        version: 2.0.2
+        specifier: ^2.1.0
+        version: 2.1.0
       '@grafana/faro-web-tracing':
         specifier: ^2.0.2
         version: 2.0.2
@@ -475,11 +475,11 @@ packages:
   '@floating-ui/utils@0.2.10':
     resolution: {integrity: sha512-aGTxbpbg8/b5JfU1HXSrbH3wXZuLPJcNEcZQFMxLs3oSzgtVu6nFPkbbGGUvBcUjKV2YyB9Wxxabo+HEH9tcRQ==}
 
-  '@grafana/faro-core@2.0.2':
-    resolution: {integrity: sha512-dUcQBUDzvWmDbVDlYYEmVyjxZJjqC8syCuE/YWDJp/Zps9DkDH5CdF5kWuSb3cCm6U1iTo9czDkORPj0KEN9WQ==}
+  '@grafana/faro-core@2.1.0':
+    resolution: {integrity: sha512-Pc9U2gWH8I1AVeXKLK667NF8N3Nwa1AcAAV3/KKG7C0ZDoy6kY5lXOMY930lzqFtuaji0B2tidayYxrfDmicXA==}
 
-  '@grafana/faro-web-sdk@2.0.2':
-    resolution: {integrity: sha512-Tn5XUBfmEOXexFGRVmtR1JqyoUWU0luw1T27p9vwBCAg6X5yCVOf7N73ctIZ+WD7eS1DCLdAGT8ehx44WXgyeQ==}
+  '@grafana/faro-web-sdk@2.1.0':
+    resolution: {integrity: sha512-ozutA3rN1h+JLphXGOz3B0jb81ew0lBHJEXg47EvWozyZtwtsMWTAX+4PP63Sm5P/BMO/Jm3rt3LtOORXnsPPg==}
 
   '@grafana/faro-web-tracing@2.0.2':
     resolution: {integrity: sha512-jFKpXkAGI4SO1wlDQfZ6I0ZBeGq1VykT4TiGWFY7VnMnQZeiEUA/KfpJpEya+CdkDmd+c9hiBmSZDLzplu8dNA==}
@@ -3516,20 +3516,20 @@ snapshots:
 
   '@floating-ui/utils@0.2.10': {}
 
-  '@grafana/faro-core@2.0.2':
+  '@grafana/faro-core@2.1.0':
     dependencies:
       '@opentelemetry/api': 1.9.0
       '@opentelemetry/otlp-transformer': 0.208.0(@opentelemetry/api@1.9.0)
 
-  '@grafana/faro-web-sdk@2.0.2':
+  '@grafana/faro-web-sdk@2.1.0':
     dependencies:
-      '@grafana/faro-core': 2.0.2
+      '@grafana/faro-core': 2.1.0
       ua-parser-js: 1.0.41
       web-vitals: 5.1.0
 
   '@grafana/faro-web-tracing@2.0.2':
     dependencies:
-      '@grafana/faro-web-sdk': 2.0.2
+      '@grafana/faro-web-sdk': 2.1.0
       '@opentelemetry/api': 1.9.0
       '@opentelemetry/core': 2.2.0(@opentelemetry/api@1.9.0)
       '@opentelemetry/exporter-trace-otlp-http': 0.208.0(@opentelemetry/api@1.9.0)
