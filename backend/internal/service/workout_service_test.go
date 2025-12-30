@@ -6,93 +6,112 @@ import (
 	"testing"
 
 	"github.com/riverajo/fitness-app/backend/internal/model"
+	"github.com/riverajo/fitness-app/backend/internal/repository"
+	"github.com/stretchr/testify/assert"
 )
 
-// MockWorkoutRepository is a mock implementation of repository.WorkoutRepository
-type MockWorkoutRepository struct {
-	CreateFunc     func(ctx context.Context, log model.WorkoutLog) (*model.WorkoutLog, error)
-	GetByIDFunc    func(ctx context.Context, id string) (*model.WorkoutLog, error)
-	ListByUserFunc func(ctx context.Context, userID string, limit, offset int) ([]*model.WorkoutLog, error)
-	UpdateFunc     func(ctx context.Context, log model.WorkoutLog) (*model.WorkoutLog, error)
-}
-
-func (m *MockWorkoutRepository) Create(ctx context.Context, log model.WorkoutLog) (*model.WorkoutLog, error) {
-	if m.CreateFunc != nil {
-		return m.CreateFunc(ctx, log)
-	}
-	return &log, nil
-}
-
-func (m *MockWorkoutRepository) GetByID(ctx context.Context, id string) (*model.WorkoutLog, error) {
-	if m.GetByIDFunc != nil {
-		return m.GetByIDFunc(ctx, id)
-	}
-	return nil, nil
-}
-
-func (m *MockWorkoutRepository) ListByUser(ctx context.Context, userID string, limit, offset int) ([]*model.WorkoutLog, error) {
-	if m.ListByUserFunc != nil {
-		return m.ListByUserFunc(ctx, userID, limit, offset)
-	}
-	return nil, nil
-}
-
-func (m *MockWorkoutRepository) Update(ctx context.Context, log model.WorkoutLog) (*model.WorkoutLog, error) {
-	if m.UpdateFunc != nil {
-		return m.UpdateFunc(ctx, log)
-	}
-	return &log, nil
-}
-
 func TestCreateLog(t *testing.T) {
-	tests := []struct {
-		name    string
-		input   model.WorkoutLog
-		mock    *MockWorkoutRepository
-		wantErr bool
-	}{
-		{
-			name: "Success",
-			input: model.WorkoutLog{
-				Name: "Leg Day",
-			},
-			mock: &MockWorkoutRepository{
-				CreateFunc: func(ctx context.Context, log model.WorkoutLog) (*model.WorkoutLog, error) {
-					log.ID = "generated-id"
-					return &log, nil
-				},
-			},
-			wantErr: false,
-		},
-		{
-			name: "Repository Error",
-			input: model.WorkoutLog{
-				Name: "Leg Day",
-			},
-			mock: &MockWorkoutRepository{
-				CreateFunc: func(ctx context.Context, log model.WorkoutLog) (*model.WorkoutLog, error) {
-					return nil, errors.New("db error")
-				},
-			},
-			wantErr: true,
-		},
-	}
+	mockRepo := new(repository.MockWorkoutRepository)
+	service := NewWorkoutService(mockRepo)
+	ctx := context.Background()
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			s := NewWorkoutService(tt.mock)
-			got, err := s.CreateLog(context.Background(), tt.input)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("CreateLog() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !tt.wantErr {
-				if got == nil {
-					t.Error("CreateLog() expected result, got nil")
-				} else if got.ID == "" {
-					t.Error("CreateLog() expected ID to be generated")
-				}
-			}
-		})
-	}
+	t.Run("Success", func(t *testing.T) {
+		input := model.WorkoutLog{Name: "Leg Day"}
+		mockRepo.On("Create", ctx, input).Return(&model.WorkoutLog{ID: "generated-id", Name: "Leg Day"}, nil).Once()
+
+		result, err := service.CreateLog(ctx, input)
+
+		assert.NoError(t, err)
+		assert.Equal(t, "generated-id", result.ID)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("Repository Error", func(t *testing.T) {
+		input := model.WorkoutLog{Name: "Leg Day"}
+		mockRepo.On("Create", ctx, input).Return(nil, errors.New("db error")).Once()
+
+		result, err := service.CreateLog(ctx, input)
+
+		assert.Error(t, err)
+		assert.Nil(t, result)
+		mockRepo.AssertExpectations(t)
+	})
+}
+
+func TestGetLog(t *testing.T) {
+	mockRepo := new(repository.MockWorkoutRepository)
+	service := NewWorkoutService(mockRepo)
+	ctx := context.Background()
+
+	t.Run("found", func(t *testing.T) {
+		id := "log-1"
+		expected := &model.WorkoutLog{ID: id, Name: "Upper Body"}
+		mockRepo.On("GetByID", ctx, id).Return(expected, nil).Once()
+
+		result, err := service.GetLog(ctx, id)
+
+		assert.NoError(t, err)
+		assert.Equal(t, expected, result)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("not found", func(t *testing.T) {
+		id := "log-999"
+		mockRepo.On("GetByID", ctx, id).Return(nil, errors.New("not found")).Once()
+
+		result, err := service.GetLog(ctx, id)
+
+		assert.Error(t, err)
+		assert.Nil(t, result)
+		mockRepo.AssertExpectations(t)
+	})
+}
+
+func TestListLogs(t *testing.T) {
+	mockRepo := new(repository.MockWorkoutRepository)
+	service := NewWorkoutService(mockRepo)
+	ctx := context.Background()
+
+	t.Run("success", func(t *testing.T) {
+		userID := "user-123"
+		limit := 10
+		offset := 0
+		expected := []*model.WorkoutLog{{Name: "Run"}, {Name: "Gym"}}
+		mockRepo.On("ListByUser", ctx, userID, limit, offset).Return(expected, nil).Once()
+
+		result, err := service.ListLogs(ctx, userID, limit, offset)
+
+		assert.NoError(t, err)
+		assert.Equal(t, expected, result)
+		mockRepo.AssertExpectations(t)
+	})
+}
+
+func TestUpdateLog(t *testing.T) {
+	mockRepo := new(repository.MockWorkoutRepository)
+	service := NewWorkoutService(mockRepo)
+	ctx := context.Background()
+
+	t.Run("success", func(t *testing.T) {
+		input := model.WorkoutLog{ID: "log-1", Name: "Updated Name"}
+		expected := &model.WorkoutLog{ID: "log-1", Name: "Updated Name"}
+		mockRepo.On("Update", ctx, input).Return(expected, nil).Once()
+
+		result, err := service.UpdateLog(ctx, input)
+
+		assert.NoError(t, err)
+		assert.Equal(t, expected, result)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("error", func(t *testing.T) {
+		input := model.WorkoutLog{ID: "log-1"}
+		mockRepo.On("Update", ctx, input).Return(nil, errors.New("update failed")).Once()
+
+		result, err := service.UpdateLog(ctx, input)
+
+		assert.Error(t, err)
+		assert.Nil(t, result)
+		mockRepo.AssertExpectations(t)
+	})
 }
