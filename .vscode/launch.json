@@ -1,0 +1,30 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Launch Backend (Debug)",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "program": "${workspaceFolder}/backend/cmd/server/main.go",
+            "env": {
+                "MONGO_URI": "mongodb://user:password@localhost:27017/fitness_db?authSource=admin",
+                "JWT_SECRET": "your-super-long-development-secret-key-12345",
+                "OTEL_EXPORTER_OTLP_ENDPOINT": "alloy:4317"
+            },
+            "showLog": true
+        },
+        {
+            "name": "Test Current Function",
+            "type": "go",
+            "request": "launch",
+            "mode": "test",
+            "program": "${fileDirname}",
+            "args": [
+                "-test.run",
+                "^${selectedText}$"
+            ],
+            "showLog": true
+        }
+    ]
+}

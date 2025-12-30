@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  # This 'dev' service replaces the 'api' service for development purposes
+  # It will share the network with the database but won't start the app automatically
+  dev:
+    image: mcr.microsoft.com/devcontainers/base:ubuntu
+    volumes:
+      - ..:/workspaces/fitness-app:cached
+    # Overrides default command so things don't shut down after the process ends.
+    command: sleep infinity
+    # Runs app on the same network as the database container, allowing "localhost" access 
+    # if using host networking, but usually we use the service name "db".
+    network_mode: service:db
+    # Environment variables match the 'api' service so tools work out of the box
+    environment:
+      MONGO_URI: mongodb://user:password@localhost:27017/fitness_db?authSource=admin
+      JWT_SECRET: "your-super-long-development-secret-key-12345"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "alloy:4317"

@@ -1,0 +1,40 @@
+{
+    "name": "Fitness App Dev",
+    "dockerComposeFile": [
+        "../docker-compose.yml",
+        "./docker-compose.dev.yml"
+    ],
+    "service": "dev",
+    "workspaceFolder": "/workspaces/fitness-app",
+    "features": {
+        "ghcr.io/devcontainers/features/go:1": {
+            "version": "1.25"
+        },
+        "ghcr.io/devcontainers/features/node:1": {
+            "version": "lts"
+        },
+        "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
+        "ghcr.io/devcontainers/features/common-utils:2": {
+            "configureZshAsDefaultShell": true
+        }
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "golang.go",
+                "dbaeumer.vscode-eslint",
+                "svelte.svelte-vscode",
+                "esbenp.prettier-vscode",
+                "bradlc.vscode-tailwindcss"
+            ]
+        }
+    },
+    // Use 'forwardPorts' to make a list of ports inside the container available locally.
+    // 8080: Go API, 5173: Vite Frontend, 27017: Mongo
+    "forwardPorts": [
+        8080,
+        5173,
+        27017
+    ],
+    "remoteUser": "vscode"
+}
