@@ -3,11 +3,11 @@ package main
 import (
 	"context"
 	"embed"
+
 	"io/fs"
 	"log/slog"
 	"net/http"
-	"net/http/httputil"
-	"net/url"
+
 	"os"
 	"os/signal"
 	"syscall"
@@ -49,7 +49,7 @@ func main() {
 	}
 
 	// 2. Initialize OpenTelemetry
-	shutdown, err := telemetry.InitOTel(context.Background(), cfg.AppEnv)
+	shutdown, err := telemetry.InitOTel(context.Background(), cfg.AppEnv, cfg.CI)
 	if err != nil {
 		slog.Error("Failed to initialize OpenTelemetry", "error", err)
 	} else {
@@ -110,7 +110,7 @@ func main() {
 	exerciseRepo := repository.NewMongoExerciseRepository(database)
 
 	// The Resolver struct is where you inject services like the WorkoutService
-	resolver := graph.NewResolver(userRepo, workoutRepo, exerciseRepo, cfg.JWTSecret)
+	resolver := graph.NewResolver(userRepo, workoutRepo, exerciseRepo, cfg.JWTSecret, cfg)
 
 	// 4. GRAPHQL SERVER SETUP
 	srv := handler.New(graph.NewExecutableSchema(graph.Config{Resolvers: resolver}))
@@ -136,7 +136,7 @@ func main() {
 	})
 
 	// Handle Faro Collection Proxy
-	http.Handle("/faro/collect", otelhttp.NewHandler(faroProxyHandler(cfg.FaroURL), "FaroProxy"))
+	http.Handle("/faro/collect", otelhttp.NewHandler(middleware.FaroProxy(cfg.FaroURL, cfg.CI), "FaroProxy"))
 
 	http.HandleFunc("/readyz", func(w http.ResponseWriter, r *http.Request) {
 		if err := client.Ping(r.Context(), nil); err != nil {
@@ -147,6 +147,9 @@ func main() {
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write([]byte("ready"))
 	})
+
+	finalHandler = middleware.RecoveryMiddleware(finalHandler)
+	finalHandler = middleware.LoggingMiddleware(finalHandler)
 
 	// Determine environment
 	if cfg.AppEnv == "production" {
@@ -227,21 +230,4 @@ func main() {
 	}
 
 	slog.Info("Shutdown complete")
-}
-
-func faroProxyHandler(target string) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		targetURL, err := url.Parse(target)
-		if err != nil {
-			slog.Error("Failed to parse Faro URL", "error", err)
-			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-			return
-		}
-		proxy := httputil.NewSingleHostReverseProxy(targetURL)
-		r.URL.Host = targetURL.Host
-		r.URL.Scheme = targetURL.Scheme
-		r.Header.Set("X-Forwarded-Host", r.Header.Get("Host"))
-		r.Host = targetURL.Host
-		proxy.ServeHTTP(w, r)
-	})
 }

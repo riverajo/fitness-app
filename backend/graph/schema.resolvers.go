@@ -195,8 +195,8 @@ func (r *mutationResolver) Register(ctx context.Context, input model1.RegisterIn
 			Value:    token,
 			Expires:  expirationTime,
 			HttpOnly: true,
-			Secure:   true,
-			SameSite: http.SameSiteStrictMode,
+			Secure:   !r.Config.CI,
+			SameSite: http.SameSiteLaxMode,
 			Path:     "/",
 		}
 		http.SetCookie(w, &cookie)
@@ -238,9 +238,9 @@ func (r *mutationResolver) Login(ctx context.Context, input model1.LoginInput) (
 		Name:     middleware.AuthCookieName,
 		Value:    token,
 		Expires:  expirationTime,
-		HttpOnly: true,                    // Prevents JavaScript access (XSS mitigation)
-		Secure:   true,                    // CRITICAL: Only send over HTTPS
-		SameSite: http.SameSiteStrictMode, // Prevents CSRF
+		HttpOnly: true,                 // Prevents JavaScript access (XSS mitigation)
+		Secure:   !r.Config.CI,         // CRITICAL: Only send over HTTPS
+		SameSite: http.SameSiteLaxMode, // Prevents CSRF
 		Path:     "/",
 	}
 	http.SetCookie(w, &cookie)
@@ -299,7 +299,7 @@ func (r *mutationResolver) Logout(ctx context.Context) (*model1.AuthPayload, err
 		Path:     "/",
 		MaxAge:   -1,
 		HttpOnly: true,
-		Secure:   true,
+		Secure:   !r.Config.CI,
 		SameSite: http.SameSiteStrictMode,
 	})
 

@@ -33,3 +33,4 @@ go.work.sum
 backend/tmp/*
 backend/backend
 backend/fitness-app
+playwright-report/

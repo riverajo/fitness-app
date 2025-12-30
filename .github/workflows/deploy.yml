@@ -6,17 +6,15 @@ on:
       - main
 
 env:
-  REGISTRY: ghcr.io
+  REGISTRY: git.rivera.ninja
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   build-and-push:
-    runs-on: ubuntu-latest
+    runs-on: docker
     permissions:
-      id-token: write
       contents: read
       packages: write
-      attestations: write
 
     steps:
       - name: Checkout repository
@@ -46,10 +44,4 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-      - name: Attest
-        uses: actions/attest-build-provenance@v3
-        id: attest
-        with:
-          subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          subject-digest: ${{ steps.push.outputs.digest }}
-          push-to-registry: true
+

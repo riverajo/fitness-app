@@ -10,7 +10,10 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/mongodb"
+	"github.com/testcontainers/testcontainers-go/network"
+	"github.com/testcontainers/testcontainers-go/wait"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -18,15 +21,82 @@ import (
 
 var testDB *mongo.Database
 
+func getMyNetworkName(ctx context.Context, containerID string) string {
+	if containerID == "" {
+		return ""
+	}
+
+	// Create a provider to talk to the socket
+	provider, err := testcontainers.NewDockerProvider()
+	if err != nil {
+		return ""
+	}
+	defer func() {
+		if err := provider.Close(); err != nil {
+			log.Printf("failed to close provider: %s", err)
+		}
+	}()
+
+	// Inspect "this" container
+	client, err := testcontainers.NewDockerClientWithOpts(ctx)
+	if err != nil {
+		return ""
+	}
+
+	inspect, err := client.ContainerInspect(ctx, containerID)
+	if err != nil {
+		return ""
+	}
+
+	// Grab the first network name attached to this container
+	for netName := range inspect.NetworkSettings.Networks {
+		return netName
+	}
+	return ""
+}
+
+func getMongoURI(ctx context.Context, container *mongodb.MongoDBContainer, networkName string) string {
+	// If we are in a shared network (CI), use the internal alias and port
+	if networkName != "" && networkName != "bridge" {
+		return "mongodb://mongodb_seeder:27017/fitness_db?authSource=admin"
+	}
+
+	// Otherwise (Local Dev), use the official helper
+	uri, err := container.ConnectionString(ctx)
+	if err != nil {
+		return "mongodb://localhost:27017/fitness_db?authSource=admin"
+	}
+	return uri
+}
+
 func TestMain(m *testing.M) {
 	ctx := context.Background()
+	myID := os.Getenv("MY_CONTAINER_ID")
+	networkName := getMyNetworkName(ctx, myID)
 
-	mongodbContainer, err := mongodb.Run(ctx, "mongo:6")
+	var opts []testcontainers.ContainerCustomizer
+
+	if networkName != "" {
+		// Use the network package's helper to join by name
+		opts = append(opts, network.WithNetworkName([]string{"mongodb_seeder"}, networkName),
+			testcontainers.WithWaitStrategy(
+				wait.ForAll(
+					wait.ForListeningPort("27017/tcp").SkipExternalCheck(),
+				).WithDeadline(2*time.Minute), // Changed from WithStartupTimeout
+			),
+		)
+	}
+	mongodbContainer, err := mongodb.Run(ctx, "mongo:6", opts...)
 	if err != nil {
 		log.Fatalf("failed to start container: %s", err)
 	}
+	defer func() {
+		if err := mongodbContainer.Terminate(ctx); err != nil {
+			log.Printf("failed to terminate container: %s", err)
+		}
+	}()
 
-	endpoint, err := mongodbContainer.ConnectionString(ctx)
+	endpoint := getMongoURI(ctx, mongodbContainer, networkName)
 	if err != nil {
 		log.Fatalf("failed to get connection string: %s", err)
 	}

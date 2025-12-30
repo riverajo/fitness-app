@@ -23,6 +23,7 @@ services:
       MONGO_URI: mongodb://user:password@db:27017/fitness_db?authSource=admin
       JWT_SECRET: "your-super-long-development-secret-key-12345"
       OTEL_EXPORTER_OTLP_ENDPOINT: "alloy:4317"
+      FARO_URL: ""
     entrypoint: air
     depends_on:
       - db

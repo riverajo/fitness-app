@@ -21,7 +21,7 @@ import (
 )
 
 // InitOTel initializes the OpenTelemetry tracer and logger providers.
-func InitOTel(ctx context.Context, appEnv string) (func(context.Context) error, error) {
+func InitOTel(ctx context.Context, appEnv string, enableAlloy bool) (func(context.Context) error, error) {
 	// 1. Create the Resource
 	res, err := resource.New(ctx,
 		resource.WithAttributes(
@@ -33,12 +33,25 @@ func InitOTel(ctx context.Context, appEnv string) (func(context.Context) error, 
 	}
 
 	// 2. Metrics (OTLP)
-	metricsExporter, err := otlpmetricgrpc.New(ctx, otlpmetricgrpc.WithInsecure())
-	if err != nil {
-		return nil, fmt.Errorf("failed to create otlp metric exporter: %w", err)
+	// 2. Metrics
+	var metricReader metric.Reader
+
+	if appEnv == "production" && enableAlloy {
+		metricsExporter, err := otlpmetricgrpc.New(ctx, otlpmetricgrpc.WithInsecure())
+		if err != nil {
+			return nil, fmt.Errorf("failed to create otlp metric exporter: %w", err)
+		}
+		metricReader = metric.NewPeriodicReader(metricsExporter)
+	} else {
+		// Dev/Test: No metrics or stdout
+		// For now we can just use a manual reader that does nothing effectively for this test case
+		// or just skip setting the global provider if we want.
+		// Let's use a manual reader to satisfy the interface without network calls.
+		metricReader = metric.NewManualReader()
 	}
+
 	meterProvider := metric.NewMeterProvider(
-		metric.WithReader(metric.NewPeriodicReader(metricsExporter)),
+		metric.WithReader(metricReader),
 		metric.WithResource(res),
 	)
 	otel.SetMeterProvider(meterProvider)
@@ -52,7 +65,7 @@ func InitOTel(ctx context.Context, appEnv string) (func(context.Context) error, 
 		log.WithResource(res),
 	}
 
-	if appEnv == "production" {
+	if appEnv == "production" && enableAlloy {
 		// Production: Use OTLP Exporters (Alloy)
 		traceExporter, err = otlptracegrpc.New(ctx, otlptracegrpc.WithInsecure())
 		if err != nil {

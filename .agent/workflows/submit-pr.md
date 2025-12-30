@@ -8,6 +8,9 @@ description: Create a Pull Request for the current changes
 
 3. **Pushing**: Push the new branch to origin.
 
-4. **Creating PR**: Use the `create_pull_request` tool with a descriptive title and body.
+4. **Creating PR**: Use the `tea` CLI to create the PR.
+   ```bash
+   tea pr create --title "Title" --description "Body"
+   ```
 
-5. **Auto-Merge**: Attempt to enable auto-merge using `gh pr merge --auto --squash`. If this fails, just notify the user that the PR is ready for review.
+5. **Auto-Merge**: Forgejo Actions/Tea doesn't support the same auto-merge flag universally. Just notify the user the PR is created.

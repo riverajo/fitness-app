@@ -24,50 +24,53 @@ func NewHandler(staticFS fs.FS, indexPath string) *SPAHandler {
 }
 
 func (h *SPAHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	// Get the absolute path to prevent directory traversal
-	upath := r.URL.Path
-	if !strings.HasPrefix(upath, "/") {
-		upath = "/" + upath
-	}
-	upath = path.Clean(upath)
+	upath := strings.TrimPrefix(path.Clean(r.URL.Path), "/")
 
-	// Check if the file exists in the static filesystem
-	f, err := h.staticFS.Open(strings.TrimPrefix(upath, "/"))
+	// 1. Try to get file info from the static filesystem
+	f, err := h.staticFS.Open(upath)
 	if err == nil {
-		// File exists, serve it
-		defer func() { _ = f.Close() }()
 		stat, err := f.Stat()
-		if err == nil {
-			// If it's a directory, we want to fall through to index.html (unless it has an index.html inside, but SvelteKit usually handles this)
-			// For a typical SPA build, we just want to serve files if they are files.
-			if !stat.IsDir() {
-				http.FileServer(http.FS(h.staticFS)).ServeHTTP(w, r)
+		if err == nil && !stat.IsDir() {
+			err = f.Close()
+			if err != nil {
+				http.Error(w, "Failed to close file", http.StatusInternalServerError)
 				return
 			}
+			// File exists and is not a dir - serve it directly
+			http.FileServer(http.FS(h.staticFS)).ServeHTTP(w, r)
+			return
+		}
+		err = f.Close()
+		if err != nil {
+			http.Error(w, "Failed to close file", http.StatusInternalServerError)
+			return
 		}
 	}
 
-	// File does not exist or is a directory, serve index.html
+	// 2. FALLBACK: Serve index.html
 	indexFile, err := h.staticFS.Open(h.indexPath)
 	if err != nil {
 		http.Error(w, "index.html not found", http.StatusInternalServerError)
 		return
 	}
-	defer func() { _ = indexFile.Close() }()
+	defer func() {
+		err = indexFile.Close()
+		if err != nil {
+			http.Error(w, "Failed to close file", http.StatusInternalServerError)
+		}
+	}()
 
-	// Serve index.html
-	// We read it into memory or use http.ServeContent.
-	// Since it's embedded, we can use ServeContent with the file.
 	stat, err := indexFile.Stat()
 	if err != nil {
 		http.Error(w, "Failed to stat index.html", http.StatusInternalServerError)
 		return
 	}
 
-	// Prevent caching of index.html so updates are seen immediately
+	// Cache headers for SPA entry point
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-	w.Header().Set("Pragma", "no-cache")
-	w.Header().Set("Expires", "0")
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 
+	// Use ServeContent which handles Range requests and ModTime correctly
+	// The type assertion to io.ReadSeeker works for embedded files
 	http.ServeContent(w, r, "index.html", stat.ModTime(), indexFile.(io.ReadSeeker))
 }
