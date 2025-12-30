@@ -11,27 +11,38 @@ env:
   GITHUB_USERNAME: riverajo
 
 jobs:
-  build-and-push:
+  build-image:
+    name: Build & Push Image
     runs-on: docker
     container:
-      image: quay.io/buildah/stable:v1.42
+      image: data.forgejo.org/oci/node:24-trixie
       volumes:
         - /run/user/1000/podman/podman.sock:/var/run/docker.sock
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
 
-      - name: Log in to GHCR
+      - name: Install Podman CLI
         run: |
-          echo "${{ secrets.GHCR_PAT }}" | buildah login -u ${{env.GITHUB_USERNAME}} --password-stdin ghcr.io
+          apt-get update && apt-get install -y podman
+          echo "CONTAINER_HOST=unix:///var/run/docker.sock" >> $GITHUB_ENV
 
-      - name: Build image
+      - name: Log in to GHCR
+        # We use --password-stdin for security to avoid the PAT appearing in logs
         run: |
-          # The -t flag sets the local name/tag
-          buildah bud -t ${{env.REGISTRY}}/${{env.IMAGE_NAME}}:latest .
+          echo "${{ secrets.GHCR_PAT }}" | podman login ghcr.io -u ${{env.GITHUB_USERNAME}} --password-stdin
+
+      - name: Build & Tag Image
+        run: |
+          # 1. Build locally
+          podman build --no-cache . -t fitness-app:${{ github.sha }}
+          
+          # 2. Tag for GHCR (Format: ghcr.io/owner/repo:tag)
+          podman tag fitness-app:${{ github.sha }} ghcr.io/${{env.GITHUB_USERNAME}}/${{env.IMAGE_NAME}}:latest
+          podman tag fitness-app:${{ github.sha }} ghcr.io/${{env.GITHUB_USERNAME}}/${{env.IMAGE_NAME}}:${{ github.sha }}
 
       - name: Push to GHCR
         run: |
-          buildah push ${{env.REGISTRY}}/${{env.IMAGE_NAME}}:latest
+          podman push ghcr.io/${{env.GITHUB_USERNAME}}/${{env.IMAGE_NAME}}:latest
+          podman push ghcr.io/${{env.GITHUB_USERNAME}}/${{env.IMAGE_NAME}}:${{ github.sha }}
 
