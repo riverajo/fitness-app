@@ -4,9 +4,21 @@
 	import { resolve } from '$app/paths';
 	import { Heading } from 'flowbite-svelte';
 	import WorkoutForm from '../../../components/workouts/WorkoutForm.svelte';
+	import { workoutStore } from '../../../stores/workoutStore';
+	import { onMount, onDestroy } from 'svelte';
 
 	const client = getContextClient();
 	let error = '';
+
+	// Reset store on mount to ensure fresh state for new workout
+	onMount(() => {
+		workoutStore.reset();
+	});
+
+	// Also reset on destroy to be clean
+	onDestroy(() => {
+		workoutStore.reset();
+	});
 
 	const createWorkoutLogMutation = gql`
 		mutation CreateWorkoutLog($input: CreateWorkoutLogInput!) {
@@ -19,15 +31,49 @@
 
 	async function handleSubmit(event: CustomEvent) {
 		error = '';
-		const formData = event.detail;
+		// The form now dispatches the full store state
+		const storeState = event.detail;
 
 		const input = {
-			name: formData.name,
+			name: storeState.name,
 			startTime: new Date().toISOString(),
 			endTime: new Date().toISOString(),
-			locationName: formData.locationName,
-			generalNotes: formData.generalNotes,
-			exerciseLogs: formData.exerciseLogs
+			locationName: storeState.locationName,
+			generalNotes: storeState.generalNotes,
+			exerciseLogs: storeState.exerciseLogs.map(
+				(log: {
+					uniqueExerciseId: string;
+					sets: {
+						reps: number;
+						weight: number;
+						unit: string;
+						rpe?: number | null;
+						toFailure?: boolean | null;
+						order: number;
+					}[];
+					notes: string;
+				}) => ({
+					uniqueExerciseId: log.uniqueExerciseId,
+					sets: log.sets.map(
+						(s: {
+							reps: number;
+							weight: number;
+							unit: string;
+							rpe?: number | null;
+							toFailure?: boolean | null;
+							order: number;
+						}) => ({
+							reps: s.reps,
+							weight: s.weight,
+							unit: s.unit,
+							rpe: s.rpe,
+							toFailure: s.toFailure,
+							order: s.order
+						})
+					),
+					notes: log.notes
+				})
+			)
 		};
 
 		const result = await client.mutation(createWorkoutLogMutation, { input }).toPromise();

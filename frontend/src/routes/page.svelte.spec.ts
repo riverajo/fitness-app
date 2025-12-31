@@ -4,11 +4,21 @@ import { render } from 'vitest-browser-svelte';
 import Page from './+page.svelte';
 
 vi.mock('@urql/svelte', () => {
+	const mockClient = {
+		query: vi.fn(),
+		mutation: vi.fn()
+	};
+
+	// Mock chainable methods
+	mockClient.query.mockReturnValue({
+		toPromise: vi.fn().mockResolvedValue({ data: {} })
+	});
+	mockClient.mutation.mockReturnValue({
+		toPromise: vi.fn().mockResolvedValue({ data: {} })
+	});
+
 	return {
-		getContextClient: () => ({
-			query: vi.fn(),
-			mutation: vi.fn()
-		}),
+		getContextClient: () => mockClient,
 		gql: (t: TemplateStringsArray) => t
 	};
 });

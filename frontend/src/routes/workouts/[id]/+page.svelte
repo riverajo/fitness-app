@@ -46,12 +46,22 @@
 		`,
 		variables: { id: workoutId }
 	});
+
+	// Helper to check if edit is allowed (24h window)
+	function canEdit(startTime: string): boolean {
+		const workoutTime = new Date(startTime).getTime();
+		const now = Date.now();
+		const msIn24Hours = 24 * 60 * 60 * 1000;
+		return now - workoutTime < msIn24Hours;
+	}
 </script>
 
 <div class="mx-auto max-w-3xl px-4 py-6 sm:px-6 lg:px-8">
 	<div class="mb-6 flex items-center justify-between">
 		<Button color="light" href="/dashboard" size="xs">&larr; Back to Dashboard</Button>
-		<Button color="alternative" href="/workouts/{workoutId}/edit" size="xs">Edit Workout</Button>
+		{#if $workoutQuery.data?.getWorkoutLog && canEdit($workoutQuery.data.getWorkoutLog.startTime)}
+			<Button color="alternative" href="/workouts/{workoutId}/edit" size="xs">Edit Workout</Button>
+		{/if}
 	</div>
 
 	{#if $workoutQuery.fetching}

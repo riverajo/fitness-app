@@ -13,79 +13,37 @@
 		ListgroupItem
 	} from 'flowbite-svelte';
 	import { createEventDispatcher } from 'svelte';
-	import type { UniqueExercise, SetInput, CreateWorkoutLogInput } from '../../lib/gql/graphql';
+	import type { UniqueExercise } from '../../lib/gql/graphql';
+	import { workoutStore, type WorkoutState } from '../../stores/workoutStore';
 
-	// Define a type for the exercises as they are being edited in the form
-	interface FormSet extends Omit<SetInput, 'unit'> {
-		unit?: string;
+	// Define a type for the exercises as they are being edited in the scratchpad
+	// This matches the store structure but is just for the "Add Exercise" section
+	interface ScratchpadSet {
+		reps: number;
+		weight: number;
+		unit: string;
+		rpe?: number | null;
+		toFailure?: boolean | null;
+		order: number;
 	}
 
-	interface FormExercise {
-		uniqueExerciseId: string;
-		name: string;
-		sets: FormSet[];
-		notes: string;
-	}
-
-	// Define interface for initial data based on the query result structure
-	interface WorkoutFormInitialData {
-		name: string;
-		locationName?: string | null;
-		generalNotes?: string | null;
-		exerciseLogs: {
-			uniqueExercise: {
-				id: string;
-				name: string;
-			};
-			sets: {
-				reps: number;
-				weight: number;
-				rpe?: number | null;
-				toFailure?: boolean | null;
-				order: number;
-				unit?: string; // Might be missing in some queries
-			}[];
-			notes?: string | null;
-		}[];
-	}
-
-	export let initialData: WorkoutFormInitialData | null = null;
 	export let submitLabel: string = 'Save Workout';
 	export let error: string = '';
 
 	const dispatch = createEventDispatcher<{
-		submit: CreateWorkoutLogInput;
+		submit: WorkoutState;
 	}>();
 	const client = getContextClient();
-
-	let name = initialData?.name || '';
-	let locationName = initialData?.locationName || '';
-	let generalNotes = initialData?.generalNotes || '';
 
 	let searchQuery = '';
 	let searchResults: UniqueExercise[] = [];
 
-	// Initialize selected exercises from initialData if available
-	let selectedExercises: FormExercise[] =
-		initialData?.exerciseLogs?.map((log) => ({
-			uniqueExerciseId: log.uniqueExercise.id,
-			name: log.uniqueExercise.name,
-			sets: log.sets.map((s) => ({
-				reps: s.reps,
-				weight: s.weight,
-				rpe: s.rpe,
-				toFailure: s.toFailure,
-				order: s.order,
-				unit: s.unit || 'KILOGRAMS'
-			})),
-			notes: log.notes || ''
-		})) || [];
-
-	// Current exercise being added
+	// Local state for the "Add Exercise" scratchpad
+	// This remains local because we haven't committed it to the workout yet
 	let currentExercise: UniqueExercise | null = null;
-	let currentSets: FormSet[] = [];
+	let currentSets: ScratchpadSet[] = [];
 
-	// Set input fields
+	// Scratchpad input fields
 	let reps = 0;
 	let weight = 0;
 	let rpe = 0;
@@ -129,7 +87,7 @@
 				unit: 'KILOGRAMS'
 			}
 		];
-		// Reset fields for next set
+		// Reset scratchpad fields
 		reps = 0;
 		weight = 0;
 		rpe = 0;
@@ -138,52 +96,39 @@
 
 	function confirmExercise() {
 		if (currentExercise && currentSets.length > 0) {
-			selectedExercises = [
-				...selectedExercises,
-				{
-					uniqueExerciseId: currentExercise.id,
-					name: currentExercise.name,
-					sets: currentSets,
-					notes: ''
-				}
-			];
+			// Commit to global store
+			workoutStore.update((n) => ({
+				...n,
+				exerciseLogs: [
+					...n.exerciseLogs,
+					{
+						uniqueExerciseId: currentExercise!.id,
+						name: currentExercise!.name,
+						sets: currentSets,
+						notes: ''
+					}
+				]
+			}));
+
 			currentExercise = null;
 			currentSets = [];
 		}
 	}
 
 	function removeExercise(index: number) {
-		selectedExercises = selectedExercises.filter((_, i) => i !== index);
+		workoutStore.update((n) => ({
+			...n,
+			exerciseLogs: n.exerciseLogs.filter((_, i) => i !== index)
+		}));
 	}
 
 	function handleSubmit() {
-		// We need to construct the input object.
-		// Since we don't know if it's create or update here (depends on parent),
-		// we'll just emit the form data and let the parent handle the mutation input structure.
-		// However, to satisfy strict typing, we should probably emit a custom type.
-
-		const exerciseLogs = selectedExercises.map((ex) => ({
-			uniqueExerciseId: ex.uniqueExerciseId,
-			sets: ex.sets.map((s, i) => ({
-				reps: s.reps,
-				weight: s.weight,
-				unit: s.unit || 'KILOGRAMS', // Ensure unit is present
-				rpe: s.rpe,
-				toFailure: s.toFailure,
-				order: i + 1
-			})),
-			notes: ex.notes
-		}));
-
-		const formData = {
-			name,
-			locationName,
-			generalNotes,
-			exerciseLogs
-		};
-
-		dispatch('submit', formData as CreateWorkoutLogInput);
+		dispatch('submit', $workoutStore);
 	}
+
+	// We don't reset the store on destroy automatically because we might want to preserve
+	// state if the user navigates away and back accidentally, OR because the parent component
+	// handles the lifecycle (resetting on mount of 'new').
 </script>
 
 <div class="max-w-2xl space-y-6">
@@ -197,32 +142,47 @@
 		<div class="space-y-4">
 			<div>
 				<Label for="name" class="mb-2">Workout Name</Label>
-				<Input type="text" id="name" bind:value={name} placeholder="e.g. Morning Lift" />
+				<Input
+					type="text"
+					id="name"
+					bind:value={$workoutStore.name}
+					placeholder="e.g. Morning Lift"
+				/>
 			</div>
 			<div>
 				<Label for="location" class="mb-2">Location</Label>
-				<Input type="text" id="location" bind:value={locationName} />
+				<Input type="text" id="location" bind:value={$workoutStore.locationName} />
 			</div>
 			<div>
 				<Label for="notes" class="mb-2">Notes</Label>
-				<Textarea id="notes" bind:value={generalNotes} />
+				<Textarea id="notes" bind:value={$workoutStore.generalNotes} />
 			</div>
 		</div>
 	</Card>
 
-	<!-- Added Exercises List -->
-	{#if selectedExercises.length > 0}
+	<!-- Added Exercises List (Bound to Store) -->
+	{#if $workoutStore.exerciseLogs.length > 0}
 		<div class="space-y-4">
 			<Heading tag="h2" class="text-lg">Exercises</Heading>
-			{#each selectedExercises as exercise, i (i)}
+			{#each $workoutStore.exerciseLogs as exercise, exerciseIndex (exerciseIndex)}
 				<Card class="w-full max-w-none bg-gray-50 dark:bg-gray-700">
 					<div class="flex items-start justify-between">
 						<h3 class="font-medium text-gray-900 dark:text-white">{exercise.name}</h3>
-						<Button color="red" size="xs" onclick={() => removeExercise(i)}>Remove</Button>
+						<Button color="red" size="xs" onclick={() => removeExercise(exerciseIndex)}
+							>Remove</Button
+						>
 					</div>
-					<div class="mt-2 text-sm text-gray-600 dark:text-gray-300">
+					<div class="mt-4 space-y-2">
 						{#each exercise.sets as set (set.order)}
-							<div>Set {set.order}: {set.reps} reps @ {set.weight}kg</div>
+							<div class="flex items-center gap-2 text-sm">
+								<span class="w-12 font-semibold text-gray-500">Set {set.order}</span>
+								<div class="flex items-center gap-2">
+									<Input type="number" size="sm" class="w-20" bind:value={set.reps} />
+									<span class="text-gray-500">reps @</span>
+									<Input type="number" size="sm" class="w-24" step="0.5" bind:value={set.weight} />
+									<span class="text-gray-500">kg</span>
+								</div>
+							</div>
 						{/each}
 					</div>
 				</Card>
