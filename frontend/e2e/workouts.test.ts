@@ -47,7 +47,7 @@ test('user can view past workouts with pagination', async ({ page }) => {
 
 		// Add set
 		await page.fill('input[id="reps"]', '10');
-		await page.fill('input[id="weight"]', '50');
+		await page.getByTestId('weight-input-kgs').fill('50');
 		await page.click('button:has-text("Add Set")');
 		await page.click('button:has-text("Done Adding Sets")');
 

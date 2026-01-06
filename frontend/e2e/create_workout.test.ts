@@ -43,7 +43,7 @@ test('user can create a workout log', async ({ page }) => {
 
 	// Add a set
 	await page.fill('input[id="reps"]', '10');
-	await page.fill('input[id="weight"]', '50');
+	await page.getByTestId('weight-input-kgs').fill('50');
 	await page.fill('input[id="rpe"]', '8');
 	await page.click('button:has-text("Add Set")');
 

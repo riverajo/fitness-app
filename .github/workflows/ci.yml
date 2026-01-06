@@ -93,6 +93,14 @@ jobs:
         working-directory: frontend
         run: pnpm run check
 
+      - name: Install Playwright Browsers
+        working-directory: frontend
+        run: pnpm exec playwright install --with-deps
+
+      - name: Run Unit Tests
+        working-directory: frontend
+        run: pnpm run test:unit:run
+
 # comment out e2e-dev jobs for now, runner is not powerful enough
 # e2e-dev:
 #   name: E2E (Dev Mode)

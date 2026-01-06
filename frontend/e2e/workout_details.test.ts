@@ -34,7 +34,7 @@ test('user can view workout details', async ({ page }) => {
 
 	// Add set
 	await page.fill('input[id="reps"]', '12');
-	await page.fill('input[id="weight"]', '60');
+	await page.getByTestId('weight-input-kgs').fill('60');
 	await page.click('button:has-text("Add Set")');
 	await page.click('button:has-text("Done Adding Sets")');
 

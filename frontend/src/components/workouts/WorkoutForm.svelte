@@ -15,6 +15,7 @@
 	import { createEventDispatcher } from 'svelte';
 	import type { UniqueExercise } from '../../lib/gql/graphql';
 	import { workoutStore, type WorkoutState } from '../../stores/workoutStore';
+	import WeightInput from './WeightInput.svelte';
 
 	// Define a type for the exercises as they are being edited in the scratchpad
 	// This matches the store structure but is just for the "Add Exercise" section
@@ -179,8 +180,7 @@
 								<div class="flex items-center gap-2">
 									<Input type="number" size="sm" class="w-20" bind:value={set.reps} />
 									<span class="text-gray-500">reps @</span>
-									<Input type="number" size="sm" class="w-24" step="0.5" bind:value={set.weight} />
-									<span class="text-gray-500">kg</span>
+									<WeightInput size="sm" bind:value={set.weight} />
 								</div>
 							</div>
 						{/each}
@@ -252,8 +252,8 @@
 						<Input type="number" id="reps" bind:value={reps} size="sm" />
 					</div>
 					<div>
-						<Label for="weight" class="mb-1 text-xs">Weight (kg)</Label>
-						<Input type="number" id="weight" bind:value={weight} size="sm" />
+						<Label for="weight" class="mb-1 text-xs">Weight</Label>
+						<WeightInput size="sm" bind:value={weight} />
 					</div>
 					<div>
 						<Label for="rpe" class="mb-1 text-xs">RPE</Label>

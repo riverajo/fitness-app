@@ -36,7 +36,7 @@ test.describe('Full Edit Mode', () => {
 
 		// Add Set
 		await page.fill('input[id="reps"]', '10');
-		await page.fill('input[id="weight"]', '100');
+		await page.getByTestId('weight-input-kgs').fill('100');
 		await page.click('button:has-text("Add Set")');
 		await page.click('button:has-text("Done Adding Sets")');
 
