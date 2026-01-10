@@ -7,7 +7,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: riverajo/fitness-app
+  IMAGE_NAME: fitness-app
   GITHUB_USERNAME: riverajo
 
 jobs:
