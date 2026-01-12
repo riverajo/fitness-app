@@ -22,7 +22,7 @@ func TestMongoUserRepository_Create(t *testing.T) {
 		PasswordHash:  "hashedpassword",
 		CreatedAt:     time.Now(),
 		UpdatedAt:     time.Now(),
-		PreferredUnit: "metric",
+		PreferredUnit: model.WeightUnitKilograms,
 	}
 
 	err := repo.Create(ctx, user)
@@ -48,7 +48,7 @@ func TestMongoUserRepository_FindByEmail(t *testing.T) {
 		PasswordHash:  "hashedpassword",
 		CreatedAt:     time.Now(),
 		UpdatedAt:     time.Now(),
-		PreferredUnit: "metric",
+		PreferredUnit: model.WeightUnitKilograms,
 	}
 
 	err := repo.Create(ctx, user)
@@ -76,7 +76,7 @@ func TestMongoUserRepository_FindByID(t *testing.T) {
 		PasswordHash:  "hashedpassword",
 		CreatedAt:     time.Now(),
 		UpdatedAt:     time.Now(),
-		PreferredUnit: "metric",
+		PreferredUnit: model.WeightUnitKilograms,
 	}
 
 	err := repo.Create(ctx, user)
@@ -104,14 +104,14 @@ func TestMongoUserRepository_Update(t *testing.T) {
 		PasswordHash:  "oldhash",
 		CreatedAt:     time.Now(),
 		UpdatedAt:     time.Now(),
-		PreferredUnit: "metric",
+		PreferredUnit: model.WeightUnitKilograms,
 	}
 
 	err := repo.Create(ctx, user)
 	assert.NoError(t, err)
 
 	user.PasswordHash = "newhash"
-	user.PreferredUnit = "imperial"
+	user.PreferredUnit = model.WeightUnitPounds
 
 	err = repo.Update(ctx, &user)
 	assert.NoError(t, err)
@@ -119,5 +119,5 @@ func TestMongoUserRepository_Update(t *testing.T) {
 	updatedUser, err := repo.FindByID(ctx, user.ID)
 	assert.NoError(t, err)
 	assert.Equal(t, "newhash", updatedUser.PasswordHash)
-	assert.Equal(t, "imperial", updatedUser.PreferredUnit)
+	assert.Equal(t, model.WeightUnit("POUNDS"), updatedUser.PreferredUnit)
 }

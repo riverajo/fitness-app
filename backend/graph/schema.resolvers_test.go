@@ -139,21 +139,21 @@ func TestUpdateUser(t *testing.T) {
 
 	// Mock Update
 	userRepo.On("Update", mock.Anything, mock.MatchedBy(func(u *internalModel.User) bool {
-		return u.ID == "user123" && u.PreferredUnit == "kg"
+		return u.ID == "user123" && u.PreferredUnit == internalModel.WeightUnitKilograms
 	})).Return(nil)
 
 	currentPwd := "password123"
-	newUnit := "kg"
+	newUnit := "KILOGRAMS" // Corresponds to WeightUnitKilograms
 	input := model.UpdateUserInput{
 		CurrentPassword: currentPwd,
-		PreferredUnit:   &newUnit,
+		PreferredUnit:   (*internalModel.WeightUnit)(&newUnit),
 	}
 
 	payload, err := resolver.Mutation().UpdateUser(ctx, input)
 
 	require.NoError(t, err)
 	require.True(t, payload.Success)
-	require.Equal(t, "kg", payload.User.PreferredUnit)
+	require.Equal(t, internalModel.WeightUnit("KILOGRAMS"), payload.User.PreferredUnit)
 	userRepo.AssertExpectations(t)
 }
 

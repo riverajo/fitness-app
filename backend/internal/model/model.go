@@ -36,9 +36,11 @@ type Set struct {
 	Order     int32   `json:"order" bson:"order"`
 }
 
+type WeightUnit string
+
 const (
-	WeightUnitKilograms = "KGS"
-	WeightUnitPounds    = "LBS"
+	WeightUnitKilograms WeightUnit = "KILOGRAMS"
+	WeightUnitPounds    WeightUnit = "POUNDS"
 )
 
 type UniqueExercise struct {

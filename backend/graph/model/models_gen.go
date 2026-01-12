@@ -3,10 +3,6 @@
 package model
 
 import (
-	"bytes"
-	"fmt"
-	"io"
-	"strconv"
 	"time"
 
 	"github.com/riverajo/fitness-app/backend/internal/model"
@@ -55,19 +51,19 @@ type RegisterInput struct {
 }
 
 type SetInput struct {
-	Reps      int32      `json:"reps"`
-	Weight    float64    `json:"weight"`
-	Unit      WeightUnit `json:"unit"`
-	Rpe       *int32     `json:"rpe,omitempty"`
-	ToFailure *bool      `json:"toFailure,omitempty"`
-	Order     int32      `json:"order"`
+	Reps      int32            `json:"reps"`
+	Weight    float64          `json:"weight"`
+	Unit      model.WeightUnit `json:"unit"`
+	Rpe       *int32           `json:"rpe,omitempty"`
+	ToFailure *bool            `json:"toFailure,omitempty"`
+	Order     int32            `json:"order"`
 }
 
 type UpdateUserInput struct {
-	Email           *string `json:"email,omitempty"`
-	CurrentPassword string  `json:"currentPassword"`
-	NewPassword     *string `json:"newPassword,omitempty"`
-	PreferredUnit   *string `json:"preferredUnit,omitempty"`
+	Email           *string           `json:"email,omitempty"`
+	CurrentPassword string            `json:"currentPassword"`
+	NewPassword     *string           `json:"newPassword,omitempty"`
+	PreferredUnit   *model.WeightUnit `json:"preferredUnit,omitempty"`
 }
 
 type UpdateWorkoutLogInput struct {
@@ -78,59 +74,4 @@ type UpdateWorkoutLogInput struct {
 	ExerciseLogs []*ExerciseLogInput `json:"exerciseLogs,omitempty"`
 	LocationName *string             `json:"locationName,omitempty"`
 	GeneralNotes *string             `json:"generalNotes,omitempty"`
-}
-
-type WeightUnit string
-
-const (
-	WeightUnitKilograms WeightUnit = "KILOGRAMS"
-	WeightUnitPounds    WeightUnit = "POUNDS"
-)
-
-var AllWeightUnit = []WeightUnit{
-	WeightUnitKilograms,
-	WeightUnitPounds,
-}
-
-func (e WeightUnit) IsValid() bool {
-	switch e {
-	case WeightUnitKilograms, WeightUnitPounds:
-		return true
-	}
-	return false
-}
-
-func (e WeightUnit) String() string {
-	return string(e)
-}
-
-func (e *WeightUnit) UnmarshalGQL(v any) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = WeightUnit(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid WeightUnit", str)
-	}
-	return nil
-}
-
-func (e WeightUnit) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-func (e *WeightUnit) UnmarshalJSON(b []byte) error {
-	s, err := strconv.Unquote(string(b))
-	if err != nil {
-		return err
-	}
-	return e.UnmarshalGQL(s)
-}
-
-func (e WeightUnit) MarshalJSON() ([]byte, error) {
-	var buf bytes.Buffer
-	e.MarshalGQL(&buf)
-	return buf.Bytes(), nil
 }

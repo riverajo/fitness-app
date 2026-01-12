@@ -17,14 +17,14 @@ type User struct {
 	UpdatedAt    time.Time `json:"-" bson:"updatedAt"`
 
 	// Add other internal fields
-	PreferredUnit string `json:"preferredUnit" bson:"preferredUnit"` // e.g., "KGS" or "LBS"
+	PreferredUnit WeightUnit `json:"preferredUnit" bson:"preferredUnit"` // e.g., "KILOGRAMS" or "POUNDS"
 }
 
 // UserUpdateInput represents the fields provided for a user update.
 type UserUpdateInput struct {
 	CurrentPassword *string
 	NewPassword     *string
-	PreferredUnit   *string
+	PreferredUnit   *WeightUnit
 	// ... add any other updatable fields here
 }
 

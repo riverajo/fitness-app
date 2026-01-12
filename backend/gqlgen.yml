@@ -146,3 +146,6 @@ models:
     model:
       - github.com/99designs/gqlgen/graphql.Int
       - github.com/99designs/gqlgen/graphql.Int64
+  WeightUnit:
+    model:
+      - github.com/riverajo/fitness-app/backend/internal/model.WeightUnit

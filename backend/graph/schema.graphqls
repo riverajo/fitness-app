@@ -112,7 +112,7 @@ type User {
 	id: ID!
 	email: String!
 	# Add other user fields
-	preferredUnit: String!
+	preferredUnit: WeightUnit!
 }
 
 # 💡 Define the input type for updates. All fields are optional.
@@ -124,7 +124,7 @@ input UpdateUserInput {
 	# New password (if changing, must provide currentPassword)
 	newPassword: String
 	# New preferred unit (if changing)
-	preferredUnit: String
+	preferredUnit: WeightUnit
 }
 
 extend type Mutation {

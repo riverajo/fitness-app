@@ -137,8 +137,13 @@ func TestUpdateUser(t *testing.T) {
 	})
 
 	t.Run("Success PreferredUnit Update", func(t *testing.T) {
-		user := &model.User{ID: id, PasswordHash: string(hashedPassword), UpdatedAt: time.Now().Add(-1 * time.Hour), PreferredUnit: "metric"}
-		newUnit := "imperial"
+		user := &model.User{
+			ID:            id,
+			PasswordHash:  string(hashedPassword),
+			UpdatedAt:     time.Now().Add(-1 * time.Hour),
+			PreferredUnit: model.WeightUnitKilograms, // Use constants
+		}
+		newUnit := model.WeightUnitPounds // Use constants
 		input := model.UserUpdateInput{
 			CurrentPassword: &password,
 			PreferredUnit:   &newUnit,

@@ -60,7 +60,7 @@ func (r *MongoUserRepository) Create(ctx context.Context, user model.User) error
 		PasswordHash:  user.PasswordHash,
 		CreatedAt:     user.CreatedAt,
 		UpdatedAt:     user.UpdatedAt,
-		PreferredUnit: user.PreferredUnit,
+		PreferredUnit: string(user.PreferredUnit),
 	}
 
 	_, err = r.collection.InsertOne(ctx, userDoc)
@@ -96,7 +96,7 @@ func (r *MongoUserRepository) FindByEmail(ctx context.Context, email string) (*m
 		PasswordHash:  userDoc.PasswordHash,
 		CreatedAt:     userDoc.CreatedAt,
 		UpdatedAt:     userDoc.UpdatedAt,
-		PreferredUnit: userDoc.PreferredUnit,
+		PreferredUnit: model.WeightUnit(userDoc.PreferredUnit),
 	}, nil
 }
 
@@ -129,7 +129,7 @@ func (r *MongoUserRepository) FindByID(ctx context.Context, id string) (*model.U
 		PasswordHash:  userDoc.PasswordHash,
 		CreatedAt:     userDoc.CreatedAt,
 		UpdatedAt:     userDoc.UpdatedAt,
-		PreferredUnit: userDoc.PreferredUnit,
+		PreferredUnit: model.WeightUnit(userDoc.PreferredUnit),
 	}, nil
 }
 
