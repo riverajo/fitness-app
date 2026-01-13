@@ -19,7 +19,7 @@
 		"codegen": "graphql-codegen"
 	},
 	"devDependencies": {
-		"@eslint/compat": "^2.0.0",
+		"@eslint/compat": "^2.0.1",
 		"@eslint/js": "^9.39.2",
 		"@graphql-codegen/cli": "^6.1.1",
 		"@graphql-codegen/client-preset": "^5.2.2",
