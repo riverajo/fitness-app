@@ -106,6 +106,7 @@ type AuthPayload {
 	message: String!
 	# Optionally return the user object if needed for the UI
 	user: User
+	token: String!
 }
 
 type User {

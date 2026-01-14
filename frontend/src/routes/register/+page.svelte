@@ -3,6 +3,7 @@
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { Card, Button, Label, Input, Alert } from 'flowbite-svelte';
+	import { authStore } from '../../stores/authStore';
 
 	let email = $state('');
 	let password = $state('');
@@ -18,20 +19,21 @@
 					id
 					email
 				}
+				token
 			}
 		}
 	`;
 
-	const meQuery = gql`
-		query Me {
-			me {
-				id
-				email
-			}
-		}
-	`;
+	import { onMount } from 'svelte';
 
 	const client = getContextClient();
+
+	onMount(async () => {
+		const token = authStore.getToken();
+		if (token) {
+			await goto(resolve('/dashboard'));
+		}
+	});
 
 	async function handleSubmit(e: Event) {
 		console.log('Submitting form...');
@@ -47,9 +49,13 @@
 			if (result.error) {
 				error = result.error.message;
 			} else if (result.data?.register?.success) {
+				// Store the token
+				if (result.data.register.token) {
+					authStore.setToken(result.data.register.token);
+				}
 				// Refresh the Me query to ensure the layout and dashboard are updated
-				await client.query(meQuery, {}, { requestPolicy: 'network-only' }).toPromise();
-				await goto(resolve('/dashboard'));
+				// Force a hard navigation to reset the URQL client and pick up the new token
+				window.location.href = resolve('/dashboard');
 			} else {
 				error = result.data?.register?.message || 'Registration failed';
 			}

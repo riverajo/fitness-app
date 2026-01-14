@@ -9,8 +9,6 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
-	"net/http"
-	"time"
 
 	model1 "github.com/riverajo/fitness-app/backend/graph/model"
 	"github.com/riverajo/fitness-app/backend/internal/middleware"
@@ -171,43 +169,22 @@ func (r *mutationResolver) Register(ctx context.Context, input model1.RegisterIn
 		return nil, fmt.Errorf("failed to register user")
 	}
 
-	// 2. Registration successful. Now, AUTO-LOGIN the user.
-	//    We duplicate the logic from Login() here to issue the token immediately.
+	// 2. Registration successful.
+	//    Generate the JWT token to return to the client.
 
 	// 2a. Generate the JWT token
 	token, err := middleware.GenerateJWT(internalUser, r.JWTSecret)
 	if err != nil {
 		slog.Error("CRITICAL: Failed to generate JWT for new user", "user_id", internalUser.ID, "error", err)
-		return nil, fmt.Errorf("registration successful, but auto-login failed")
+		return nil, fmt.Errorf("registration successful, but failed to generate token")
 	}
 
-	// 2b. Get the ResponseWriter
-	w := middleware.GetResponseWriter(ctx)
-	if w == nil {
-		// This might happen in tests if not mocked correctly, or if middleware is missing
-		slog.Error("CRITICAL: ResponseWriter not found in context during Register")
-		// We still return success for registration, but the user won't be logged in.
-		// Ideally, we should error out or handle this better, but for now let's warn.
-	} else {
-		// 2c. Set the Secure HttpOnly Cookie
-		expirationTime := time.Now().Add(24 * time.Hour)
-		cookie := http.Cookie{
-			Name:     middleware.AuthCookieName,
-			Value:    token,
-			Expires:  expirationTime,
-			HttpOnly: true,
-			Secure:   !r.Config.CI,
-			SameSite: http.SameSiteLaxMode,
-			Path:     "/",
-		}
-		http.SetCookie(w, &cookie)
-	}
-
-	// 3. Return success payload
+	// 3. Return success payload with token
 	return &model1.AuthPayload{
 		Success: true,
-		Message: "Registration successful. You are now logged in.",
+		Message: "Registration successful.",
 		User:    internalUser,
+		Token:   token,
 	}, nil
 }
 
@@ -226,31 +203,12 @@ func (r *mutationResolver) Login(ctx context.Context, input model1.LoginInput) (
 		return nil, fmt.Errorf("internal server error during session creation")
 	}
 
-	// 2. GET THE RESPONSE WRITER FROM CONTEXT
-	w := middleware.GetResponseWriter(ctx)
-	if w == nil {
-		// Log this critical error internally
-		return nil, fmt.Errorf("internal server error: response writer not available")
-	}
-
-	// 3. SET THE SECURE HTTP-ONLY COOKIE
-	expirationTime := time.Now().Add(24 * time.Hour)
-	cookie := http.Cookie{
-		Name:     middleware.AuthCookieName,
-		Value:    token,
-		Expires:  expirationTime,
-		HttpOnly: true,                 // Prevents JavaScript access (XSS mitigation)
-		Secure:   !r.Config.CI,         // CRITICAL: Only send over HTTPS
-		SameSite: http.SameSiteLaxMode, // Prevents CSRF
-		Path:     "/",
-	}
-	http.SetCookie(w, &cookie)
-
-	// 4. Return successful payload
+	// 2. Return successful payload with token
 	return &model1.AuthPayload{
 		Success: true,
-		Message: "Login successful. Token set in cookie.",
-		User:    user, // Return internal user directly
+		Message: "Login successful.",
+		User:    user,
+		Token:   token,
 	}, nil
 }
 
@@ -277,37 +235,29 @@ func (r *mutationResolver) UpdateUser(ctx context.Context, input model1.UpdateUs
 		return nil, err
 	}
 
-	// 4. Return successful payload
+	// 4. Generate new token for the updated user
+	token, err := middleware.GenerateJWT(updatedUser, r.JWTSecret)
+	if err != nil {
+		slog.Error("CRITICAL: Failed to generate JWT for updated user", "user_id", updatedUser.ID, "error", err)
+		return nil, fmt.Errorf("profile updated, but failed to refresh token")
+	}
+
+	// 5. Return successful payload
 	return &model1.AuthPayload{
 		Success: true,
 		Message: "User profile updated successfully.",
-		User:    updatedUser, // Return internal user directly
+		User:    updatedUser,
+		Token:   token,
 	}, nil
 }
 
 // Logout is the resolver for the logout field.
 func (r *mutationResolver) Logout(ctx context.Context) (*model1.AuthPayload, error) {
-	// 1. Get the ResponseWriter from context
-	w := middleware.GetResponseWriter(ctx)
-	if w == nil {
-		return nil, fmt.Errorf("internal server error: response writer not available")
-	}
-
-	// 2. Set the cookie with MaxAge -1 to delete it
-	http.SetCookie(w, &http.Cookie{
-		Name:     middleware.AuthCookieName,
-		Value:    "",
-		Path:     "/",
-		MaxAge:   -1,
-		HttpOnly: true,
-		Secure:   !r.Config.CI,
-		SameSite: http.SameSiteStrictMode,
-	})
-
-	// 3. Return success
+	// Client is responsible for discarding the token.
 	return &model1.AuthPayload{
 		Success: true,
 		Message: "Logged out successfully.",
+		Token:   "", // No token returned on logout
 	}, nil
 }
 

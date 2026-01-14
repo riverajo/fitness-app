@@ -1,48 +1,50 @@
 import { Client, cacheExchange, fetchExchange } from '@urql/svelte';
 import { authExchange } from '@urql/exchange-auth';
-import { Kind, type DefinitionNode } from 'graphql';
+import { authStore } from '../stores/authStore';
 
 export const client = new Client({
 	url: '/query',
 	exchanges: [
 		cacheExchange,
-		authExchange(async () => {
+		authExchange(async (utils) => {
 			return {
-				getAuth: async () => {
-					// We don't manage tokens client-side, so we just return null.
-					// This tells authExchange we are "ready" to make requests.
-					return null;
-				},
-				addAuthToOperation(operation) {
-					// We rely on HttpOnly cookies, so we just ensure credentials are included.
-					// fetchOptions handles this, but we can double check or just return operation.
-					return operation;
-				},
-				didAuthError(error, operation) {
-					// Ignore auth errors for the 'Me' query to prevent infinite loops,
-					// as it's expected to fail when not logged in.
-					if (
-						operation.kind === 'query' &&
-						operation.query.definitions.some(
-							(d: DefinitionNode) => d.kind === Kind.OPERATION_DEFINITION && d.name?.value === 'Me'
-						)
-					) {
+				willAuthError(_operation) {
+					// Check if we are logged in
+					const token = authStore.getToken();
+
+					if (!token) {
+						// Allow operation to proceed (public mutations like Login/Register need this).
+						// If it's a protected query/mutation, the server will return 401,
+						// which didAuthError will handle.
 						return false;
 					}
-					return error.graphQLErrors.some(
+					return false;
+				},
+				addAuthToOperation(operation) {
+					const token = authStore.getToken();
+					if (!token) {
+						return operation;
+					}
+
+					return utils.appendHeaders(operation, {
+						Authorization: `Bearer ${token}`
+					});
+				},
+				didAuthError(error, _operation) {
+					// Handle 401s from the server (e.g. invalid/expired token)
+					const hasAuthError = error.graphQLErrors.some(
 						(e) => e.message.includes('unauthorized') || e.extensions?.code === 'UNAUTHENTICATED'
 					);
+					return hasAuthError;
 				},
 				async refreshAuth() {
-					// If we get an auth error (401), it means our cookie is invalid/expired.
-					// We should redirect to login.
+					// If we get an auth error (401), it means our token is invalid/expired.
+					// We should remove it and redirect.
+					localStorage.removeItem('auth_token');
 					window.location.href = '/';
 				}
 			};
 		}),
 		fetchExchange
-	],
-	fetchOptions: {
-		credentials: 'include'
-	}
+	]
 });

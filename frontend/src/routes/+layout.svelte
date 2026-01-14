@@ -11,6 +11,8 @@
 	import { initializeFaro, getWebInstrumentations } from '@grafana/faro-web-sdk';
 	import { TracingInstrumentation } from '@grafana/faro-web-tracing';
 
+	import { authStore } from '../stores/authStore';
+
 	if (browser) {
 		initializeFaro({
 			url: '/faro/collect',
@@ -36,7 +38,8 @@
 
 	const meQuery = queryStore({
 		client,
-		query: ME_QUERY
+		query: ME_QUERY,
+		pause: !browser || !$authStore.token
 	});
 
 	const logoutMutation = gql`
@@ -50,6 +53,8 @@
 
 	async function handleLogout() {
 		await client.mutation(logoutMutation, {}).toPromise();
+		// Clear the token
+		authStore.clearToken();
 		// Force a full page reload to clear the urql cache and ensure a fresh state
 		window.location.href = '/';
 	}
@@ -60,9 +65,19 @@
 	const publicRoutes = ['/', '/register'];
 
 	$effect(() => {
-		if (browser && !$meQuery.fetching && !$meQuery.data?.me) {
-			if (!publicRoutes.includes(activeUrl)) {
+		if (browser) {
+			// If we have no token, and we are not on a public route, redirect to /
+			if (!$authStore.token && !publicRoutes.includes(activeUrl)) {
 				goto(resolve('/'));
+				return;
+			}
+
+			// If we DO have a token, we might wait for Me query
+			if ($authStore.token && !$meQuery.fetching && !$meQuery.data?.me) {
+				// If Me query failed or returned null (invalid session despite token), we might want to logout?
+				// But let's trust the client.ts refreshAuth to handle invalid tokens.
+				// This block might be redundant or tricky.
+				// Let's just handle the case where we simply have no Me data yet.
 			}
 		}
 	});

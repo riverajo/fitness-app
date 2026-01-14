@@ -4,6 +4,9 @@
 	import { resolve } from '$app/paths';
 	import { onMount } from 'svelte';
 	import { Card, Button, Label, Input, Alert } from 'flowbite-svelte';
+	import { authStore } from '../stores/authStore';
+
+	const client = getContextClient();
 
 	let email = $state('');
 	let password = $state('');
@@ -19,24 +22,15 @@
 					id
 					email
 				}
+				token
 			}
 		}
 	`;
-
-	const meQuery = gql`
-		query Me {
-			me {
-				id
-				email
-			}
-		}
-	`;
-
-	const client = getContextClient();
 
 	onMount(async () => {
-		const result = await client.query(meQuery, {}).toPromise();
-		if (result.data?.me) {
+		// Check if we have a token in the store
+		const token = authStore.getToken();
+		if (token) {
 			await goto(resolve('/dashboard'));
 		}
 	});
@@ -54,9 +48,13 @@
 			if (result.error) {
 				error = result.error.message;
 			} else if (result.data?.login?.success) {
+				// Store the token
+				if (result.data.login.token) {
+					authStore.setToken(result.data.login.token);
+				}
 				// Refresh the Me query to ensure the layout and dashboard are updated
-				await client.query(meQuery, {}, { requestPolicy: 'network-only' }).toPromise();
-				await goto(resolve('/dashboard'));
+				// Force a hard navigation to reset the URQL client and pick up the new token
+				window.location.href = resolve('/dashboard');
 			} else {
 				error = result.data?.login?.message || 'Login failed';
 			}

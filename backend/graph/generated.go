@@ -54,6 +54,7 @@ type ComplexityRoot struct {
 	AuthPayload struct {
 		Message func(childComplexity int) int
 		Success func(childComplexity int) int
+		Token   func(childComplexity int) int
 		User    func(childComplexity int) int
 	}
 
@@ -167,6 +168,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.AuthPayload.Success(childComplexity), true
+	case "AuthPayload.token":
+		if e.complexity.AuthPayload.Token == nil {
+			break
+		}
+
+		return e.complexity.AuthPayload.Token(childComplexity), true
 	case "AuthPayload.user":
 		if e.complexity.AuthPayload.User == nil {
 			break
@@ -850,6 +857,35 @@ func (ec *executionContext) fieldContext_AuthPayload_user(_ context.Context, fie
 	return fc, nil
 }
 
+func (ec *executionContext) _AuthPayload_token(ctx context.Context, field graphql.CollectedField, obj *model.AuthPayload) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_AuthPayload_token,
+		func(ctx context.Context) (any, error) {
+			return obj.Token, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_AuthPayload_token(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AuthPayload",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ExerciseLog_uniqueExercise(ctx context.Context, field graphql.CollectedField, obj *model1.ExerciseLog) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -1104,6 +1140,8 @@ func (ec *executionContext) fieldContext_Mutation_register(ctx context.Context, 
 				return ec.fieldContext_AuthPayload_message(ctx, field)
 			case "user":
 				return ec.fieldContext_AuthPayload_user(ctx, field)
+			case "token":
+				return ec.fieldContext_AuthPayload_token(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type AuthPayload", field.Name)
 		},
@@ -1153,6 +1191,8 @@ func (ec *executionContext) fieldContext_Mutation_login(ctx context.Context, fie
 				return ec.fieldContext_AuthPayload_message(ctx, field)
 			case "user":
 				return ec.fieldContext_AuthPayload_user(ctx, field)
+			case "token":
+				return ec.fieldContext_AuthPayload_token(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type AuthPayload", field.Name)
 		},
@@ -1202,6 +1242,8 @@ func (ec *executionContext) fieldContext_Mutation_updateUser(ctx context.Context
 				return ec.fieldContext_AuthPayload_message(ctx, field)
 			case "user":
 				return ec.fieldContext_AuthPayload_user(ctx, field)
+			case "token":
+				return ec.fieldContext_AuthPayload_token(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type AuthPayload", field.Name)
 		},
@@ -1250,6 +1292,8 @@ func (ec *executionContext) fieldContext_Mutation_logout(_ context.Context, fiel
 				return ec.fieldContext_AuthPayload_message(ctx, field)
 			case "user":
 				return ec.fieldContext_AuthPayload_user(ctx, field)
+			case "token":
+				return ec.fieldContext_AuthPayload_token(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type AuthPayload", field.Name)
 		},
@@ -4089,6 +4133,11 @@ func (ec *executionContext) _AuthPayload(ctx context.Context, sel ast.SelectionS
 			}
 		case "user":
 			out.Values[i] = ec._AuthPayload_user(ctx, field, obj)
+		case "token":
+			out.Values[i] = ec._AuthPayload_token(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

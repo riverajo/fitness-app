@@ -18,6 +18,18 @@ export default defineConfig({
 			}
 		}
 	},
+	preview: {
+		proxy: {
+			'/query': {
+				target: process.env.API_URL || 'http://localhost:8080',
+				changeOrigin: true
+			},
+			'/faro': {
+				target: process.env.API_URL || 'http://localhost:8080',
+				changeOrigin: true
+			}
+		}
+	},
 	test: {
 		expect: { requireAssertions: true },
 		projects: [

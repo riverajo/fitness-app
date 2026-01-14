@@ -24,45 +24,48 @@ const (
 func AuthMiddleware(next http.Handler, jwtSecret string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
-		// 1. Try to read the cookie
-		cookie, err := r.Cookie(AuthCookieName)
-		if err != nil {
-			// If cookie is not present (or bad name), continue without a user ID.
-			// This allows unauthenticated queries (like login/register) to proceed.
+		// 1. Get the Authorization header
+		authHeader := r.Header.Get("Authorization")
+		if authHeader == "" {
+			// No header, continue unauthenticated
 			next.ServeHTTP(w, r)
 			return
 		}
 
-		// 2. Validate the token
+		// 2. Check format "Bearer <token>"
+		if len(authHeader) < 7 || authHeader[:7] != "Bearer " {
+			// Invalid format, just continue unauthenticated (or could error if strictly required)
+			// For now, treat as no token.
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		tokenString := authHeader[7:]
+
+		// 3. Validate the token
 		if jwtSecret == "" {
-			// CRITICAL: Handle missing secret gracefully (or fatal on startup)
 			fmt.Println("CRITICAL: JWT_SECRET not set in environment.")
 			next.ServeHTTP(w, r)
 			return
 		}
 
-		tokenString := cookie.Value
 		claims := &Claims{}
-
 		token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (any, error) {
-			// Ensure token signing method is what we expect
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, fmt.Errorf("unexpected signing method: %v", token.Method)
 			}
 			return []byte(jwtSecret), nil
 		})
 
-		// 3. Handle validation failures (expired, invalid signature, etc.)
+		// 4. Handle validation failures
 		if err != nil || !token.Valid {
-			// Token is invalid/expired. Continue, but user is not authenticated.
 			next.ServeHTTP(w, r)
 			return
 		}
 
-		// 4. Token is valid: Inject UserID into the context
+		// 5. Token is valid: Inject UserID into the context
 		ctx := context.WithValue(r.Context(), UserIDKey, claims.UserID)
 
-		// 5. Pass the request to the next handler (the GraphQL server)
 		r = r.WithContext(ctx)
 		next.ServeHTTP(w, r)
 	})

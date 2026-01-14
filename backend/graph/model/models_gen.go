@@ -12,6 +12,7 @@ type AuthPayload struct {
 	Success bool        `json:"success"`
 	Message string      `json:"message"`
 	User    *model.User `json:"user,omitempty"`
+	Token   string      `json:"token"`
 }
 
 type CreateUniqueExerciseInput struct {

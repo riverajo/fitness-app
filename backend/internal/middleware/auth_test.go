@@ -61,20 +61,20 @@ func TestAuthMiddleware(t *testing.T) {
 
 	handler := AuthMiddleware(nextHandler, jwtSecret)
 
-	t.Run("No Cookie", func(t *testing.T) {
+	t.Run("No Header", func(t *testing.T) {
 		req := httptest.NewRequest("GET", "/", nil)
 		w := httptest.NewRecorder()
 
 		handler.ServeHTTP(w, req)
 
 		if w.Header().Get("X-User-ID") != "" {
-			t.Error("Expected no user ID for request without cookie")
+			t.Error("Expected no user ID for request without header")
 		}
 	})
 
-	t.Run("Invalid Token", func(t *testing.T) {
+	t.Run("Invalid Token Header", func(t *testing.T) {
 		req := httptest.NewRequest("GET", "/", nil)
-		req.AddCookie(&http.Cookie{Name: AuthCookieName, Value: "invalidtoken"})
+		req.Header.Set("Authorization", "Bearer invalidtoken")
 		w := httptest.NewRecorder()
 
 		handler.ServeHTTP(w, req)
@@ -89,7 +89,7 @@ func TestAuthMiddleware(t *testing.T) {
 		token, _ := GenerateJWT(user, jwtSecret)
 
 		req := httptest.NewRequest("GET", "/", nil)
-		req.AddCookie(&http.Cookie{Name: AuthCookieName, Value: token})
+		req.Header.Set("Authorization", "Bearer "+token)
 		w := httptest.NewRecorder()
 
 		handler.ServeHTTP(w, req)

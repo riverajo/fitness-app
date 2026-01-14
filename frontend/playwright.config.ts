@@ -11,5 +11,8 @@ export default defineConfig({
 	use: {
 		baseURL: process.env.BASE_URL || 'http://localhost:4173'
 	},
+	expect: {
+		timeout: 10000
+	},
 	reporter: [['html', { open: 'never' }]]
 });

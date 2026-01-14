@@ -48,23 +48,16 @@ func TestRegister(t *testing.T) {
 
 	require.NoError(t, err)
 	require.True(t, payload.Success)
-	require.Equal(t, "Registration successful. You are now logged in.", payload.Message)
+	require.Equal(t, "Registration successful.", payload.Message)
 	require.Equal(t, input.Email, payload.User.Email)
+	require.NotEmpty(t, payload.Token)
 
-	// Verify Cookie
+	// Verify Cookie (Removed)
 	result := w.Result()
 	cookies := result.Cookies()
-	require.NotEmpty(t, cookies)
-	found := false
-	for _, c := range cookies {
-		if c.Name == middleware.AuthCookieName {
-			found = true
-			require.NotEmpty(t, c.Value)
-			require.True(t, c.HttpOnly)
-			require.True(t, c.Secure)
-		}
-	}
-	require.True(t, found, "Auth cookie not found after registration")
+	require.Empty(t, cookies, "Auth cookie should not be set")
+
+	userRepo.AssertExpectations(t)
 
 	userRepo.AssertExpectations(t)
 }
@@ -98,23 +91,16 @@ func TestLogin(t *testing.T) {
 
 	require.NoError(t, err)
 	require.True(t, payload.Success)
-	require.Equal(t, "Login successful. Token set in cookie.", payload.Message)
+	require.Equal(t, "Login successful.", payload.Message)
 	require.Equal(t, user.ID, payload.User.ID)
+	require.NotEmpty(t, payload.Token)
 
-	// Verify Cookie
+	// Verify Cookie (Removed)
 	result := w.Result()
 	cookies := result.Cookies()
-	require.NotEmpty(t, cookies)
-	found := false
-	for _, c := range cookies {
-		if c.Name == middleware.AuthCookieName {
-			found = true
-			require.NotEmpty(t, c.Value)
-			require.True(t, c.HttpOnly)
-			require.True(t, c.Secure)
-		}
-	}
-	require.True(t, found, "Auth cookie not found")
+	require.Empty(t, cookies, "Auth cookie should not be set")
+	require.NoError(t, err) // duplicate check just to match context if needed, but 'require.True(t, found' is what we are replacing
+	userRepo.AssertExpectations(t)
 	userRepo.AssertExpectations(t)
 }
 
@@ -290,26 +276,15 @@ func TestLogoutMutation(t *testing.T) {
 		t.Errorf("Unexpected message: %s", payload.Message)
 	}
 
-	// Check the cookie
-	result := w.Result()
-	cookies := result.Cookies()
-
-	found := false
-	for _, cookie := range cookies {
-		if cookie.Name == middleware.AuthCookieName {
-			found = true
-			if cookie.MaxAge != -1 {
-				t.Errorf("Expected MaxAge to be -1, got %d", cookie.MaxAge)
-			}
-			if cookie.Value != "" {
-				t.Errorf("Expected cookie value to be empty, got %s", cookie.Value)
-			}
-			break
-		}
+	if payload.Token != "" {
+		t.Errorf("Expected token to be empty, got %s", payload.Token)
 	}
 
-	if !found {
-		t.Error("auth_token cookie was not set")
+	// Check the cookie (should NOT be set/cleared via cookie anymore)
+	result := w.Result()
+	cookies := result.Cookies()
+	if len(cookies) > 0 {
+		t.Error("Expected no cookies to be set during logout")
 	}
 }
 
