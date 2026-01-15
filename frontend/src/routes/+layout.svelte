@@ -71,14 +71,6 @@
 				goto(resolve('/'));
 				return;
 			}
-
-			// If we DO have a token, we might wait for Me query
-			if ($authStore.token && !$meQuery.fetching && !$meQuery.data?.me) {
-				// If Me query failed or returned null (invalid session despite token), we might want to logout?
-				// But let's trust the client.ts refreshAuth to handle invalid tokens.
-				// This block might be redundant or tricky.
-				// Let's just handle the case where we simply have no Me data yet.
-			}
 		}
 	});
 </script>

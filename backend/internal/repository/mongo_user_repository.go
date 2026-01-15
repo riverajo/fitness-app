@@ -32,14 +32,7 @@ func (r *MongoUserRepository) Create(ctx context.Context, user model.User) error
 		return fmt.Errorf("user with email %s already exists", user.Email)
 	}
 
-	// Convert string ID to ObjectID for storage if it's a valid hex string
-	// However, if we store it as _id, we need to be careful.
-	// The model has `ID string `bson:"_id,omitempty"``.
-	// If we pass the struct directly to InsertOne, the driver will try to insert the string as _id.
-	// But we want _id to be an ObjectID.
-	// So we need to map it to a struct that uses ObjectID or let the driver generate it if empty.
-	// But NewUserFromRegisterInput generates a hex string.
-	// We should parse it back to ObjectID for insertion.
+	// Convert hex string ID to ObjectID for storage.
 
 	oid, err := primitive.ObjectIDFromHex(user.ID)
 	if err != nil {
@@ -134,29 +127,7 @@ func (r *MongoUserRepository) FindByID(ctx context.Context, id string) (*model.U
 }
 
 func (r *MongoUserRepository) Update(ctx context.Context, user *model.User) error {
-	// We only update specific fields that are allowed to change
-	// Ideally, this should be more granular, but for now we replicate existing logic
-	// actually the existing logic constructs the update map dynamically.
-	// Let's stick to the interface which takes a *model.User and updates it.
-	// However, the service logic was doing partial updates.
-	// The interface I defined `Update(ctx context.Context, user *model.User) error` implies saving the state of the user.
-	// But the service logic was selectively updating fields.
-
-	// Let's refine the implementation to match the service's needs or adjust the service.
-	// The service constructs a `$set` map.
-	// If we want to keep the repository generic, `Update` usually saves the whole entity or specific fields.
-	// Let's implement a full update for the fields that can change, or we can just update what's in the struct.
-
-	// Re-reading the service logic:
-	// It checks input.NewPassword and input.PreferredUnit and adds them to `update` map.
-	// Then it calls UpdateByID.
-
-	// To support this in the repository without leaking "UserUpdateInput" (which is a GQL model) into the repository (which deals with domain models),
-	// passing the updated `model.User` struct is correct. The service should prepare the `model.User` with the new values.
-	// But `model.User` has all fields. If we just save `model.User`, we might overwrite things we didn't intend to if the struct isn't fully populated?
-	// No, `FindByID` returns a full struct. The service modifies it. So passing it back to `Update` is safe if we update all fields or just the ones we care about.
-
-	// Let's update the fields that are mutable.
+	// Update mutable fields.
 
 	oid, err := primitive.ObjectIDFromHex(user.ID)
 	if err != nil {

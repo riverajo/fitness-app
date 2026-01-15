@@ -32,23 +32,8 @@ func (r *MongoWorkoutRepository) Create(ctx context.Context, logData model.Worko
 		return nil, fmt.Errorf("invalid id format: %w", err)
 	}
 
-	// Create a separate struct or map to ensure _id is inserted as ObjectID
-	// We can use a map to avoid defining a new struct if we trust the model fields match bson tags
-	// But model.WorkoutLog has `bson:"_id,omitempty"` on ID string.
-	// So we can't just pass logData.
-	// We'll use a map for simplicity or a struct wrapper.
-	// Given the model is complex (nested slices), map might be easier but we need to be careful with types.
-	// Actually, we can just use the model but overwrite _id if we could, but we can't change type of ID field.
-	// So we must marshal to something else.
-
-	// Let's use a map, but we need to copy all fields. That's tedious and error prone.
-	// Better approach: Define an alias or struct with ObjectID _id.
-	// Or, since we are in the repository, we can define a private struct that mirrors the model but with ObjectID.
-	// But the model has nested structs (ExerciseLog, Set) which also have bson tags.
-	// If we use a map, we can marshal the log to bytes then unmarshal to map, then fix _id?
-	// That's slow.
-
-	// Let's try to just use a map for the top level fields.
+	// Use a map to ensure _id is inserted as an ObjectID rather than a string.
+	// We map the model fields manually to the BSON map.
 	doc := bson.M{
 		"_id":          oid,
 		"userId":       logData.UserID,
@@ -70,9 +55,7 @@ func (r *MongoWorkoutRepository) Create(ctx context.Context, logData model.Worko
 
 func (r *MongoWorkoutRepository) GetByID(ctx context.Context, id string) (*model.WorkoutLog, error) {
 	var log model.WorkoutLog
-	// Handle both string ID and ObjectID if needed, but model uses string ID mapped to _id
-	// If _id is ObjectID in DB, we might need to convert.
-	// Assuming _id is stored as ObjectID but we query with hex string.
+	// Convert hex string ID to ObjectID.
 	oid, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return nil, fmt.Errorf("invalid id format: %w", err)
@@ -131,9 +114,7 @@ func (r *MongoWorkoutRepository) Update(ctx context.Context, logData model.Worko
 		},
 	}
 
-	// Ensure we only update if it belongs to the user (though resolver checks too, good to be safe if we passed userId)
-	// But here we just update by ID. The resolver should check ownership before calling this.
-	// Or we can include userId in the filter.
+	// Filter by _id and optionally userId to ensure ownership.
 	filter := primitive.M{"_id": oid}
 	if logData.UserID != "" {
 		filter["userId"] = logData.UserID

@@ -8,18 +8,6 @@ export const client = new Client({
 		cacheExchange,
 		authExchange(async (utils) => {
 			return {
-				willAuthError(_operation) {
-					// Check if we are logged in
-					const token = authStore.getToken();
-
-					if (!token) {
-						// Allow operation to proceed (public mutations like Login/Register need this).
-						// If it's a protected query/mutation, the server will return 401,
-						// which didAuthError will handle.
-						return false;
-					}
-					return false;
-				},
 				addAuthToOperation(operation) {
 					const token = authStore.getToken();
 					if (!token) {

@@ -64,8 +64,8 @@ func (r *MongoExerciseRepository) Search(ctx context.Context, userID *string, qu
 	if userID != nil {
 		userFilter = append(userFilter, bson.M{"userId": *userID})
 	}
-	// If filter is empty so far, just use $or. If it has name, use $and with $or.
-	// Actually, we can just add $or to the top level map, MongoDB handles implicit AND.
+	// Combine user-specific exercises and system exercises using $or.
+	// MongoDB's implicit AND allows us to add this to the top-level filter map alongside any name filter.
 	filter["$or"] = userFilter
 
 	// Limit results to prevent overload

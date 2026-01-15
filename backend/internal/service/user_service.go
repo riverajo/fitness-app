@@ -29,10 +29,7 @@ func NewUserService(repo repository.UserRepository) *UserService {
 
 // It assumes the user object passed in is fully prepared (hashed, timed, etc.).
 func (s *UserService) CreateUser(ctx context.Context, input model.User) error {
-	// Delegate to repository
-	// The repository implementation already checks for existence, but we could move that check here if we wanted "pure" business logic.
-	// However, the repository implementation I wrote does the check.
-	// Let's rely on the repository for now as it mimics the previous behavior.
+
 	return s.repo.Create(ctx, input)
 }
 
