@@ -4,8 +4,8 @@
 	export let value: number = 0;
 	export let size: 'sm' | 'md' | 'lg' = 'sm';
 
-	let lbs = 0;
-	let kgs = value;
+	let lbs: number | undefined = undefined;
+	let kgs: number | undefined = value === 0 ? undefined : value;
 
 	// Constant for conversion
 	const LBS_TO_KG = 0.45359237;
@@ -17,13 +17,15 @@
 	$: if (value !== lastEmittedValue) {
 		// If the value changes from outside, we reset our local inputs
 		// Default to all KGs since we don't store the split
-		kgs = value;
-		lbs = 0;
+		kgs = value === 0 ? undefined : value;
+		lbs = undefined;
 		lastEmittedValue = value;
 	}
 
 	function updateValue(_triggerLbs?: number, _triggerKgs?: number) {
-		let total = lbs * LBS_TO_KG + kgs;
+		const l = lbs ?? 0;
+		const k = kgs ?? 0;
+		let total = l * LBS_TO_KG + k;
 		// Round to 2 decimal places
 		total = Math.round(total * 100) / 100;
 

@@ -43,6 +43,6 @@ test('WeightInput handles dual units and conversion correctly', async ({ page })
 
 	// 6. Verify Reset
 	// Inputs should be back to 0 or empty (placeholder '0')
-	await expect(page.getByTestId('weight-input-lbs')).toHaveValue('0');
-	await expect(page.getByTestId('weight-input-kgs')).toHaveValue((0).toString()); // Because parent resets 'weight' to 0, and kgs = value
+	await expect(page.getByTestId('weight-input-lbs')).toHaveValue('');
+	await expect(page.getByTestId('weight-input-kgs')).toHaveValue(''); // Because parent resets 'weight' to 0, and kgs = undefined when value is 0
 });
