@@ -4,7 +4,7 @@ services:
   # This 'dev' service replaces the 'api' service for development purposes
   # It will share the network with the database but won't start the app automatically
   dev:
-    image: mcr.microsoft.com/devcontainers/go:1-bookworm
+    image: mcr.microsoft.com/devcontainers/go:2-bookworm
     volumes:
       - .:/workspaces/fitness-app:cached
     # Overrides default command so things don't shut down after the process ends.
