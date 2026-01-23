@@ -1,0 +1,39 @@
+# Lefthook Configuration for Monorepo
+# This file handles the context switching between backend and frontend automatically.
+
+pre-commit:
+  parallel: true
+  commands:
+    # Backend Hooks
+    # The 'root' property changes the working directory for this command
+    backend-lint:
+      root: backend/
+      run: golangci-lint run
+      glob: "*.go"
+    backend-test:
+      root: backend/
+      run: go test ./...
+      glob: "*.go"
+
+    # Frontend Hooks
+    # Executes npm scripts defined in frontend/package.json
+    frontend-check:
+      root: frontend/
+      run: npm run check
+      glob: "*.{ts,js,svelte}"
+    frontend-lint:
+      root: frontend/
+      run: npm run lint
+      glob: "*.{ts,js,svelte}"
+
+    # Config Hooks
+    renovate-check:
+      run: npx --yes --package renovate renovate-config-validator
+      glob: "renovate.json"
+
+pre-push:
+  commands:
+    frontend-e2e:
+      root: frontend/
+      run: npm run test:e2e
+      glob: "*.{ts,js,svelte}"
