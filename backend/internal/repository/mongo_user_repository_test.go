@@ -7,7 +7,6 @@ import (
 
 	"github.com/riverajo/fitness-app/backend/internal/model"
 	"github.com/stretchr/testify/assert"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
@@ -88,7 +87,7 @@ func TestMongoUserRepository_FindByID(t *testing.T) {
 	assert.NotNil(t, foundUser)
 	assert.Equal(t, user.ID, foundUser.ID)
 
-	notFoundUser, err := repo.FindByID(ctx, primitive.NewObjectID().Hex())
+	notFoundUser, err := repo.FindByID(ctx, bson.NewObjectID().Hex())
 	assert.NoError(t, err)
 	assert.Nil(t, notFoundUser)
 }

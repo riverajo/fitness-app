@@ -29,8 +29,6 @@ require (
 	golang.org/x/crypto v0.47.0
 )
 
-require go.mongodb.org/mongo-driver v1.17.7
-
 require (
 	dario.cat/mergo v1.0.2 // indirect
 	github.com/Azure/go-ansiterm v0.0.0-20210617225240-d185dfc1b5a1 // indirect
