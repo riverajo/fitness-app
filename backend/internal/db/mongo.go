@@ -6,9 +6,8 @@ import (
 	"log/slog"
 	"time"
 
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.opentelemetry.io/contrib/instrumentation/go.mongodb.org/mongo-driver/mongo/otelmongo"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 // Connect establishes a connection to MongoDB using the URI from environment variables.
@@ -21,8 +20,9 @@ func Connect(mongoURI string) (*mongo.Client, error) {
 	defer cancel()
 
 	opts := options.Client().ApplyURI(mongoURI)
-	opts.Monitor = otelmongo.NewMonitor()
-	client, err := mongo.Connect(ctx, opts)
+	// TODO: Re-enable OpenTelemetry monitoring once the v2 compatible package is available/located.
+	// opts.Monitor = otelmongo.NewMonitor()
+	client, err := mongo.Connect(opts)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to MongoDB: %w", err)
 	}

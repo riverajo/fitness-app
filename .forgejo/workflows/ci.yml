@@ -151,7 +151,7 @@ jobs:
         env:
           MONGO_INITDB_ROOT_USERNAME: user
           MONGO_INITDB_ROOT_PASSWORD: password
-      app:
+      fitness-backend:
         image: fitness-app:${{ github.sha }}
         env:
           MONGO_URI: "mongodb://user:password@mongo:27017/fitness_db?authSource=admin"
@@ -182,13 +182,13 @@ jobs:
 
       - name: Wait for App
         run: |
-          timeout 60s bash -c 'until curl -s http://app:8080/readyz > /dev/null; do sleep 2; done'
+          timeout 60s bash -c 'until curl -s http://fitness-backend:8080/readyz > /dev/null; do sleep 2; done'
 
       - name: Run Playwright Tests
         working-directory: frontend
         run: pnpm run test:e2e
         env:
-          BASE_URL: http://app:8080/
+          BASE_URL: http://fitness-backend:8080/
           CI: true
 
       - name: Upload Playwright Report
@@ -212,7 +212,7 @@ jobs:
         env:
           MONGO_INITDB_ROOT_USERNAME: user
           MONGO_INITDB_ROOT_PASSWORD: password
-      app:
+      fitness-backend:
         image: fitness-app:${{ github.sha }}
         env:
           MONGO_URI: "mongodb://user:password@mongo:27017/fitness_db?authSource=admin"
@@ -226,7 +226,7 @@ jobs:
 
       - name: Wait for App
         run: |
-          timeout 60s bash -c 'until curl -s http://app:8080/readyz > /dev/null; do sleep 2; done'
+          timeout 60s bash -c 'until curl -s http://fitness-backend:8080/readyz > /dev/null; do sleep 2; done'
 
       - name: Setup k6
         uses:  https://github.com/grafana/setup-k6-action@v1
@@ -238,4 +238,4 @@ jobs:
         with:
           path: backend/k6/main.js
         env:
-          BASE_URL: http://app:8080
+          BASE_URL: http://fitness-backend:8080

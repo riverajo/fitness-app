@@ -8,7 +8,7 @@ import (
 	"github.com/riverajo/fitness-app/backend/internal/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 func TestMongoWorkoutRepository_Create(t *testing.T) {
@@ -18,8 +18,8 @@ func TestMongoWorkoutRepository_Create(t *testing.T) {
 	ctx := context.Background()
 
 	workout := model.WorkoutLog{
-		ID:        primitive.NewObjectID().Hex(),
-		UserID:    primitive.NewObjectID().Hex(),
+		ID:        bson.NewObjectID().Hex(),
+		UserID:    bson.NewObjectID().Hex(),
 		StartTime: time.Now(),
 		EndTime:   time.Now().Add(1 * time.Hour),
 		Name:      "Morning Workout",
@@ -44,8 +44,8 @@ func TestMongoWorkoutRepository_GetByID(t *testing.T) {
 	ctx := context.Background()
 
 	workout := model.WorkoutLog{
-		ID:        primitive.NewObjectID().Hex(),
-		UserID:    primitive.NewObjectID().Hex(),
+		ID:        bson.NewObjectID().Hex(),
+		UserID:    bson.NewObjectID().Hex(),
 		StartTime: time.Now(),
 		EndTime:   time.Now().Add(45 * time.Minute),
 	}
@@ -59,7 +59,7 @@ func TestMongoWorkoutRepository_GetByID(t *testing.T) {
 	assert.Equal(t, workout.ID, foundWorkout.ID)
 
 	// Note: GetByID returns error if not found, not nil
-	_, err = repo.GetByID(ctx, primitive.NewObjectID().Hex())
+	_, err = repo.GetByID(ctx, bson.NewObjectID().Hex())
 	assert.Error(t, err)
 }
 
@@ -69,23 +69,23 @@ func TestMongoWorkoutRepository_ListByUser(t *testing.T) {
 	repo := NewMongoWorkoutRepository(testDB)
 	ctx := context.Background()
 
-	userID := primitive.NewObjectID().Hex()
+	userID := bson.NewObjectID().Hex()
 
 	workout1 := model.WorkoutLog{
-		ID:        primitive.NewObjectID().Hex(),
+		ID:        bson.NewObjectID().Hex(),
 		UserID:    userID,
 		StartTime: time.Now(),
 		EndTime:   time.Now().Add(30 * time.Minute),
 	}
 	workout2 := model.WorkoutLog{
-		ID:        primitive.NewObjectID().Hex(),
+		ID:        bson.NewObjectID().Hex(),
 		UserID:    userID,
 		StartTime: time.Now().Add(24 * time.Hour),
 		EndTime:   time.Now().Add(25 * time.Hour),
 	}
 	workout3 := model.WorkoutLog{
-		ID:        primitive.NewObjectID().Hex(),
-		UserID:    primitive.NewObjectID().Hex(), // Different user
+		ID:        bson.NewObjectID().Hex(),
+		UserID:    bson.NewObjectID().Hex(), // Different user
 		StartTime: time.Now(),
 		EndTime:   time.Now().Add(45 * time.Minute),
 	}

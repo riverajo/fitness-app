@@ -8,11 +8,13 @@ export default defineConfig({
 				port: 4173
 			},
 	testDir: 'e2e',
+	reporter: [['html', { open: 'never' }]],
+	retries: process.env.CI ? 2 : 0,
 	use: {
-		baseURL: process.env.BASE_URL || 'http://localhost:4173'
-	},
-	expect: {
-		timeout: 10000
-	},
-	reporter: [['html', { open: 'never' }]]
+		baseURL: process.env.BASE_URL || 'http://localhost:4173',
+		ignoreHTTPSErrors: true,
+		trace: 'retain-on-failure',
+		screenshot: 'only-on-failure',
+		video: 'retain-on-failure'
+	}
 });

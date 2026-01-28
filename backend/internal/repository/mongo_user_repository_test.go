@@ -8,6 +8,7 @@ import (
 	"github.com/riverajo/fitness-app/backend/internal/model"
 	"github.com/stretchr/testify/assert"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 func TestMongoUserRepository_Create(t *testing.T) {
@@ -17,7 +18,7 @@ func TestMongoUserRepository_Create(t *testing.T) {
 	ctx := context.Background()
 
 	user := model.User{
-		ID:            primitive.NewObjectID().Hex(),
+		ID:            bson.NewObjectID().Hex(),
 		Email:         "test@example.com",
 		PasswordHash:  "hashedpassword",
 		CreatedAt:     time.Now(),
@@ -43,7 +44,7 @@ func TestMongoUserRepository_FindByEmail(t *testing.T) {
 	ctx := context.Background()
 
 	user := model.User{
-		ID:            primitive.NewObjectID().Hex(),
+		ID:            bson.NewObjectID().Hex(),
 		Email:         "findme@example.com",
 		PasswordHash:  "hashedpassword",
 		CreatedAt:     time.Now(),
@@ -71,7 +72,7 @@ func TestMongoUserRepository_FindByID(t *testing.T) {
 	ctx := context.Background()
 
 	user := model.User{
-		ID:            primitive.NewObjectID().Hex(),
+		ID:            bson.NewObjectID().Hex(),
 		Email:         "findbyid@example.com",
 		PasswordHash:  "hashedpassword",
 		CreatedAt:     time.Now(),
@@ -99,7 +100,7 @@ func TestMongoUserRepository_Update(t *testing.T) {
 	ctx := context.Background()
 
 	user := model.User{
-		ID:            primitive.NewObjectID().Hex(),
+		ID:            bson.NewObjectID().Hex(),
 		Email:         "update@example.com",
 		PasswordHash:  "oldhash",
 		CreatedAt:     time.Now(),

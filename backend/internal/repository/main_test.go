@@ -11,8 +11,8 @@ import (
 	"github.com/testcontainers/testcontainers-go/modules/mongodb"
 	"github.com/testcontainers/testcontainers-go/network"
 	"github.com/testcontainers/testcontainers-go/wait"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 func getMyNetworkName(ctx context.Context, containerID string) string {
@@ -89,7 +89,7 @@ func TestMain(m *testing.M) {
 	}
 
 	endpoint := getMongoURI(ctx, mongodbContainer, networkName)
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI(endpoint))
+	client, err := mongo.Connect(options.Client().ApplyURI(endpoint))
 	if err != nil {
 		log.Fatalf("failed to connect to mongo: %s", err)
 	}

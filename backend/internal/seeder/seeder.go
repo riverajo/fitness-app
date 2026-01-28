@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"time"
 
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 type SystemExercise struct {
@@ -118,7 +118,7 @@ func SeedSystemExercises(ctx context.Context, db *mongo.Database, jsonData []byt
 			},
 		}
 
-		opts := options.Update().SetUpsert(true)
+		opts := options.UpdateOne().SetUpsert(true)
 		_, err := exercisesColl.UpdateOne(ctx, filter, update, opts)
 		if err != nil {
 			return fmt.Errorf("failed to upsert exercise %s: %w", ex.Name, err)
@@ -130,7 +130,7 @@ func SeedSystemExercises(ctx context.Context, db *mongo.Database, jsonData []byt
 		ctx,
 		bson.M{"_id": "system_exercises_version"},
 		bson.M{"$set": bson.M{"version": data.Version}},
-		options.Update().SetUpsert(true),
+		options.UpdateOne().SetUpsert(true),
 	)
 	if err != nil {
 		return fmt.Errorf("failed to update system version: %w", err)

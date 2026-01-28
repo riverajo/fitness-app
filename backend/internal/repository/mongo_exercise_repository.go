@@ -4,10 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 
 	"github.com/riverajo/fitness-app/backend/internal/model"
 )
@@ -25,10 +24,10 @@ func NewMongoExerciseRepository(database *mongo.Database) *MongoExerciseReposito
 func (r *MongoExerciseRepository) Create(ctx context.Context, exercise *model.UniqueExercise) error {
 	// Ensure ID is generated if empty
 	if exercise.ID == "" {
-		exercise.ID = primitive.NewObjectID().Hex()
+		exercise.ID = bson.NewObjectID().Hex()
 	}
 
-	oid, err := primitive.ObjectIDFromHex(exercise.ID)
+	oid, err := bson.ObjectIDFromHex(exercise.ID)
 	if err != nil {
 		return fmt.Errorf("invalid exercise ID format: %w", err)
 	}
@@ -88,10 +87,10 @@ func (r *MongoExerciseRepository) Search(ctx context.Context, userID *string, qu
 	var exercises []*model.UniqueExercise
 	for cursor.Next(ctx) {
 		var doc struct {
-			ID          primitive.ObjectID `bson:"_id"`
-			Name        string             `bson:"name"`
-			UserID      *string            `bson:"userId"`
-			Description *string            `bson:"description"`
+			ID          bson.ObjectID `bson:"_id"`
+			Name        string        `bson:"name"`
+			UserID      *string       `bson:"userId"`
+			Description *string       `bson:"description"`
 		}
 		if err := cursor.Decode(&doc); err != nil {
 			return nil, fmt.Errorf("failed to decode exercise: %w", err)
@@ -109,16 +108,16 @@ func (r *MongoExerciseRepository) Search(ctx context.Context, userID *string, qu
 }
 
 func (r *MongoExerciseRepository) FindByID(ctx context.Context, id string) (*model.UniqueExercise, error) {
-	oid, err := primitive.ObjectIDFromHex(id)
+	oid, err := bson.ObjectIDFromHex(id)
 	if err != nil {
 		return nil, fmt.Errorf("invalid exercise ID format: %w", err)
 	}
 
 	var doc struct {
-		ID          primitive.ObjectID `bson:"_id"`
-		Name        string             `bson:"name"`
-		UserID      *string            `bson:"userId"`
-		Description *string            `bson:"description"`
+		ID          bson.ObjectID `bson:"_id"`
+		Name        string        `bson:"name"`
+		UserID      *string       `bson:"userId"`
+		Description *string       `bson:"description"`
 	}
 
 	err = r.collection.FindOne(ctx, bson.M{"_id": oid}).Decode(&doc)

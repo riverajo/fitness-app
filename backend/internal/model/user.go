@@ -3,7 +3,7 @@ package model
 import (
 	"time"
 
-	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 type User struct {
@@ -33,7 +33,7 @@ func NewUser(email, hashedPassword string) *User {
 	now := time.Now()
 
 	return &User{
-		ID:            primitive.NewObjectID().Hex(), // Generate DB ID
+		ID:            bson.NewObjectID().Hex(), // Generate DB ID
 		Email:         email,
 		PasswordHash:  hashedPassword, // Takes the already-hashed password
 		CreatedAt:     now,

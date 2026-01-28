@@ -6,7 +6,7 @@ import (
 
 	"github.com/riverajo/fitness-app/backend/internal/model"
 	"github.com/stretchr/testify/assert"
-	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 func TestMongoExerciseRepository_Create(t *testing.T) {
@@ -17,7 +17,7 @@ func TestMongoExerciseRepository_Create(t *testing.T) {
 
 	desc := "A test exercise"
 	exercise := &model.UniqueExercise{
-		ID:          primitive.NewObjectID().Hex(),
+		ID:          bson.NewObjectID().Hex(),
 		Name:        "Bench Press",
 		Description: &desc,
 	}
@@ -39,7 +39,7 @@ func TestMongoExerciseRepository_FindByID(t *testing.T) {
 	ctx := context.Background()
 
 	exercise := &model.UniqueExercise{
-		ID:   primitive.NewObjectID().Hex(),
+		ID:   bson.NewObjectID().Hex(),
 		Name: "Squat",
 	}
 
@@ -51,7 +51,7 @@ func TestMongoExerciseRepository_FindByID(t *testing.T) {
 	assert.NotNil(t, foundExercise)
 	assert.Equal(t, exercise.Name, foundExercise.Name)
 
-	notFoundExercise, err := repo.FindByID(ctx, primitive.NewObjectID().Hex())
+	notFoundExercise, err := repo.FindByID(ctx, bson.NewObjectID().Hex())
 	assert.NoError(t, err)
 	assert.Nil(t, notFoundExercise)
 }
@@ -67,18 +67,18 @@ func TestMongoExerciseRepository_Search(t *testing.T) {
 
 	// System exercise (no userID)
 	sysEx := &model.UniqueExercise{
-		ID:   primitive.NewObjectID().Hex(),
+		ID:   bson.NewObjectID().Hex(),
 		Name: "Push Up",
 	}
 	// User specific exercise
 	userEx := &model.UniqueExercise{
-		ID:     primitive.NewObjectID().Hex(),
+		ID:     bson.NewObjectID().Hex(),
 		Name:   "Push Press",
 		UserID: &userID,
 	}
 	// Other user exercise
 	otherEx := &model.UniqueExercise{
-		ID:     primitive.NewObjectID().Hex(),
+		ID:     bson.NewObjectID().Hex(),
 		Name:   "Push Jerk",
 		UserID: &otherUserID,
 	}
