@@ -107,6 +107,7 @@ type AuthPayload {
 	# Optionally return the user object if needed for the UI
 	user: User
 	token: String!
+	refreshToken: String!
 }
 
 type User {
@@ -134,6 +135,9 @@ extend type Mutation {
 
 	# Login the user and set the HttpOnly cookie
 	login(input: LoginInput!): AuthPayload!
+
+	# Exchange a refresh token for a new access token pair
+	refreshToken(refreshToken: String!): AuthPayload!
 
 	updateUser(input: UpdateUserInput!): AuthPayload!
 

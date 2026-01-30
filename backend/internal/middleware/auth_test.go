@@ -49,6 +49,41 @@ func TestGenerateJWT(t *testing.T) {
 	}
 }
 
+func TestRefreshTokens(t *testing.T) {
+	jwtSecret := "testsecret"
+	user := &model.User{ID: "user123"}
+
+	// 1. Test GenerateRefreshToken
+	tokenString, err := GenerateRefreshToken(user, jwtSecret)
+	if err != nil {
+		t.Fatalf("GenerateRefreshToken failed: %v", err)
+	}
+	if tokenString == "" {
+		t.Fatal("Expected refresh token string, got empty")
+	}
+
+	// 2. Test ValidateRefreshToken
+	claims, err := ValidateRefreshToken(tokenString, jwtSecret)
+	if err != nil {
+		t.Fatalf("ValidateRefreshToken failed: %v", err)
+	}
+	if claims.UserID != "user123" {
+		t.Errorf("Expected UserID 'user123', got '%s'", claims.UserID)
+	}
+
+	// 3. Test Invalid Token
+	_, err = ValidateRefreshToken("invalid.token.string", jwtSecret)
+	if err == nil {
+		t.Error("Expected error for invalid token, got nil")
+	}
+
+	// 4. Verify it's different from Access Token (optional but good sanity check)
+	accessToken, _ := GenerateJWT(user, jwtSecret)
+	if tokenString == accessToken {
+		t.Error("Refresh token and Access token should be different (due to exp/issue time), but are identical")
+	}
+}
+
 func TestAuthMiddleware(t *testing.T) {
 	jwtSecret := "testsecret"
 

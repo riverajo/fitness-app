@@ -51,6 +51,7 @@ func TestRegister(t *testing.T) {
 	require.Equal(t, "Registration successful.", payload.Message)
 	require.Equal(t, input.Email, payload.User.Email)
 	require.NotEmpty(t, payload.Token)
+	require.NotEmpty(t, payload.RefreshToken)
 
 	// Verify Cookie (Removed)
 	result := w.Result()
@@ -94,6 +95,7 @@ func TestLogin(t *testing.T) {
 	require.Equal(t, "Login successful.", payload.Message)
 	require.Equal(t, user.ID, payload.User.ID)
 	require.NotEmpty(t, payload.Token)
+	require.NotEmpty(t, payload.RefreshToken)
 
 	// Verify Cookie (Removed)
 	result := w.Result()
@@ -101,6 +103,38 @@ func TestLogin(t *testing.T) {
 	require.Empty(t, cookies, "Auth cookie should not be set")
 	require.NoError(t, err) // duplicate check just to match context if needed, but 'require.True(t, found' is what we are replacing
 	userRepo.AssertExpectations(t)
+	userRepo.AssertExpectations(t)
+}
+
+func TestRefreshToken(t *testing.T) {
+	t.Setenv("JWT_SECRET", "testsecret")
+	userRepo := new(repository.MockUserRepository)
+	workoutRepo := new(repository.MockWorkoutRepository)
+	exerciseRepo := new(repository.MockExerciseRepository)
+	resolver := NewResolver(userRepo, workoutRepo, exerciseRepo, "testsecret", &config.Config{})
+
+	user := &internalModel.User{
+		ID:    "user123",
+		Email: "test@example.com",
+	}
+
+	// 1. Generate a valid refresh token
+	validRefreshToken, _ := middleware.GenerateRefreshToken(user, "testsecret")
+
+	// 2. Mock GetUserByID (called by RefreshToken to verify user existence)
+	userRepo.On("FindByID", mock.Anything, "user123").Return(user, nil)
+
+	// 3. Call RefreshToken
+	payload, err := resolver.Mutation().RefreshToken(context.Background(), validRefreshToken)
+
+	require.NoError(t, err)
+	require.True(t, payload.Success)
+	require.Equal(t, "Token refresh successful.", payload.Message)
+	require.NotEmpty(t, payload.Token)
+	require.NotEmpty(t, payload.RefreshToken)
+	require.NotEqual(t, validRefreshToken, payload.RefreshToken) // Should rotate
+	require.Equal(t, user.ID, payload.User.ID)
+
 	userRepo.AssertExpectations(t)
 }
 
@@ -140,6 +174,8 @@ func TestUpdateUser(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, payload.Success)
 	require.Equal(t, internalModel.WeightUnit("KILOGRAMS"), payload.User.PreferredUnit)
+	require.NotEmpty(t, payload.Token)
+	require.NotEmpty(t, payload.RefreshToken)
 	userRepo.AssertExpectations(t)
 }
 

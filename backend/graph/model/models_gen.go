@@ -9,10 +9,11 @@ import (
 )
 
 type AuthPayload struct {
-	Success bool        `json:"success"`
-	Message string      `json:"message"`
-	User    *model.User `json:"user,omitempty"`
-	Token   string      `json:"token"`
+	Success      bool        `json:"success"`
+	Message      string      `json:"message"`
+	User         *model.User `json:"user,omitempty"`
+	Token        string      `json:"token"`
+	RefreshToken string      `json:"refreshToken"`
 }
 
 type CreateUniqueExerciseInput struct {
