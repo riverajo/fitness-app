@@ -18,6 +18,7 @@ const (
 	UserIDKey         ContextKey = "user_id"
 	AuthCookieName    string     = "auth_token"
 	ResponseWriterKey ContextKey = "ResponseWriterKey"
+	RequestKey        ContextKey = "RequestKey"
 )
 
 // AuthMiddleware extracts and verifies the JWT token from the "auth_token" cookie.
@@ -76,8 +77,19 @@ func ResponseWriterMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Use a different context key for the ResponseWriter
 		ctx := context.WithValue(r.Context(), ResponseWriterKey, w)
+		// Also inject the request itself
+		ctx = context.WithValue(ctx, RequestKey, r)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
+}
+
+// GetRequest retrieves the http.Request from the context.
+func GetRequest(ctx context.Context) *http.Request {
+	val := ctx.Value(RequestKey)
+	if val == nil {
+		return nil
+	}
+	return val.(*http.Request)
 }
 
 // GetResponseWriter is a helper to retrieve the ResponseWriter from the context.
@@ -101,8 +113,8 @@ func GenerateJWT(user *model.User, jwtSecret string) (string, error) {
 		return "", fmt.Errorf("jwtSecret is required")
 	}
 
-	// Token expiration (e.g., 24 hours)
-	expirationTime := time.Now().Add(24 * time.Hour)
+	// Token expiration (15 minutes)
+	expirationTime := time.Now().Add(15 * time.Minute)
 
 	// Create the Claims
 	claims := &Claims{

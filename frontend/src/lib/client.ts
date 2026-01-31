@@ -26,9 +26,25 @@ export const client = new Client({
 					return hasAuthError;
 				},
 				async refreshAuth() {
-					// If we get an auth error (401), it means our token is invalid/expired.
-					// We should remove it and redirect.
-					localStorage.removeItem('auth_token');
+					try {
+						// Attempt to refresh the token using the HTTP-only cookie
+						const response = await fetch('/auth/refresh', {
+							method: 'POST' // Using POST as it mutates state (rotates token)
+						});
+
+						if (response.ok) {
+							const data = await response.json();
+							if (data.token) {
+								authStore.setToken(data.token);
+								return; // success, urql will retry
+							}
+						}
+					} catch (e) {
+						console.error('Failed to refresh token', e);
+					}
+
+					// If refresh fails, logout
+					authStore.clearToken();
 					window.location.href = '/';
 				}
 			};

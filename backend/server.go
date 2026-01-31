@@ -25,6 +25,7 @@ import (
 	"github.com/vektah/gqlparser/v2/ast"
 
 	"github.com/riverajo/fitness-app/backend/graph"
+	"github.com/riverajo/fitness-app/backend/internal/api"
 	"github.com/riverajo/fitness-app/backend/internal/config"
 	"github.com/riverajo/fitness-app/backend/internal/db"
 	"github.com/riverajo/fitness-app/backend/internal/middleware"
@@ -108,9 +109,10 @@ func main() {
 	userRepo := repository.NewMongoUserRepository(database)
 	workoutRepo := repository.NewMongoWorkoutRepository(database)
 	exerciseRepo := repository.NewMongoExerciseRepository(database)
+	refreshTokenRepo := repository.NewMongoRefreshTokenRepository(database)
 
 	// The Resolver struct is where you inject services like the WorkoutService
-	resolver := graph.NewResolver(userRepo, workoutRepo, exerciseRepo, cfg.JWTSecret, cfg)
+	resolver := graph.NewResolver(userRepo, workoutRepo, exerciseRepo, refreshTokenRepo, cfg.JWTSecret, cfg)
 
 	// 4. GRAPHQL SERVER SETUP
 	srv := handler.New(graph.NewExecutableSchema(graph.Config{Resolvers: resolver}))
@@ -137,6 +139,11 @@ func main() {
 
 	// Handle Faro Collection Proxy
 	http.Handle("/faro/collect", otelhttp.NewHandler(middleware.FaroProxy(cfg.FaroURL, cfg.CI), "FaroProxy"))
+
+	// 7. AUTH HANDLERS
+	secureCookie := cfg.AppEnv == "production"
+	authHandler := api.NewAuthHandler(resolver.TokenService, resolver.UserService, cfg.JWTSecret, secureCookie)
+	http.HandleFunc("/auth/refresh", authHandler.Refresh)
 
 	http.HandleFunc("/readyz", func(w http.ResponseWriter, r *http.Request) {
 		if err := client.Ping(r.Context(), nil); err != nil {

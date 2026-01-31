@@ -9,6 +9,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"net/http"
 
 	model1 "github.com/riverajo/fitness-app/backend/graph/model"
 	"github.com/riverajo/fitness-app/backend/internal/middleware"
@@ -179,6 +180,24 @@ func (r *mutationResolver) Register(ctx context.Context, input model1.RegisterIn
 		return nil, fmt.Errorf("registration successful, but failed to generate token")
 	}
 
+	// 2b. Generate and Set Refresh Token
+	refreshToken, err := r.TokenService.CreateCompositeRefreshToken(ctx, internalUser.ID)
+	if err != nil {
+		slog.Error("Failed to generate refresh token", "error", err)
+		// We can still return success, but client won't have refresh capability.
+		// Ideally we should fail or warn. For now, let's log error.
+	} else {
+		http.SetCookie(middleware.GetResponseWriter(ctx), &http.Cookie{
+			Name:     "refresh_token",
+			Value:    refreshToken,
+			Path:     "/auth/refresh",
+			HttpOnly: true,
+			Secure:   r.Config.AppEnv == "production",
+			SameSite: http.SameSiteStrictMode,
+			MaxAge:   7 * 24 * 3600, // 7 days
+		})
+	}
+
 	// 3. Return success payload with token
 	return &model1.AuthPayload{
 		Success: true,
@@ -198,9 +217,25 @@ func (r *mutationResolver) Login(ctx context.Context, input model1.LoginInput) (
 
 	// 1. Generate the JWT token
 	token, err := middleware.GenerateJWT(user, r.JWTSecret)
-	if err != nil { /* ... handle error ... */
+	if err != nil {
 		slog.Error("CRITICAL: Failed to generate JWT for user", "user_id", user.ID, "error", err)
 		return nil, fmt.Errorf("internal server error during session creation")
+	}
+
+	// 2. Generate Refresh Token
+	refreshToken, err := r.TokenService.CreateCompositeRefreshToken(ctx, user.ID)
+	if err != nil {
+		slog.Error("Failed to generate refresh token", "error", err)
+	} else {
+		http.SetCookie(middleware.GetResponseWriter(ctx), &http.Cookie{
+			Name:     "refresh_token",
+			Value:    refreshToken,
+			Path:     "/auth/refresh",
+			HttpOnly: true,
+			Secure:   r.Config.AppEnv == "production",
+			SameSite: http.SameSiteStrictMode,
+			MaxAge:   7 * 24 * 3600,
+		})
 	}
 
 	// 2. Return successful payload with token
@@ -252,8 +287,31 @@ func (r *mutationResolver) UpdateUser(ctx context.Context, input model1.UpdateUs
 }
 
 // Logout is the resolver for the logout field.
+// Logout is the resolver for the logout field.
 func (r *mutationResolver) Logout(ctx context.Context) (*model1.AuthPayload, error) {
-	// Client is responsible for discarding the token.
+	// 1. Get Refresh Token from Cookie to revoke it
+	req := middleware.GetRequest(ctx)
+	if req != nil {
+		cookie, err := req.Cookie("refresh_token")
+		if err == nil {
+			// Revoke token in DB
+			if err := r.TokenService.Revoke(ctx, cookie.Value); err != nil {
+				slog.Warn("Failed to revoke refresh token during logout", "error", err)
+			}
+		}
+	}
+
+	// 2. Clear the refresh cookie
+	http.SetCookie(middleware.GetResponseWriter(ctx), &http.Cookie{
+		Name:     "refresh_token",
+		Value:    "",
+		Path:     "/auth/refresh",
+		HttpOnly: true,
+		Secure:   r.Config.AppEnv == "production",
+		SameSite: http.SameSiteStrictMode,
+		MaxAge:   -1,
+	})
+
 	return &model1.AuthPayload{
 		Success: true,
 		Message: "Logged out successfully.",

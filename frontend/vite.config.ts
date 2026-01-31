@@ -12,6 +12,10 @@ export default defineConfig({
 				target: process.env.API_URL || 'http://localhost:8080',
 				changeOrigin: true
 			},
+			'/auth': {
+				target: process.env.API_URL || 'http://localhost:8080',
+				changeOrigin: true
+			},
 			'/faro': {
 				target: process.env.API_URL || 'http://localhost:8080',
 				changeOrigin: true
@@ -25,6 +29,10 @@ export default defineConfig({
 				changeOrigin: true
 			},
 			'/faro': {
+				target: process.env.API_URL || 'http://localhost:8080',
+				changeOrigin: true
+			},
+			'/auth': {
 				target: process.env.API_URL || 'http://localhost:8080',
 				changeOrigin: true
 			}

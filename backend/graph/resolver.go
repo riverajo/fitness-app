@@ -17,15 +17,24 @@ type Resolver struct {
 	WorkoutService  *service.WorkoutService
 	UserService     *service.UserService
 	ExerciseService *service.ExerciseService
+	TokenService    *service.TokenService
 	JWTSecret       string
 	Config          *config.Config
 }
 
-func NewResolver(userRepo repository.UserRepository, workoutRepo repository.WorkoutRepository, exerciseRepo repository.ExerciseRepository, jwtSecret string, config *config.Config) *Resolver {
+func NewResolver(
+	userRepo repository.UserRepository,
+	workoutRepo repository.WorkoutRepository,
+	exerciseRepo repository.ExerciseRepository,
+	refreshTokenRepo repository.RefreshTokenRepository,
+	jwtSecret string,
+	config *config.Config,
+) *Resolver {
 	return &Resolver{
 		UserService:     service.NewUserService(userRepo),
 		WorkoutService:  service.NewWorkoutService(workoutRepo),
 		ExerciseService: service.NewExerciseService(exerciseRepo),
+		TokenService:    service.NewTokenService(refreshTokenRepo),
 		JWTSecret:       jwtSecret,
 		Config:          config,
 	}
