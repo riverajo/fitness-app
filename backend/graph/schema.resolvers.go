@@ -192,7 +192,7 @@ func (r *mutationResolver) Register(ctx context.Context, input model1.RegisterIn
 			Value:    refreshToken,
 			Path:     "/auth/refresh",
 			HttpOnly: true,
-			Secure:   r.Config.AppEnv == "production",
+			Secure:   r.Config.AppEnv == "production" && !r.Config.CI,
 			SameSite: http.SameSiteStrictMode,
 			MaxAge:   7 * 24 * 3600, // 7 days
 		})
@@ -232,7 +232,7 @@ func (r *mutationResolver) Login(ctx context.Context, input model1.LoginInput) (
 			Value:    refreshToken,
 			Path:     "/auth/refresh",
 			HttpOnly: true,
-			Secure:   r.Config.AppEnv == "production",
+			Secure:   r.Config.AppEnv == "production" && !r.Config.CI,
 			SameSite: http.SameSiteStrictMode,
 			MaxAge:   7 * 24 * 3600,
 		})
@@ -307,7 +307,7 @@ func (r *mutationResolver) Logout(ctx context.Context) (*model1.AuthPayload, err
 		Value:    "",
 		Path:     "/auth/refresh",
 		HttpOnly: true,
-		Secure:   r.Config.AppEnv == "production",
+		Secure:   r.Config.AppEnv == "production" && !r.Config.CI,
 		SameSite: http.SameSiteStrictMode,
 		MaxAge:   -1,
 	})

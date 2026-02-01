@@ -141,7 +141,7 @@ func main() {
 	http.Handle("/faro/collect", otelhttp.NewHandler(middleware.FaroProxy(cfg.FaroURL, cfg.CI), "FaroProxy"))
 
 	// 7. AUTH HANDLERS
-	secureCookie := cfg.AppEnv == "production"
+	secureCookie := cfg.AppEnv == "production" && !cfg.CI
 	authHandler := api.NewAuthHandler(resolver.TokenService, resolver.UserService, cfg.JWTSecret, secureCookie)
 	http.HandleFunc("/auth/refresh", authHandler.Refresh)
 

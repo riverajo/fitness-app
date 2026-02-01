@@ -11,6 +11,7 @@
 	import { initializeFaro, getWebInstrumentations } from '@grafana/faro-web-sdk';
 	import { TracingInstrumentation } from '@grafana/faro-web-tracing';
 
+	import { onMount } from 'svelte';
 	import { authStore } from '../stores/authStore';
 
 	if (browser) {
@@ -36,11 +37,13 @@
 		}
 	`;
 
-	const meQuery = queryStore({
-		client,
-		query: ME_QUERY,
-		pause: !browser || !$authStore.token
-	});
+	let meQuery = $derived(
+		queryStore({
+			client,
+			query: ME_QUERY,
+			pause: !browser || !$authStore.token
+		})
+	);
 
 	const logoutMutation = gql`
 		mutation Logout {
@@ -64,8 +67,12 @@
 
 	const publicRoutes = ['/', '/register'];
 
+	onMount(() => {
+		authStore.restoreSession();
+	});
+
 	$effect(() => {
-		if (browser) {
+		if (browser && !$authStore.isRestoring) {
 			// If we have no token, and we are not on a public route, redirect to /
 			if (!$authStore.token && !publicRoutes.includes(activeUrl)) {
 				goto(resolve('/'));
@@ -105,7 +112,7 @@
 </Navbar>
 
 <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
-	{#if $meQuery.fetching}
+	{#if $meQuery.fetching || $authStore.isRestoring}
 		<div class="flex h-screen items-center justify-center">
 			<div
 				class="h-8 w-8 animate-spin rounded-full border-b-2 border-gray-900 dark:border-white"

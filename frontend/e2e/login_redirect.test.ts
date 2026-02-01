@@ -12,8 +12,8 @@ test('login flow redirects to dashboard and auto-redirects if logged in', async 
 	// The register test says it expects redirect to dashboard.
 	await expect(page).toHaveURL('/dashboard');
 
-	// 2. Clear localStorage to simulate logout (cookies are not used anymore)
-	await page.evaluate(() => localStorage.removeItem('auth_token'));
+	// 2. Clear cookies to simulate logout
+	await page.context().clearCookies();
 	await page.reload(); // Reload to ensure state is cleared
 	await page.goto('/'); // Go back to login page
 

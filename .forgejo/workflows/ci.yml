@@ -219,6 +219,7 @@ jobs:
           PORT: 8080
           JWT_SECRET: "your-super-long-development-secret-key-12345"
           APP_ENV: "production"
+          CI: true
 
     steps:
       - name: Checkout code

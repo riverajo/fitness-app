@@ -28,10 +28,16 @@
 	`;
 
 	onMount(async () => {
-		// Check if we have a token in the store
+		// Check if we have a token in the store (initial check)
 		const token = authStore.getToken();
 		if (token) {
 			await goto(resolve('/dashboard'));
+		}
+	});
+
+	$effect(() => {
+		if ($authStore.token) {
+			goto(resolve('/dashboard'));
 		}
 	});
 
