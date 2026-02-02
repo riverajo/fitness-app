@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { gql, getContextClient, queryStore } from '@urql/svelte';
 	import { Heading, Button, Card, P, Alert, Spinner } from 'flowbite-svelte';
-	import { authStore } from '../../stores/authStore';
+	import { authStore } from '../../state/auth.svelte';
 	import { browser } from '$app/environment';
 
 	const client = getContextClient();
@@ -44,7 +44,7 @@
 				}
 			}
 		`,
-		pause: !browser || !$authStore.token
+		pause: !browser || !authStore.token
 	});
 
 	function nextPage() {

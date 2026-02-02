@@ -4,7 +4,7 @@
 	import { resolve } from '$app/paths';
 	import { onMount } from 'svelte';
 	import { Card, Button, Label, Input, Alert } from 'flowbite-svelte';
-	import { authStore } from '../stores/authStore';
+	import { authStore } from '../state/auth.svelte';
 
 	const client = getContextClient();
 
@@ -29,14 +29,14 @@
 
 	onMount(async () => {
 		// Check if we have a token in the store (initial check)
-		const token = authStore.getToken();
+		const token = authStore.token;
 		if (token) {
 			await goto(resolve('/dashboard'));
 		}
 	});
 
 	$effect(() => {
-		if ($authStore.token) {
+		if (authStore.token) {
 			goto(resolve('/dashboard'));
 		}
 	});

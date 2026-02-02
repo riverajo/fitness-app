@@ -6,7 +6,7 @@
 	import { goto } from '$app/navigation';
 	import { Heading, Spinner, Alert } from 'flowbite-svelte';
 	import WorkoutForm from '../../../../components/workouts/WorkoutForm.svelte';
-	import { workoutStore } from '../../../../stores/workoutStore';
+	import { workoutStore } from '../../../../state/workout.svelte';
 
 	const client = getContextClient();
 	const workoutId = $page.params.id ?? '';

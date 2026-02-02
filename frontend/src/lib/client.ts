@@ -1,6 +1,6 @@
 import { Client, cacheExchange, fetchExchange } from '@urql/svelte';
 import { authExchange } from '@urql/exchange-auth';
-import { authStore } from '../stores/authStore';
+import { authStore } from '../state/auth.svelte';
 
 export const client = new Client({
 	url: '/query',
@@ -9,7 +9,7 @@ export const client = new Client({
 		authExchange(async (utils) => {
 			return {
 				addAuthToOperation(operation) {
-					const token = authStore.getToken();
+					const token = authStore.token;
 					if (!token) {
 						return operation;
 					}

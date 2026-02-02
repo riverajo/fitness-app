@@ -3,7 +3,7 @@
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { Card, Button, Label, Input, Alert } from 'flowbite-svelte';
-	import { authStore } from '../../stores/authStore';
+	import { authStore } from '../../state/auth.svelte';
 
 	let email = $state('');
 	let password = $state('');
@@ -29,7 +29,7 @@
 	const client = getContextClient();
 
 	onMount(async () => {
-		const token = authStore.getToken();
+		const token = authStore.token;
 		if (token) {
 			await goto(resolve('/dashboard'));
 		}

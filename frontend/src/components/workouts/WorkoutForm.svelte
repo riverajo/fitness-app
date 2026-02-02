@@ -14,11 +14,10 @@
 	} from 'flowbite-svelte';
 	import { createEventDispatcher } from 'svelte';
 	import type { UniqueExercise } from '../../lib/gql/graphql';
-	import { workoutStore, type WorkoutState } from '../../stores/workoutStore';
+	import { workoutStore, type WorkoutState } from '../../state/workout.svelte';
 	import WeightInput from './WeightInput.svelte';
 
 	// Define a type for the exercises as they are being edited in the scratchpad
-	// This matches the store structure but is just for the "Add Exercise" section
 	interface ScratchpadSet {
 		reps: number;
 		weight: number;
@@ -40,7 +39,6 @@
 	let searchResults: UniqueExercise[] = [];
 
 	// Local state for the "Add Exercise" scratchpad
-	// This remains local because we haven't committed it to the workout yet
 	let currentExercise: UniqueExercise | null = null;
 	let currentSets: ScratchpadSet[] = [];
 
@@ -98,18 +96,16 @@
 	function confirmExercise() {
 		if (currentExercise && currentSets.length > 0) {
 			// Commit to global store
-			workoutStore.update((n) => ({
-				...n,
-				exerciseLogs: [
-					...n.exerciseLogs,
-					{
-						uniqueExerciseId: currentExercise!.id,
-						name: currentExercise!.name,
-						sets: currentSets,
-						notes: ''
-					}
-				]
-			}));
+			// Reassigning exerciseLogs array triggers reactivity in Svelte 5 state
+			workoutStore.state.exerciseLogs = [
+				...workoutStore.state.exerciseLogs,
+				{
+					uniqueExerciseId: currentExercise!.id,
+					name: currentExercise!.name,
+					sets: currentSets,
+					notes: ''
+				}
+			];
 
 			currentExercise = null;
 			currentSets = [];
@@ -117,19 +113,12 @@
 	}
 
 	function removeExercise(index: number) {
-		workoutStore.update((n) => ({
-			...n,
-			exerciseLogs: n.exerciseLogs.filter((_, i) => i !== index)
-		}));
+		workoutStore.state.exerciseLogs = workoutStore.state.exerciseLogs.filter((_, i) => i !== index);
 	}
 
 	function handleSubmit() {
-		dispatch('submit', $workoutStore);
+		dispatch('submit', workoutStore.state);
 	}
-
-	// We don't reset the store on destroy automatically because we might want to preserve
-	// state if the user navigates away and back accidentally, OR because the parent component
-	// handles the lifecycle (resetting on mount of 'new').
 </script>
 
 <div class="max-w-2xl space-y-6">
@@ -146,26 +135,26 @@
 				<Input
 					type="text"
 					id="name"
-					bind:value={$workoutStore.name}
+					bind:value={workoutStore.state.name}
 					placeholder="e.g. Morning Lift"
 				/>
 			</div>
 			<div>
 				<Label for="location" class="mb-2">Location</Label>
-				<Input type="text" id="location" bind:value={$workoutStore.locationName} />
+				<Input type="text" id="location" bind:value={workoutStore.state.locationName} />
 			</div>
 			<div>
 				<Label for="notes" class="mb-2">Notes</Label>
-				<Textarea id="notes" bind:value={$workoutStore.generalNotes} />
+				<Textarea id="notes" bind:value={workoutStore.state.generalNotes} />
 			</div>
 		</div>
 	</Card>
 
 	<!-- Added Exercises List (Bound to Store) -->
-	{#if $workoutStore.exerciseLogs.length > 0}
+	{#if workoutStore.state.exerciseLogs.length > 0}
 		<div class="space-y-4">
 			<Heading tag="h2" class="text-lg">Exercises</Heading>
-			{#each $workoutStore.exerciseLogs as exercise, exerciseIndex (exerciseIndex)}
+			{#each workoutStore.state.exerciseLogs as exercise, exerciseIndex (exerciseIndex)}
 				<Card class="w-full max-w-none bg-gray-50 dark:bg-gray-700">
 					<div class="flex items-start justify-between">
 						<h3 class="font-medium text-gray-900 dark:text-white">{exercise.name}</h3>

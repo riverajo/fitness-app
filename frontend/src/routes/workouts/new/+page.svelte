@@ -4,7 +4,7 @@
 	import { resolve } from '$app/paths';
 	import { Heading } from 'flowbite-svelte';
 	import WorkoutForm from '../../../components/workouts/WorkoutForm.svelte';
-	import { workoutStore } from '../../../stores/workoutStore';
+	import { workoutStore } from '../../../state/workout.svelte';
 	import { onMount, onDestroy } from 'svelte';
 
 	const client = getContextClient();
