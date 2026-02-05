@@ -1,38 +1,69 @@
-# sv
+# Fitness App Frontend
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+A modern fitness tracking application built with **SvelteKit (Svelte 5)**, **TypeScript**, and **TailwindCSS**.
 
-## Creating a project
+## Tech Stack
 
-If you're seeing this, you've probably already done this step. Congrats!
+- **Framework**: [SvelteKit](https://kit.svelte.dev/) (Svelte 5 with Runes)
+- **Styling**: [TailwindCSS v4](https://tailwindcss.com/) & [Flowbite Svelte](https://flowbite-svelte.com/)
+- **Data Fetching**: [URQL](https://formidable.com/open-source/urql/) (GraphQL)
+- **State Management**: Svelte 5 Runes (`$state`, `$derived`)
+- **Testing**: [Playwright](https://playwright.dev/) (E2E), [Vitest](https://vitest.dev/) (Unit)
 
-```sh
-# create a new project in the current directory
-npx sv create
+## Getting Started
 
-# create a new project in my-app
-npx sv create my-app
+### Prerequisites
+
+- Node.js (v20+)
+- pnpm (Recommended) or npm
+
+### Installation
+
+1. Install dependencies:
+
+   ```bash
+   pnpm install
+   ```
+
+2. Generate GraphQL types (ensure backend is running or schema is available):
+   ```bash
+   pnpm run codegen
+   ```
+
+### Development
+
+Start the development server:
+
+```bash
+pnpm run dev
 ```
 
-## Developing
+The application will be available at `http://localhost:5173`.
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+## Testing
 
-```sh
-npm run dev
+**Unit Tests**:
 
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
+```bash
+pnpm run test:unit
 ```
 
-## Building
+**E2E Tests**:
 
-To create a production version of your app:
-
-```sh
-npm run build
+```bash
+# Ensure backend is running!
+pnpm run test:e2e
 ```
 
-You can preview the production build with `npm run preview`.
+**Run All Tests**:
 
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+```bash
+pnpm run test
+```
+
+## Key Directories
+
+- `src/lib`: Shared utilities and UI components.
+- `src/routes`: SvelteKit File-system routing.
+- `src/state`: Global state management using Svelte 5 Runes.
+- `src/lib/gql`: Generated GraphQL types and operations.
