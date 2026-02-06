@@ -150,4 +150,7 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-tool github.com/evilmartians/lefthook/v2
+tool (
+	github.com/99designs/gqlgen
+	github.com/evilmartians/lefthook/v2
+)
