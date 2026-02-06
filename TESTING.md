@@ -29,6 +29,16 @@ To view test coverage visually:
 make coverage-html
 ```
 
+### 4. Load Tests (k6)
+Load testing for API endpoints (e.g., login, register) is handled by [k6](https://k6.io/).
+*   **Location**: `backend/k6/`
+*   **Prerequisite**: Install k6 (see [docs](https://k6.io/docs/get-started/installation/)). The backend must be running (`docker compose up api`).
+*   **Command**:
+    ```bash
+    # Run from repository root
+    k6 run backend/k6/main.js
+    ```
+
 ## Frontend (SvelteKit)
 
 ### 1. Unit Tests (Vitest)

@@ -46,3 +46,12 @@ This will spin up the following services:
 ### Development
 *   **Backend:** The backend service uses `air` for hot-reloading. Changes to `.go` files will automatically trigger a rebuild.
 *   **Frontend:** The frontend container mounts the source code, enabling hot module replacement (HMR) via Vite.
+
+## Documentation
+
+*   [CONTRIBUTING.md](CONTRIBUTING.md) - Contribution guidelines
+*   [TESTING.md](TESTING.md) - Testing strategy and commands
+*   [GEMINI.md](GEMINI.md) - Project context and memory
+*   [backend/ARCHITECTURE.md](backend/ARCHITECTURE.md) - Backend architectural details
+*   [backend/README.md](backend/README.md) - Backend specific documentation
+*   [frontend/README.md](frontend/README.md) - Frontend specific documentation
