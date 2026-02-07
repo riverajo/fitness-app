@@ -29,10 +29,10 @@
 		}
 	`;
 
-	async function handleSubmit(event: CustomEvent) {
+	async function handleSubmit() {
 		error = '';
 		// The form now dispatches the full store state
-		const storeState = event.detail;
+		const storeState = workoutStore.state;
 
 		const input = {
 			name: storeState.name,
@@ -88,5 +88,5 @@
 
 <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
 	<Heading tag="h1" class="mb-6">Log Workout</Heading>
-	<WorkoutForm on:submit={handleSubmit} {error} />
+	<WorkoutForm onsubmit={handleSubmit} {error} />
 </div>

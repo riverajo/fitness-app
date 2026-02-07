@@ -12,9 +12,8 @@
 		Listgroup,
 		ListgroupItem
 	} from 'flowbite-svelte';
-	import { createEventDispatcher } from 'svelte';
 	import type { UniqueExercise } from '../../lib/gql/graphql';
-	import { workoutStore, type WorkoutState } from '../../state/workout.svelte';
+	import { workoutStore } from '../../state/workout.svelte';
 	import WeightInput from './WeightInput.svelte';
 
 	// Define a type for the exercises as they are being edited in the scratchpad
@@ -29,10 +28,8 @@
 
 	export let submitLabel: string = 'Save Workout';
 	export let error: string = '';
+	export let onsubmit: () => void;
 
-	const dispatch = createEventDispatcher<{
-		submit: WorkoutState;
-	}>();
 	const client = getContextClient();
 
 	let searchQuery = '';
@@ -43,9 +40,9 @@
 	let currentSets: ScratchpadSet[] = [];
 
 	// Scratchpad input fields
-	let reps = 0;
+	let reps: number | undefined;
 	let weight = 0;
-	let rpe = 0;
+	let rpe: number | undefined;
 	let toFailure = false;
 
 	const searchExercisesQuery = gql`
@@ -78,18 +75,18 @@
 		currentSets = [
 			...currentSets,
 			{
-				reps,
+				reps: reps ?? 0,
 				weight,
-				rpe,
+				rpe: rpe === undefined ? null : rpe,
 				toFailure,
 				order: currentSets.length + 1,
 				unit: 'KILOGRAMS'
 			}
 		];
 		// Reset scratchpad fields
-		reps = 0;
+		reps = undefined;
 		weight = 0;
-		rpe = 0;
+		rpe = undefined;
 		toFailure = false;
 	}
 
@@ -117,7 +114,9 @@
 	}
 
 	function handleSubmit() {
-		dispatch('submit', workoutStore.state);
+		if (onsubmit) {
+			onsubmit();
+		}
 	}
 </script>
 

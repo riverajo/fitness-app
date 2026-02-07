@@ -52,8 +52,8 @@
 		notes: string;
 	}
 
-	async function handleUpdate(event: CustomEvent) {
-		const storeState = event.detail;
+	async function handleUpdate() {
+		const storeState = workoutStore.state;
 
 		const input = {
 			id: workoutId,
@@ -105,6 +105,6 @@
 			>
 		</div>
 	{:else}
-		<WorkoutForm on:submit={handleUpdate} submitLabel="Update Workout" {error} />
+		<WorkoutForm onsubmit={handleUpdate} submitLabel="Update Workout" {error} />
 	{/if}
 </div>
