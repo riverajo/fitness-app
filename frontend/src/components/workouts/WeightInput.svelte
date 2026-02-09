@@ -1,28 +1,34 @@
 <script lang="ts">
 	import { Input } from 'flowbite-svelte';
 
-	export let value: number = 0;
-	export let size: 'sm' | 'md' | 'lg' = 'sm';
+	interface Props {
+		value?: number;
+		size?: 'sm' | 'md' | 'lg';
+	}
 
-	let lbs: number | undefined = undefined;
-	let kgs: number | undefined = value === 0 ? undefined : value;
+	let { value = $bindable(0), size = 'sm' }: Props = $props();
+
+	let lbs = $state<number | undefined>();
+	let kgs = $state<number | undefined>(value === 0 ? undefined : value);
 
 	// Constant for conversion
 	const LBS_TO_KG = 0.45359237;
 
 	// Track the last value we emitted to detecting external changes
-	let lastEmittedValue = value;
+	let lastEmittedValue = $state(value);
 
 	// Watch for external changes to value (e.g. loading from DB or reset form)
-	$: if (value !== lastEmittedValue) {
-		// If the value changes from outside, we reset our local inputs
-		// Default to all KGs since we don't store the split
-		kgs = value === 0 ? undefined : value;
-		lbs = undefined;
-		lastEmittedValue = value;
-	}
+	$effect(() => {
+		if (value !== lastEmittedValue) {
+			// If the value changes from outside, we reset our local inputs
+			// Default to all KGs since we don't store the split
+			kgs = value === 0 ? undefined : value;
+			lbs = undefined;
+			lastEmittedValue = value;
+		}
+	});
 
-	function updateValue(_triggerLbs?: number, _triggerKgs?: number) {
+	function updateValue() {
 		const l = lbs ?? 0;
 		const k = kgs ?? 0;
 		let total = l * LBS_TO_KG + k;
@@ -32,9 +38,6 @@
 		lastEmittedValue = total;
 		value = total;
 	}
-
-	// Trigger update whenever inputs change (replaces on:input to avoid binding race conditions)
-	$: updateValue(lbs, kgs);
 </script>
 
 <div class="flex items-center gap-2">
@@ -45,6 +48,7 @@
 				{size}
 				class="w-20"
 				bind:value={lbs}
+				oninput={updateValue}
 				placeholder="0"
 				data-testid="weight-input-lbs"
 			/>
@@ -59,6 +63,7 @@
 				{size}
 				class="w-20"
 				bind:value={kgs}
+				oninput={updateValue}
 				placeholder="0"
 				data-testid="weight-input-kgs"
 			/>
