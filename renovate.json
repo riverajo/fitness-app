@@ -31,6 +31,13 @@
         "major"
       ],
       "automerge": false
+    },
+    {
+      "matchPackageNames": [
+        "actions/upload-artifact"
+      ],
+      "enabled": false,
+      "description": "Forgejo does not support the GitHub Enterprise API required by actions/upload-artifact v4+"
     }
   ],
   "golang": {
