@@ -35,7 +35,6 @@ test.describe('Exercises', () => {
 
 		// 5. Search
 		await page.fill('input[placeholder="Search exercises..."]', exerciseName);
-		await page.click('text=Search');
 		await expect(page.locator(`text=${exerciseName}`)).toBeVisible();
 
 		// 6. Pagination (Check buttons exist while we have results)
@@ -44,7 +43,6 @@ test.describe('Exercises', () => {
 
 		// 7. Search for something non-existent
 		await page.fill('input[placeholder="Search exercises..."]', 'NonExistentExerciseXYZ');
-		await page.click('text=Search');
 		await expect(page.locator('text=No exercises found')).toBeVisible();
 	});
 });

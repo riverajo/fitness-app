@@ -30,7 +30,6 @@ test.describe('Full Edit Mode', () => {
 
 		// Add Exercise
 		await page.fill('input[placeholder="Search exercises..."]', 'Bench Press');
-		await page.click('button:has-text("Search")');
 		// Wait for results and click
 		await page.click('button:has-text("Bench Press")');
 

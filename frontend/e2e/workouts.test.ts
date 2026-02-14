@@ -35,7 +35,6 @@ test('user can view past workouts with pagination', async ({ page }) => {
 		const targetExercise = i % 2 === 0 ? 'Bench Press' : exerciseName;
 
 		await page.fill('input[placeholder="Search exercises..."]', targetExercise);
-		await page.click('button:has-text("Search")');
 
 		// Click the specific add button for the exercise
 		// Note: We might need to be more specific if "Bench Press" appears in description of other items,

@@ -1,9 +1,10 @@
 <script lang="ts">
-	import { gql, getContextClient, queryStore } from '@urql/svelte';
+	import { getContextClient } from '@urql/svelte';
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import { Heading, Button, Input, Card, Badge, Spinner, Alert } from 'flowbite-svelte';
+	import { Heading, Button, Input, Card, Badge, Spinner } from 'flowbite-svelte';
+	import { exerciseStore } from '../../state/exercise.svelte';
 
 	const client = getContextClient();
 
@@ -11,48 +12,38 @@
 	let searchQuery = $derived($page.url.searchParams.get('q') || '');
 	let currentPage = $derived(parseInt($page.url.searchParams.get('page') || '1'));
 	let limit = 50;
-	let offset = $derived((currentPage - 1) * limit);
 
-	// Query store
-	let exercisesQuery = $derived(
-		queryStore({
-			client,
-			query: gql`
-				query UniqueExercises($query: String, $limit: Int, $offset: Int) {
-					uniqueExercises(query: $query, limit: $limit, offset: $offset) {
-						id
-						name
-						description
-						isCustom
-					}
-				}
-			`,
-			variables: { query: searchQuery, limit, offset },
-			requestPolicy: 'cache-and-network'
-		})
+	// Use the store for data
+	let exercises = $derived(exerciseStore.search(searchQuery));
+	let paginatedExercises = $derived(
+		exercises.slice((currentPage - 1) * limit, currentPage * limit)
 	);
+
+	// Sync on mount
+	$effect(() => {
+		if (client) {
+			exerciseStore.sync(client);
+		}
+	});
 
 	// eslint-disable-next-line svelte/prefer-writable-derived
 	let searchInput = $state($page.url.searchParams.get('q') || '');
 
-	const updateUrl = (newParams: { page?: string }) => {
-		const currentQueryValue = String(searchInput);
+	const updateUrl = (newParams: { page?: string; q?: string }) => {
 		const existingParams = Object.fromEntries($page.url.searchParams.entries());
 
 		const updatedParams = {
 			...existingParams,
-			// Accesses the current reactive value of the input field
-			q: currentQueryValue,
 			...newParams
 		};
 
 		const query = new URLSearchParams(updatedParams);
 		// eslint-disable-next-line svelte/no-navigation-without-resolve
-		goto(resolve('/exercises') + `?${query.toString()}`);
+		goto(resolve('/exercises') + `?${query.toString()}`, { replaceState: true });
 	};
 
 	const handleSearch = () => {
-		updateUrl({ page: '1' });
+		updateUrl({ page: '1', q: searchInput });
 	};
 
 	const handlePageChange = (newPage: number) => {
@@ -70,26 +61,17 @@
 		<Button href="/exercises/new" color="blue">Create Exercise</Button>
 	</div>
 
-	<div class="mb-6 flex gap-2">
-		<div class="flex-1">
-			<Input
-				bind:value={searchInput}
-				placeholder="Search exercises..."
-				onkeydown={(e) => e.key === 'Enter' && handleSearch()}
-			/>
-		</div>
-		<Button onclick={handleSearch} color="dark">Search</Button>
+	<div class="mb-6">
+		<Input bind:value={searchInput} placeholder="Search exercises..." oninput={handleSearch} />
 	</div>
 
-	{#if $exercisesQuery.fetching}
+	{#if exerciseStore.loading && !exerciseStore.all.length}
 		<div class="py-8 text-center"><Spinner /></div>
-	{:else if $exercisesQuery.error}
-		<Alert color="red">Error: {$exercisesQuery.error.message}</Alert>
-	{:else if $exercisesQuery.data?.uniqueExercises.length === 0}
+	{:else if exercises.length === 0}
 		<div class="py-8 text-center text-gray-400">No exercises found.</div>
 	{:else}
 		<div class="space-y-2">
-			{#each $exercisesQuery.data?.uniqueExercises || [] as exercise (exercise.id)}
+			{#each paginatedExercises as exercise (exercise.id)}
 				<Card class="w-full max-w-none flex-row items-center justify-between p-4">
 					<div>
 						<h3 class="text-lg font-semibold text-gray-900 dark:text-white">{exercise.name}</h3>
@@ -115,7 +97,13 @@
 				Previous
 			</Button>
 			<span class="py-2 text-gray-700 dark:text-gray-300">Page {currentPage}</span>
-			<Button onclick={() => handlePageChange(currentPage + 1)} color="dark">Next</Button>
+			<Button
+				disabled={paginatedExercises.length < limit && currentPage * limit >= exercises.length}
+				onclick={() => handlePageChange(currentPage + 1)}
+				color="dark"
+			>
+				Next
+			</Button>
 		</div>
 	{/if}
 </div>

@@ -38,7 +38,6 @@ test('user can create a workout log', async ({ page }) => {
 
 	// Search and select exercise
 	await page.fill('input[placeholder="Search exercises..."]', exerciseName);
-	await page.click('button:has-text("Search")');
 	await page.click(`button:has-text("${exerciseName}")`);
 
 	// Add a set

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { gql, getContextClient } from '@urql/svelte';
+	import { getContextClient } from '@urql/svelte';
 	import {
 		Heading,
 		Button,
@@ -14,6 +14,7 @@
 	} from 'flowbite-svelte';
 	import type { UniqueExercise } from '../../lib/gql/graphql';
 	import { workoutStore } from '../../state/workout.svelte';
+	import { exerciseStore } from '../../state/exercise.svelte';
 	import WeightInput from './WeightInput.svelte';
 
 	// Define a type for the exercises as they are being edited in the scratchpad
@@ -26,48 +27,41 @@
 		order: number;
 	}
 
-	export let submitLabel: string = 'Save Workout';
-	export let error: string = '';
-	export let onsubmit: () => void;
+	let {
+		submitLabel = 'Save Workout',
+		error = '',
+		onsubmit
+	} = $props<{
+		submitLabel?: string;
+		error?: string;
+		onsubmit: () => void;
+	}>();
 
 	const client = getContextClient();
 
-	let searchQuery = '';
-	let searchResults: UniqueExercise[] = [];
+	let searchQuery = $state('');
+	let searchResults = $derived(exerciseStore.search(searchQuery));
+
+	// Sync exercises when the component mounts ensuring list is up to date
+	$effect(() => {
+		if (client && !exerciseStore.initialized && !exerciseStore.loading) {
+			exerciseStore.sync(client);
+		}
+	});
 
 	// Local state for the "Add Exercise" scratchpad
-	let currentExercise: UniqueExercise | null = null;
-	let currentSets: ScratchpadSet[] = [];
+	let currentExercise = $state<UniqueExercise | null>(null);
+	let currentSets = $state<ScratchpadSet[]>([]);
 
 	// Scratchpad input fields
-	let reps: number | undefined;
-	let weight = 0;
-	let rpe: number | undefined;
-	let toFailure = false;
-
-	const searchExercisesQuery = gql`
-		query SearchUniqueExercises($query: String) {
-			uniqueExercises(query: $query, limit: 10) {
-				id
-				name
-				description
-				isCustom
-			}
-		}
-	`;
-
-	async function handleSearch() {
-		if (!searchQuery) return;
-		const result = await client.query(searchExercisesQuery, { query: searchQuery }).toPromise();
-		if (result.data) {
-			searchResults = result.data.uniqueExercises;
-		}
-	}
+	let reps = $state<number | undefined>();
+	let weight = $state(0);
+	let rpe = $state<number | undefined>();
+	let toFailure = $state(false);
 
 	function selectExercise(exercise: UniqueExercise) {
 		currentExercise = exercise;
 		currentSets = [];
-		searchResults = [];
 		searchQuery = '';
 	}
 
@@ -185,14 +179,8 @@
 		{#if !currentExercise}
 			<div class="mt-4 flex gap-2">
 				<div class="flex-1">
-					<Input
-						type="text"
-						bind:value={searchQuery}
-						placeholder="Search exercises..."
-						onkeydown={(e) => e.key === 'Enter' && handleSearch()}
-					/>
+					<Input type="text" bind:value={searchQuery} placeholder="Search exercises..." />
 				</div>
-				<Button onclick={handleSearch} color="blue">Search</Button>
 			</div>
 
 			{#if searchResults.length > 0}

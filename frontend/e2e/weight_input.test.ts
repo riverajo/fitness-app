@@ -23,7 +23,6 @@ test('WeightInput handles dual units and conversion correctly', async ({ page })
 
 	// Select exercise
 	await page.fill('input[placeholder="Search exercises..."]', exerciseName);
-	await page.click('button:has-text("Search")');
 	await page.click(`button:has-text("${exerciseName}")`);
 
 	// 4. Test Inputs
