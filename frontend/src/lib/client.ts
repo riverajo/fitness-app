@@ -27,25 +27,27 @@ export const client = new Client({
 				},
 				async refreshAuth() {
 					try {
-						// Attempt to refresh the token using the HTTP-only cookie
 						const response = await fetch('/auth/refresh', {
-							method: 'POST' // Using POST as it mutates state (rotates token)
+							method: 'POST'
 						});
 
 						if (response.ok) {
 							const data = await response.json();
 							if (data.token) {
 								authStore.setToken(data.token);
-								return; // success, urql will retry
+								return;
 							}
 						}
-					} catch (e) {
-						console.error('Failed to refresh token', e);
-					}
 
-					// If refresh fails, logout
-					authStore.clearToken();
-					window.location.href = '/';
+						// If we are here, response was not OK.
+						// This means server rejected refresh (e.g. 401).
+						console.log('[client] Refresh failed with status', response.status);
+						authStore.clearToken();
+						window.location.href = '/';
+					} catch (e) {
+						console.error('[client] Network error during refresh', e);
+						// Do not clear token. Do not redirect.
+					}
 				}
 			};
 		}),

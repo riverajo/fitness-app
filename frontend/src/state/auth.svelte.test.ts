@@ -12,6 +12,7 @@ describe('Auth Store', () => {
 	it('initializes with default state', () => {
 		expect(auth.token).toBe(null);
 		expect(auth.isRestoring).toBe(true);
+		expect(auth.isOffline).toBe(false);
 	});
 
 	it('sets token correctly', () => {
@@ -24,6 +25,7 @@ describe('Auth Store', () => {
 		auth.clearToken();
 		expect(auth.token).toBe(null);
 		expect(auth.isRestoring).toBe(false);
+		expect(auth.isOffline).toBe(false);
 	});
 
 	describe('restoreSession', () => {
@@ -39,6 +41,7 @@ describe('Auth Store', () => {
 
 			expect(auth.token).toBe('refreshed-token');
 			expect(auth.isRestoring).toBe(false);
+			expect(auth.isOffline).toBe(false);
 			expect(fetch).toHaveBeenCalledWith('/auth/refresh', { method: 'POST' });
 		});
 
@@ -56,13 +59,15 @@ describe('Auth Store', () => {
 			expect(auth.isRestoring).toBe(false);
 		});
 
-		it('clears token on network error', async () => {
+		it('does NOT clear token on network error', async () => {
+			auth.setToken('existing-token'); // Simulate existing session
 			vi.mocked(fetch).mockRejectedValue(new Error('Network error'));
 
 			await auth.restoreSession();
 
-			expect(auth.token).toBe(null);
+			expect(auth.token).toBe('existing-token');
 			expect(auth.isRestoring).toBe(false);
+			expect(auth.isOffline).toBe(true);
 		});
 	});
 });

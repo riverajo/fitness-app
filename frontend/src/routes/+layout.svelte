@@ -86,6 +86,12 @@
 	<link rel="icon" href={favicon} />
 </svelte:head>
 
+{#if authStore.isOffline}
+	<div class="w-full bg-red-600 p-2 text-center text-sm font-bold text-white uppercase">
+		Offline Mode - Network Unavailable
+	</div>
+{/if}
+
 <Navbar
 	fluid={true}
 	class="border-b border-gray-200 bg-white px-4 py-2.5 sm:px-4 dark:border-gray-700 dark:bg-gray-800"
