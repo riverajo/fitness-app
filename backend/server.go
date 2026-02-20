@@ -138,7 +138,7 @@ func main() {
 	})
 
 	// Handle Faro Collection Proxy
-	http.Handle("/faro/collect", otelhttp.NewHandler(middleware.FaroProxy(cfg.FaroURL, cfg.CI), "FaroProxy"))
+	http.Handle("/faro/collect", otelhttp.NewHandler(middleware.FaroProxy(cfg.FaroURL, !cfg.CI), "FaroProxy"))
 
 	// 7. AUTH HANDLERS
 	secureCookie := cfg.AppEnv == "production" && !cfg.CI
