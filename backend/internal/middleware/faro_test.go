@@ -12,7 +12,7 @@ func TestFaroProxy(t *testing.T) {
 	// 1. Mock upstream server
 	upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusAccepted)
-		_, _ = w.Write([]byte("upstream received"))
+		_, _ = w.Write([]byte("upstream received: " + r.URL.Path))
 	}))
 	defer upstream.Close()
 
@@ -42,7 +42,14 @@ func TestFaroProxy(t *testing.T) {
 			target:      upstream.URL,
 			enableAlloy: true,
 			wantStatus:  http.StatusAccepted,
-			wantBody:    "upstream received",
+			wantBody:    "upstream received: /",
+		},
+		{
+			name:        "Enabled Alloy - Path Appending Fix",
+			target:      upstream.URL + "/custom/path",
+			enableAlloy: true,
+			wantStatus:  http.StatusAccepted,
+			wantBody:    "upstream received: /custom/path",
 		},
 		{
 			name:        "Enabled Alloy - Invalid Target",

@@ -34,17 +34,23 @@ func FaroProxy(target string, enableAlloy bool) http.Handler {
 
 		proxy := httputil.NewSingleHostReverseProxy(targetURL)
 
+		// Override the Director to prevent it from appending the original path
+		originalDirector := proxy.Director
+		proxy.Director = func(req *http.Request) {
+			originalDirector(req)
+			// Explicitly set the path to the target's path, ignoring the incoming path
+			req.URL.Path = targetURL.Path
+			req.URL.RawPath = targetURL.RawPath
+			// Rewrite the Host header
+			req.Header.Set("X-Forwarded-Host", req.Header.Get("Host"))
+			req.Host = targetURL.Host
+		}
+
 		// Set a custom error handler for the proxy to log 502s properly
 		proxy.ErrorHandler = func(w http.ResponseWriter, r *http.Request, err error) {
 			slog.Error("Faro proxy upstream unreachable", "target", target, "error", err)
 			w.WriteHeader(http.StatusBadGateway)
 		}
-
-		// Rewrite the request for the target
-		r.URL.Host = targetURL.Host
-		r.URL.Scheme = targetURL.Scheme
-		r.Header.Set("X-Forwarded-Host", r.Header.Get("Host"))
-		r.Host = targetURL.Host
 
 		proxy.ServeHTTP(w, r)
 	})
