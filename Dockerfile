@@ -3,7 +3,7 @@ FROM node:24-alpine AS frontend-builder
 WORKDIR /app/frontend
 # Install pnpm
 RUN npm install -g pnpm
-COPY frontend/package.json frontend/pnpm-lock.yaml frontend/svelte.config.js ./
+COPY frontend/package.json frontend/pnpm-*.yaml frontend/svelte.config.js ./
 RUN pnpm install --frozen-lockfile
 COPY frontend/ .
 RUN pnpm run build
