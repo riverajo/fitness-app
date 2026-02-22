@@ -9,7 +9,6 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
-	"sync"
 	"sync/atomic"
 	"time"
 
@@ -25,20 +24,10 @@ import (
 
 // NewExecutableSchema creates an ExecutableSchema from the ResolverRoot interface.
 func NewExecutableSchema(cfg Config) graphql.ExecutableSchema {
-	return &executableSchema{
-		schema:     cfg.Schema,
-		resolvers:  cfg.Resolvers,
-		directives: cfg.Directives,
-		complexity: cfg.Complexity,
-	}
+	return &executableSchema{SchemaData: cfg.Schema, Resolvers: cfg.Resolvers, Directives: cfg.Directives, ComplexityRoot: cfg.Complexity}
 }
 
-type Config struct {
-	Schema     *ast.Schema
-	Resolvers  ResolverRoot
-	Directives DirectiveRoot
-	Complexity ComplexityRoot
-}
+type Config = graphql.Config[ResolverRoot, DirectiveRoot, ComplexityRoot]
 
 type ResolverRoot interface {
 	ExerciseLog() ExerciseLogResolver
@@ -137,71 +126,66 @@ type UniqueExerciseResolver interface {
 	IsCustom(ctx context.Context, obj *model1.UniqueExercise) (bool, error)
 }
 
-type executableSchema struct {
-	schema     *ast.Schema
-	resolvers  ResolverRoot
-	directives DirectiveRoot
-	complexity ComplexityRoot
-}
+type executableSchema graphql.ExecutableSchemaState[ResolverRoot, DirectiveRoot, ComplexityRoot]
 
 func (e *executableSchema) Schema() *ast.Schema {
-	if e.schema != nil {
-		return e.schema
+	if e.SchemaData != nil {
+		return e.SchemaData
 	}
 	return parsedSchema
 }
 
 func (e *executableSchema) Complexity(ctx context.Context, typeName, field string, childComplexity int, rawArgs map[string]any) (int, bool) {
-	ec := executionContext{nil, e, 0, 0, nil}
+	ec := newExecutionContext(nil, e, nil)
 	_ = ec
 	switch typeName + "." + field {
 
 	case "AuthPayload.message":
-		if e.complexity.AuthPayload.Message == nil {
+		if e.ComplexityRoot.AuthPayload.Message == nil {
 			break
 		}
 
-		return e.complexity.AuthPayload.Message(childComplexity), true
+		return e.ComplexityRoot.AuthPayload.Message(childComplexity), true
 	case "AuthPayload.success":
-		if e.complexity.AuthPayload.Success == nil {
+		if e.ComplexityRoot.AuthPayload.Success == nil {
 			break
 		}
 
-		return e.complexity.AuthPayload.Success(childComplexity), true
+		return e.ComplexityRoot.AuthPayload.Success(childComplexity), true
 	case "AuthPayload.token":
-		if e.complexity.AuthPayload.Token == nil {
+		if e.ComplexityRoot.AuthPayload.Token == nil {
 			break
 		}
 
-		return e.complexity.AuthPayload.Token(childComplexity), true
+		return e.ComplexityRoot.AuthPayload.Token(childComplexity), true
 	case "AuthPayload.user":
-		if e.complexity.AuthPayload.User == nil {
+		if e.ComplexityRoot.AuthPayload.User == nil {
 			break
 		}
 
-		return e.complexity.AuthPayload.User(childComplexity), true
+		return e.ComplexityRoot.AuthPayload.User(childComplexity), true
 
 	case "ExerciseLog.notes":
-		if e.complexity.ExerciseLog.Notes == nil {
+		if e.ComplexityRoot.ExerciseLog.Notes == nil {
 			break
 		}
 
-		return e.complexity.ExerciseLog.Notes(childComplexity), true
+		return e.ComplexityRoot.ExerciseLog.Notes(childComplexity), true
 	case "ExerciseLog.sets":
-		if e.complexity.ExerciseLog.Sets == nil {
+		if e.ComplexityRoot.ExerciseLog.Sets == nil {
 			break
 		}
 
-		return e.complexity.ExerciseLog.Sets(childComplexity), true
+		return e.ComplexityRoot.ExerciseLog.Sets(childComplexity), true
 	case "ExerciseLog.uniqueExercise":
-		if e.complexity.ExerciseLog.UniqueExercise == nil {
+		if e.ComplexityRoot.ExerciseLog.UniqueExercise == nil {
 			break
 		}
 
-		return e.complexity.ExerciseLog.UniqueExercise(childComplexity), true
+		return e.ComplexityRoot.ExerciseLog.UniqueExercise(childComplexity), true
 
 	case "Mutation.createUniqueExercise":
-		if e.complexity.Mutation.CreateUniqueExercise == nil {
+		if e.ComplexityRoot.Mutation.CreateUniqueExercise == nil {
 			break
 		}
 
@@ -210,9 +194,9 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateUniqueExercise(childComplexity, args["input"].(model.CreateUniqueExerciseInput)), true
+		return e.ComplexityRoot.Mutation.CreateUniqueExercise(childComplexity, args["input"].(model.CreateUniqueExerciseInput)), true
 	case "Mutation.createWorkoutLog":
-		if e.complexity.Mutation.CreateWorkoutLog == nil {
+		if e.ComplexityRoot.Mutation.CreateWorkoutLog == nil {
 			break
 		}
 
@@ -221,9 +205,9 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateWorkoutLog(childComplexity, args["input"].(model.CreateWorkoutLogInput)), true
+		return e.ComplexityRoot.Mutation.CreateWorkoutLog(childComplexity, args["input"].(model.CreateWorkoutLogInput)), true
 	case "Mutation.login":
-		if e.complexity.Mutation.Login == nil {
+		if e.ComplexityRoot.Mutation.Login == nil {
 			break
 		}
 
@@ -232,15 +216,15 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Mutation.Login(childComplexity, args["input"].(model.LoginInput)), true
+		return e.ComplexityRoot.Mutation.Login(childComplexity, args["input"].(model.LoginInput)), true
 	case "Mutation.logout":
-		if e.complexity.Mutation.Logout == nil {
+		if e.ComplexityRoot.Mutation.Logout == nil {
 			break
 		}
 
-		return e.complexity.Mutation.Logout(childComplexity), true
+		return e.ComplexityRoot.Mutation.Logout(childComplexity), true
 	case "Mutation.register":
-		if e.complexity.Mutation.Register == nil {
+		if e.ComplexityRoot.Mutation.Register == nil {
 			break
 		}
 
@@ -249,9 +233,9 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Mutation.Register(childComplexity, args["input"].(model.RegisterInput)), true
+		return e.ComplexityRoot.Mutation.Register(childComplexity, args["input"].(model.RegisterInput)), true
 	case "Mutation.updateUser":
-		if e.complexity.Mutation.UpdateUser == nil {
+		if e.ComplexityRoot.Mutation.UpdateUser == nil {
 			break
 		}
 
@@ -260,9 +244,9 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateUser(childComplexity, args["input"].(model.UpdateUserInput)), true
+		return e.ComplexityRoot.Mutation.UpdateUser(childComplexity, args["input"].(model.UpdateUserInput)), true
 	case "Mutation.updateWorkoutLog":
-		if e.complexity.Mutation.UpdateWorkoutLog == nil {
+		if e.ComplexityRoot.Mutation.UpdateWorkoutLog == nil {
 			break
 		}
 
@@ -271,10 +255,10 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateWorkoutLog(childComplexity, args["input"].(model.UpdateWorkoutLogInput)), true
+		return e.ComplexityRoot.Mutation.UpdateWorkoutLog(childComplexity, args["input"].(model.UpdateWorkoutLogInput)), true
 
 	case "Query.getUniqueExercise":
-		if e.complexity.Query.GetUniqueExercise == nil {
+		if e.ComplexityRoot.Query.GetUniqueExercise == nil {
 			break
 		}
 
@@ -283,9 +267,9 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Query.GetUniqueExercise(childComplexity, args["id"].(string)), true
+		return e.ComplexityRoot.Query.GetUniqueExercise(childComplexity, args["id"].(string)), true
 	case "Query.getWorkoutLog":
-		if e.complexity.Query.GetWorkoutLog == nil {
+		if e.ComplexityRoot.Query.GetWorkoutLog == nil {
 			break
 		}
 
@@ -294,9 +278,10 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Query.GetWorkoutLog(childComplexity, args["id"].(string)), true
+		return e.ComplexityRoot.Query.GetWorkoutLog(childComplexity, args["id"].(string)), true
+
 	case "Query.listWorkoutLogs":
-		if e.complexity.Query.ListWorkoutLogs == nil {
+		if e.ComplexityRoot.Query.ListWorkoutLogs == nil {
 			break
 		}
 
@@ -305,15 +290,15 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Query.ListWorkoutLogs(childComplexity, args["limit"].(*int32), args["offset"].(*int32)), true
+		return e.ComplexityRoot.Query.ListWorkoutLogs(childComplexity, args["limit"].(*int32), args["offset"].(*int32)), true
 	case "Query.me":
-		if e.complexity.Query.Me == nil {
+		if e.ComplexityRoot.Query.Me == nil {
 			break
 		}
 
-		return e.complexity.Query.Me(childComplexity), true
+		return e.ComplexityRoot.Query.Me(childComplexity), true
 	case "Query.uniqueExercises":
-		if e.complexity.Query.UniqueExercises == nil {
+		if e.ComplexityRoot.Query.UniqueExercises == nil {
 			break
 		}
 
@@ -322,125 +307,125 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Query.UniqueExercises(childComplexity, args["query"].(*string), args["limit"].(*int32), args["offset"].(*int32)), true
+		return e.ComplexityRoot.Query.UniqueExercises(childComplexity, args["query"].(*string), args["limit"].(*int32), args["offset"].(*int32)), true
 
 	case "Set.order":
-		if e.complexity.Set.Order == nil {
+		if e.ComplexityRoot.Set.Order == nil {
 			break
 		}
 
-		return e.complexity.Set.Order(childComplexity), true
+		return e.ComplexityRoot.Set.Order(childComplexity), true
 	case "Set.reps":
-		if e.complexity.Set.Reps == nil {
+		if e.ComplexityRoot.Set.Reps == nil {
 			break
 		}
 
-		return e.complexity.Set.Reps(childComplexity), true
+		return e.ComplexityRoot.Set.Reps(childComplexity), true
 	case "Set.rpe":
-		if e.complexity.Set.Rpe == nil {
+		if e.ComplexityRoot.Set.Rpe == nil {
 			break
 		}
 
-		return e.complexity.Set.Rpe(childComplexity), true
+		return e.ComplexityRoot.Set.Rpe(childComplexity), true
 	case "Set.toFailure":
-		if e.complexity.Set.ToFailure == nil {
+		if e.ComplexityRoot.Set.ToFailure == nil {
 			break
 		}
 
-		return e.complexity.Set.ToFailure(childComplexity), true
+		return e.ComplexityRoot.Set.ToFailure(childComplexity), true
 	case "Set.weight":
-		if e.complexity.Set.Weight == nil {
+		if e.ComplexityRoot.Set.Weight == nil {
 			break
 		}
 
-		return e.complexity.Set.Weight(childComplexity), true
+		return e.ComplexityRoot.Set.Weight(childComplexity), true
 
 	case "UniqueExercise.description":
-		if e.complexity.UniqueExercise.Description == nil {
+		if e.ComplexityRoot.UniqueExercise.Description == nil {
 			break
 		}
 
-		return e.complexity.UniqueExercise.Description(childComplexity), true
+		return e.ComplexityRoot.UniqueExercise.Description(childComplexity), true
 	case "UniqueExercise.id":
-		if e.complexity.UniqueExercise.ID == nil {
+		if e.ComplexityRoot.UniqueExercise.ID == nil {
 			break
 		}
 
-		return e.complexity.UniqueExercise.ID(childComplexity), true
+		return e.ComplexityRoot.UniqueExercise.ID(childComplexity), true
 	case "UniqueExercise.isCustom":
-		if e.complexity.UniqueExercise.IsCustom == nil {
+		if e.ComplexityRoot.UniqueExercise.IsCustom == nil {
 			break
 		}
 
-		return e.complexity.UniqueExercise.IsCustom(childComplexity), true
+		return e.ComplexityRoot.UniqueExercise.IsCustom(childComplexity), true
 	case "UniqueExercise.name":
-		if e.complexity.UniqueExercise.Name == nil {
+		if e.ComplexityRoot.UniqueExercise.Name == nil {
 			break
 		}
 
-		return e.complexity.UniqueExercise.Name(childComplexity), true
+		return e.ComplexityRoot.UniqueExercise.Name(childComplexity), true
 
 	case "User.email":
-		if e.complexity.User.Email == nil {
+		if e.ComplexityRoot.User.Email == nil {
 			break
 		}
 
-		return e.complexity.User.Email(childComplexity), true
+		return e.ComplexityRoot.User.Email(childComplexity), true
 	case "User.id":
-		if e.complexity.User.ID == nil {
+		if e.ComplexityRoot.User.ID == nil {
 			break
 		}
 
-		return e.complexity.User.ID(childComplexity), true
+		return e.ComplexityRoot.User.ID(childComplexity), true
 	case "User.preferredUnit":
-		if e.complexity.User.PreferredUnit == nil {
+		if e.ComplexityRoot.User.PreferredUnit == nil {
 			break
 		}
 
-		return e.complexity.User.PreferredUnit(childComplexity), true
+		return e.ComplexityRoot.User.PreferredUnit(childComplexity), true
 
 	case "WorkoutLog.endTime":
-		if e.complexity.WorkoutLog.EndTime == nil {
+		if e.ComplexityRoot.WorkoutLog.EndTime == nil {
 			break
 		}
 
-		return e.complexity.WorkoutLog.EndTime(childComplexity), true
+		return e.ComplexityRoot.WorkoutLog.EndTime(childComplexity), true
 	case "WorkoutLog.exerciseLogs":
-		if e.complexity.WorkoutLog.ExerciseLogs == nil {
+		if e.ComplexityRoot.WorkoutLog.ExerciseLogs == nil {
 			break
 		}
 
-		return e.complexity.WorkoutLog.ExerciseLogs(childComplexity), true
+		return e.ComplexityRoot.WorkoutLog.ExerciseLogs(childComplexity), true
 	case "WorkoutLog.generalNotes":
-		if e.complexity.WorkoutLog.GeneralNotes == nil {
+		if e.ComplexityRoot.WorkoutLog.GeneralNotes == nil {
 			break
 		}
 
-		return e.complexity.WorkoutLog.GeneralNotes(childComplexity), true
+		return e.ComplexityRoot.WorkoutLog.GeneralNotes(childComplexity), true
 	case "WorkoutLog.id":
-		if e.complexity.WorkoutLog.ID == nil {
+		if e.ComplexityRoot.WorkoutLog.ID == nil {
 			break
 		}
 
-		return e.complexity.WorkoutLog.ID(childComplexity), true
+		return e.ComplexityRoot.WorkoutLog.ID(childComplexity), true
 	case "WorkoutLog.locationName":
-		if e.complexity.WorkoutLog.LocationName == nil {
+		if e.ComplexityRoot.WorkoutLog.LocationName == nil {
 			break
 		}
 
-		return e.complexity.WorkoutLog.LocationName(childComplexity), true
+		return e.ComplexityRoot.WorkoutLog.LocationName(childComplexity), true
 	case "WorkoutLog.name":
-		if e.complexity.WorkoutLog.Name == nil {
+		if e.ComplexityRoot.WorkoutLog.Name == nil {
 			break
 		}
 
-		return e.complexity.WorkoutLog.Name(childComplexity), true
+		return e.ComplexityRoot.WorkoutLog.Name(childComplexity), true
 	case "WorkoutLog.startTime":
-		if e.complexity.WorkoutLog.StartTime == nil {
+		if e.ComplexityRoot.WorkoutLog.StartTime == nil {
 			break
 		}
 
-		return e.complexity.WorkoutLog.StartTime(childComplexity), true
+		return e.ComplexityRoot.WorkoutLog.StartTime(childComplexity), true
 
 	}
 	return 0, false
@@ -448,7 +433,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	opCtx := graphql.GetOperationContext(ctx)
-	ec := executionContext{opCtx, e, 0, 0, make(chan graphql.DeferredResult)}
+	ec := newExecutionContext(opCtx, e, make(chan graphql.DeferredResult))
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
 		ec.unmarshalInputCreateUniqueExerciseInput,
 		ec.unmarshalInputCreateWorkoutLogInput,
@@ -471,9 +456,9 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 				ctx = graphql.WithUnmarshalerMap(ctx, inputUnmarshalMap)
 				data = ec._Query(ctx, opCtx.Operation.SelectionSet)
 			} else {
-				if atomic.LoadInt32(&ec.pendingDeferred) > 0 {
-					result := <-ec.deferredResults
-					atomic.AddInt32(&ec.pendingDeferred, -1)
+				if atomic.LoadInt32(&ec.PendingDeferred) > 0 {
+					result := <-ec.DeferredResults
+					atomic.AddInt32(&ec.PendingDeferred, -1)
 					data = result.Result
 					response.Path = result.Path
 					response.Label = result.Label
@@ -485,8 +470,8 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 			var buf bytes.Buffer
 			data.MarshalGQL(&buf)
 			response.Data = buf.Bytes()
-			if atomic.LoadInt32(&ec.deferred) > 0 {
-				hasNext := atomic.LoadInt32(&ec.pendingDeferred) > 0
+			if atomic.LoadInt32(&ec.Deferred) > 0 {
+				hasNext := atomic.LoadInt32(&ec.PendingDeferred) > 0
 				response.HasNext = &hasNext
 			}
 
@@ -514,44 +499,22 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 }
 
 type executionContext struct {
-	*graphql.OperationContext
-	*executableSchema
-	deferred        int32
-	pendingDeferred int32
-	deferredResults chan graphql.DeferredResult
+	*graphql.ExecutionContextState[ResolverRoot, DirectiveRoot, ComplexityRoot]
 }
 
-func (ec *executionContext) processDeferredGroup(dg graphql.DeferredGroup) {
-	atomic.AddInt32(&ec.pendingDeferred, 1)
-	go func() {
-		ctx := graphql.WithFreshResponseContext(dg.Context)
-		dg.FieldSet.Dispatch(ctx)
-		ds := graphql.DeferredResult{
-			Path:   dg.Path,
-			Label:  dg.Label,
-			Result: dg.FieldSet,
-			Errors: graphql.GetErrors(ctx),
-		}
-		// null fields should bubble up
-		if dg.FieldSet.Invalids > 0 {
-			ds.Result = graphql.Null
-		}
-		ec.deferredResults <- ds
-	}()
-}
-
-func (ec *executionContext) introspectSchema() (*introspection.Schema, error) {
-	if ec.DisableIntrospection {
-		return nil, errors.New("introspection disabled")
+func newExecutionContext(
+	opCtx *graphql.OperationContext,
+	execSchema *executableSchema,
+	deferredResults chan graphql.DeferredResult,
+) executionContext {
+	return executionContext{
+		ExecutionContextState: graphql.NewExecutionContextState[ResolverRoot, DirectiveRoot, ComplexityRoot](
+			opCtx,
+			(*graphql.ExecutableSchemaState[ResolverRoot, DirectiveRoot, ComplexityRoot])(execSchema),
+			parsedSchema,
+			deferredResults,
+		),
 	}
-	return introspection.WrapSchema(ec.Schema()), nil
-}
-
-func (ec *executionContext) introspectType(name string) (*introspection.Type, error) {
-	if ec.DisableIntrospection {
-		return nil, errors.New("introspection disabled")
-	}
-	return introspection.WrapTypeFromDef(ec.Schema(), ec.Schema().Types[name]), nil
 }
 
 //go:embed "schema.graphqls"
@@ -893,7 +856,7 @@ func (ec *executionContext) _ExerciseLog_uniqueExercise(ctx context.Context, fie
 		field,
 		ec.fieldContext_ExerciseLog_uniqueExercise,
 		func(ctx context.Context) (any, error) {
-			return ec.resolvers.ExerciseLog().UniqueExercise(ctx, obj)
+			return ec.Resolvers.ExerciseLog().UniqueExercise(ctx, obj)
 		},
 		nil,
 		ec.marshalNUniqueExercise2ᚖgithubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋinternalᚋmodelᚐUniqueExercise,
@@ -1003,7 +966,7 @@ func (ec *executionContext) _Mutation_createWorkoutLog(ctx context.Context, fiel
 		ec.fieldContext_Mutation_createWorkoutLog,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().CreateWorkoutLog(ctx, fc.Args["input"].(model.CreateWorkoutLogInput))
+			return ec.Resolvers.Mutation().CreateWorkoutLog(ctx, fc.Args["input"].(model.CreateWorkoutLogInput))
 		},
 		nil,
 		ec.marshalNWorkoutLog2ᚖgithubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋinternalᚋmodelᚐWorkoutLog,
@@ -1060,7 +1023,7 @@ func (ec *executionContext) _Mutation_updateWorkoutLog(ctx context.Context, fiel
 		ec.fieldContext_Mutation_updateWorkoutLog,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().UpdateWorkoutLog(ctx, fc.Args["input"].(model.UpdateWorkoutLogInput))
+			return ec.Resolvers.Mutation().UpdateWorkoutLog(ctx, fc.Args["input"].(model.UpdateWorkoutLogInput))
 		},
 		nil,
 		ec.marshalNWorkoutLog2ᚖgithubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋinternalᚋmodelᚐWorkoutLog,
@@ -1117,7 +1080,7 @@ func (ec *executionContext) _Mutation_register(ctx context.Context, field graphq
 		ec.fieldContext_Mutation_register,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().Register(ctx, fc.Args["input"].(model.RegisterInput))
+			return ec.Resolvers.Mutation().Register(ctx, fc.Args["input"].(model.RegisterInput))
 		},
 		nil,
 		ec.marshalNAuthPayload2ᚖgithubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋgraphᚋmodelᚐAuthPayload,
@@ -1168,7 +1131,7 @@ func (ec *executionContext) _Mutation_login(ctx context.Context, field graphql.C
 		ec.fieldContext_Mutation_login,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().Login(ctx, fc.Args["input"].(model.LoginInput))
+			return ec.Resolvers.Mutation().Login(ctx, fc.Args["input"].(model.LoginInput))
 		},
 		nil,
 		ec.marshalNAuthPayload2ᚖgithubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋgraphᚋmodelᚐAuthPayload,
@@ -1219,7 +1182,7 @@ func (ec *executionContext) _Mutation_updateUser(ctx context.Context, field grap
 		ec.fieldContext_Mutation_updateUser,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().UpdateUser(ctx, fc.Args["input"].(model.UpdateUserInput))
+			return ec.Resolvers.Mutation().UpdateUser(ctx, fc.Args["input"].(model.UpdateUserInput))
 		},
 		nil,
 		ec.marshalNAuthPayload2ᚖgithubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋgraphᚋmodelᚐAuthPayload,
@@ -1269,7 +1232,7 @@ func (ec *executionContext) _Mutation_logout(ctx context.Context, field graphql.
 		field,
 		ec.fieldContext_Mutation_logout,
 		func(ctx context.Context) (any, error) {
-			return ec.resolvers.Mutation().Logout(ctx)
+			return ec.Resolvers.Mutation().Logout(ctx)
 		},
 		nil,
 		ec.marshalNAuthPayload2ᚖgithubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋgraphᚋmodelᚐAuthPayload,
@@ -1309,7 +1272,7 @@ func (ec *executionContext) _Mutation_createUniqueExercise(ctx context.Context, 
 		ec.fieldContext_Mutation_createUniqueExercise,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().CreateUniqueExercise(ctx, fc.Args["input"].(model.CreateUniqueExerciseInput))
+			return ec.Resolvers.Mutation().CreateUniqueExercise(ctx, fc.Args["input"].(model.CreateUniqueExerciseInput))
 		},
 		nil,
 		ec.marshalNUniqueExercise2ᚖgithubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋinternalᚋmodelᚐUniqueExercise,
@@ -1360,7 +1323,7 @@ func (ec *executionContext) _Query_getWorkoutLog(ctx context.Context, field grap
 		ec.fieldContext_Query_getWorkoutLog,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Query().GetWorkoutLog(ctx, fc.Args["id"].(string))
+			return ec.Resolvers.Query().GetWorkoutLog(ctx, fc.Args["id"].(string))
 		},
 		nil,
 		ec.marshalOWorkoutLog2ᚖgithubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋinternalᚋmodelᚐWorkoutLog,
@@ -1417,7 +1380,7 @@ func (ec *executionContext) _Query_listWorkoutLogs(ctx context.Context, field gr
 		ec.fieldContext_Query_listWorkoutLogs,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Query().ListWorkoutLogs(ctx, fc.Args["limit"].(*int32), fc.Args["offset"].(*int32))
+			return ec.Resolvers.Query().ListWorkoutLogs(ctx, fc.Args["limit"].(*int32), fc.Args["offset"].(*int32))
 		},
 		nil,
 		ec.marshalNWorkoutLog2ᚕᚖgithubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋinternalᚋmodelᚐWorkoutLogᚄ,
@@ -1473,7 +1436,7 @@ func (ec *executionContext) _Query_me(ctx context.Context, field graphql.Collect
 		field,
 		ec.fieldContext_Query_me,
 		func(ctx context.Context) (any, error) {
-			return ec.resolvers.Query().Me(ctx)
+			return ec.Resolvers.Query().Me(ctx)
 		},
 		nil,
 		ec.marshalOUser2ᚖgithubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋinternalᚋmodelᚐUser,
@@ -1511,7 +1474,7 @@ func (ec *executionContext) _Query_uniqueExercises(ctx context.Context, field gr
 		ec.fieldContext_Query_uniqueExercises,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Query().UniqueExercises(ctx, fc.Args["query"].(*string), fc.Args["limit"].(*int32), fc.Args["offset"].(*int32))
+			return ec.Resolvers.Query().UniqueExercises(ctx, fc.Args["query"].(*string), fc.Args["limit"].(*int32), fc.Args["offset"].(*int32))
 		},
 		nil,
 		ec.marshalNUniqueExercise2ᚕᚖgithubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋinternalᚋmodelᚐUniqueExerciseᚄ,
@@ -1562,7 +1525,7 @@ func (ec *executionContext) _Query_getUniqueExercise(ctx context.Context, field 
 		ec.fieldContext_Query_getUniqueExercise,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Query().GetUniqueExercise(ctx, fc.Args["id"].(string))
+			return ec.Resolvers.Query().GetUniqueExercise(ctx, fc.Args["id"].(string))
 		},
 		nil,
 		ec.marshalOUniqueExercise2ᚖgithubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋinternalᚋmodelᚐUniqueExercise,
@@ -1613,7 +1576,7 @@ func (ec *executionContext) _Query___type(ctx context.Context, field graphql.Col
 		ec.fieldContext_Query___type,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.introspectType(fc.Args["name"].(string))
+			return ec.IntrospectType(fc.Args["name"].(string))
 		},
 		nil,
 		ec.marshalO__Type2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐType,
@@ -1677,7 +1640,7 @@ func (ec *executionContext) _Query___schema(ctx context.Context, field graphql.C
 		field,
 		ec.fieldContext_Query___schema,
 		func(ctx context.Context) (any, error) {
-			return ec.introspectSchema()
+			return ec.IntrospectSchema()
 		},
 		nil,
 		ec.marshalO__Schema2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐSchema,
@@ -1952,7 +1915,7 @@ func (ec *executionContext) _UniqueExercise_isCustom(ctx context.Context, field 
 		field,
 		ec.fieldContext_UniqueExercise_isCustom,
 		func(ctx context.Context) (any, error) {
-			return ec.resolvers.UniqueExercise().IsCustom(ctx, obj)
+			return ec.Resolvers.UniqueExercise().IsCustom(ctx, obj)
 		},
 		nil,
 		ec.marshalNBoolean2bool,
@@ -3748,7 +3711,6 @@ func (ec *executionContext) unmarshalInputCreateUniqueExerciseInput(ctx context.
 			it.Description = data
 		}
 	}
-
 	return it, nil
 }
 
@@ -3810,7 +3772,6 @@ func (ec *executionContext) unmarshalInputCreateWorkoutLogInput(ctx context.Cont
 			it.GeneralNotes = data
 		}
 	}
-
 	return it, nil
 }
 
@@ -3851,7 +3812,6 @@ func (ec *executionContext) unmarshalInputExerciseLogInput(ctx context.Context, 
 			it.Notes = data
 		}
 	}
-
 	return it, nil
 }
 
@@ -3885,7 +3845,6 @@ func (ec *executionContext) unmarshalInputLoginInput(ctx context.Context, obj an
 			it.Password = data
 		}
 	}
-
 	return it, nil
 }
 
@@ -3919,7 +3878,6 @@ func (ec *executionContext) unmarshalInputRegisterInput(ctx context.Context, obj
 			it.Password = data
 		}
 	}
-
 	return it, nil
 }
 
@@ -3981,7 +3939,6 @@ func (ec *executionContext) unmarshalInputSetInput(ctx context.Context, obj any)
 			it.Order = data
 		}
 	}
-
 	return it, nil
 }
 
@@ -4029,7 +3986,6 @@ func (ec *executionContext) unmarshalInputUpdateUserInput(ctx context.Context, o
 			it.PreferredUnit = data
 		}
 	}
-
 	return it, nil
 }
 
@@ -4098,7 +4054,6 @@ func (ec *executionContext) unmarshalInputUpdateWorkoutLogInput(ctx context.Cont
 			it.GeneralNotes = data
 		}
 	}
-
 	return it, nil
 }
 
@@ -4147,10 +4102,10 @@ func (ec *executionContext) _AuthPayload(ctx context.Context, sel ast.SelectionS
 		return graphql.Null
 	}
 
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
 
 	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
 			Label:    label,
 			Path:     graphql.GetPath(ctx),
 			FieldSet: dfs,
@@ -4224,10 +4179,10 @@ func (ec *executionContext) _ExerciseLog(ctx context.Context, sel ast.SelectionS
 		return graphql.Null
 	}
 
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
 
 	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
 			Label:    label,
 			Path:     graphql.GetPath(ctx),
 			FieldSet: dfs,
@@ -4315,10 +4270,10 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		return graphql.Null
 	}
 
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
 
 	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
 			Label:    label,
 			Path:     graphql.GetPath(ctx),
 			FieldSet: dfs,
@@ -4466,10 +4421,10 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 		return graphql.Null
 	}
 
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
 
 	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
 			Label:    label,
 			Path:     graphql.GetPath(ctx),
 			FieldSet: dfs,
@@ -4519,10 +4474,10 @@ func (ec *executionContext) _Set(ctx context.Context, sel ast.SelectionSet, obj 
 		return graphql.Null
 	}
 
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
 
 	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
 			Label:    label,
 			Path:     graphql.GetPath(ctx),
 			FieldSet: dfs,
@@ -4601,10 +4556,10 @@ func (ec *executionContext) _UniqueExercise(ctx context.Context, sel ast.Selecti
 		return graphql.Null
 	}
 
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
 
 	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
 			Label:    label,
 			Path:     graphql.GetPath(ctx),
 			FieldSet: dfs,
@@ -4650,10 +4605,10 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 		return graphql.Null
 	}
 
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
 
 	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
 			Label:    label,
 			Path:     graphql.GetPath(ctx),
 			FieldSet: dfs,
@@ -4713,10 +4668,10 @@ func (ec *executionContext) _WorkoutLog(ctx context.Context, sel ast.SelectionSe
 		return graphql.Null
 	}
 
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
 
 	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
 			Label:    label,
 			Path:     graphql.GetPath(ctx),
 			FieldSet: dfs,
@@ -4769,10 +4724,10 @@ func (ec *executionContext) ___Directive(ctx context.Context, sel ast.SelectionS
 		return graphql.Null
 	}
 
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
 
 	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
 			Label:    label,
 			Path:     graphql.GetPath(ctx),
 			FieldSet: dfs,
@@ -4817,10 +4772,10 @@ func (ec *executionContext) ___EnumValue(ctx context.Context, sel ast.SelectionS
 		return graphql.Null
 	}
 
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
 
 	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
 			Label:    label,
 			Path:     graphql.GetPath(ctx),
 			FieldSet: dfs,
@@ -4875,10 +4830,10 @@ func (ec *executionContext) ___Field(ctx context.Context, sel ast.SelectionSet, 
 		return graphql.Null
 	}
 
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
 
 	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
 			Label:    label,
 			Path:     graphql.GetPath(ctx),
 			FieldSet: dfs,
@@ -4930,10 +4885,10 @@ func (ec *executionContext) ___InputValue(ctx context.Context, sel ast.Selection
 		return graphql.Null
 	}
 
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
 
 	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
 			Label:    label,
 			Path:     graphql.GetPath(ctx),
 			FieldSet: dfs,
@@ -4985,10 +4940,10 @@ func (ec *executionContext) ___Schema(ctx context.Context, sel ast.SelectionSet,
 		return graphql.Null
 	}
 
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
 
 	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
 			Label:    label,
 			Path:     graphql.GetPath(ctx),
 			FieldSet: dfs,
@@ -5044,10 +4999,10 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 		return graphql.Null
 	}
 
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
 
 	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
 			Label:    label,
 			Path:     graphql.GetPath(ctx),
 			FieldSet: dfs,
@@ -5103,39 +5058,11 @@ func (ec *executionContext) unmarshalNCreateWorkoutLogInput2githubᚗcomᚋriver
 }
 
 func (ec *executionContext) marshalNExerciseLog2ᚕᚖgithubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋinternalᚋmodelᚐExerciseLogᚄ(ctx context.Context, sel ast.SelectionSet, v []*model1.ExerciseLog) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNExerciseLog2ᚖgithubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋinternalᚋmodelᚐExerciseLog(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNExerciseLog2ᚖgithubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋinternalᚋmodelᚐExerciseLog(ctx, sel, v[i])
+	})
 
 	for _, e := range ret {
 		if e == graphql.Null {
@@ -5235,39 +5162,11 @@ func (ec *executionContext) unmarshalNRegisterInput2githubᚗcomᚋriverajoᚋfi
 }
 
 func (ec *executionContext) marshalNSet2ᚕᚖgithubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋinternalᚋmodelᚐSetᚄ(ctx context.Context, sel ast.SelectionSet, v []*model1.Set) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNSet2ᚖgithubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋinternalᚋmodelᚐSet(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNSet2ᚖgithubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋinternalᚋmodelᚐSet(ctx, sel, v[i])
+	})
 
 	for _, e := range ret {
 		if e == graphql.Null {
@@ -5345,39 +5244,11 @@ func (ec *executionContext) marshalNUniqueExercise2githubᚗcomᚋriverajoᚋfit
 }
 
 func (ec *executionContext) marshalNUniqueExercise2ᚕᚖgithubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋinternalᚋmodelᚐUniqueExerciseᚄ(ctx context.Context, sel ast.SelectionSet, v []*model1.UniqueExercise) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNUniqueExercise2ᚖgithubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋinternalᚋmodelᚐUniqueExercise(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNUniqueExercise2ᚖgithubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋinternalᚋmodelᚐUniqueExercise(ctx, sel, v[i])
+	})
 
 	for _, e := range ret {
 		if e == graphql.Null {
@@ -5430,39 +5301,11 @@ func (ec *executionContext) marshalNWorkoutLog2githubᚗcomᚋriverajoᚋfitness
 }
 
 func (ec *executionContext) marshalNWorkoutLog2ᚕᚖgithubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋinternalᚋmodelᚐWorkoutLogᚄ(ctx context.Context, sel ast.SelectionSet, v []*model1.WorkoutLog) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNWorkoutLog2ᚖgithubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋinternalᚋmodelᚐWorkoutLog(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNWorkoutLog2ᚖgithubᚗcomᚋriverajoᚋfitnessᚑappᚋbackendᚋinternalᚋmodelᚐWorkoutLog(ctx, sel, v[i])
+	})
 
 	for _, e := range ret {
 		if e == graphql.Null {
@@ -5488,39 +5331,11 @@ func (ec *executionContext) marshalN__Directive2githubᚗcomᚋ99designsᚋgqlge
 }
 
 func (ec *executionContext) marshalN__Directive2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐDirectiveᚄ(ctx context.Context, sel ast.SelectionSet, v []introspection.Directive) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalN__Directive2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐDirective(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalN__Directive2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐDirective(ctx, sel, v[i])
+	})
 
 	for _, e := range ret {
 		if e == graphql.Null {
@@ -5563,39 +5378,11 @@ func (ec *executionContext) unmarshalN__DirectiveLocation2ᚕstringᚄ(ctx conte
 }
 
 func (ec *executionContext) marshalN__DirectiveLocation2ᚕstringᚄ(ctx context.Context, sel ast.SelectionSet, v []string) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalN__DirectiveLocation2string(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalN__DirectiveLocation2string(ctx, sel, v[i])
+	})
 
 	for _, e := range ret {
 		if e == graphql.Null {
@@ -5619,39 +5406,11 @@ func (ec *executionContext) marshalN__InputValue2githubᚗcomᚋ99designsᚋgqlg
 }
 
 func (ec *executionContext) marshalN__InputValue2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐInputValueᚄ(ctx context.Context, sel ast.SelectionSet, v []introspection.InputValue) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalN__InputValue2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐInputValue(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalN__InputValue2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐInputValue(ctx, sel, v[i])
+	})
 
 	for _, e := range ret {
 		if e == graphql.Null {
@@ -5667,39 +5426,11 @@ func (ec *executionContext) marshalN__Type2githubᚗcomᚋ99designsᚋgqlgenᚋg
 }
 
 func (ec *executionContext) marshalN__Type2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐTypeᚄ(ctx context.Context, sel ast.SelectionSet, v []introspection.Type) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalN__Type2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐType(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalN__Type2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐType(ctx, sel, v[i])
+	})
 
 	for _, e := range ret {
 		if e == graphql.Null {
@@ -5882,39 +5613,11 @@ func (ec *executionContext) marshalO__EnumValue2ᚕgithubᚗcomᚋ99designsᚋgq
 	if v == nil {
 		return graphql.Null
 	}
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalN__EnumValue2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐEnumValue(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalN__EnumValue2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐEnumValue(ctx, sel, v[i])
+	})
 
 	for _, e := range ret {
 		if e == graphql.Null {
@@ -5929,39 +5632,11 @@ func (ec *executionContext) marshalO__Field2ᚕgithubᚗcomᚋ99designsᚋgqlgen
 	if v == nil {
 		return graphql.Null
 	}
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalN__Field2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐField(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalN__Field2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐField(ctx, sel, v[i])
+	})
 
 	for _, e := range ret {
 		if e == graphql.Null {
@@ -5976,39 +5651,11 @@ func (ec *executionContext) marshalO__InputValue2ᚕgithubᚗcomᚋ99designsᚋg
 	if v == nil {
 		return graphql.Null
 	}
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalN__InputValue2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐInputValue(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalN__InputValue2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐInputValue(ctx, sel, v[i])
+	})
 
 	for _, e := range ret {
 		if e == graphql.Null {
@@ -6030,39 +5677,11 @@ func (ec *executionContext) marshalO__Type2ᚕgithubᚗcomᚋ99designsᚋgqlgen�
 	if v == nil {
 		return graphql.Null
 	}
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalN__Type2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐType(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalN__Type2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐType(ctx, sel, v[i])
+	})
 
 	for _, e := range ret {
 		if e == graphql.Null {
