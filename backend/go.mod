@@ -4,7 +4,7 @@ go 1.25.3
 
 require (
 	github.com/99designs/gqlgen v0.17.87
-	github.com/caarlos0/env/v11 v11.3.1
+	github.com/caarlos0/env/v11 v11.4.0
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/grafana/pyroscope-go v1.2.7
 	github.com/stretchr/testify v1.11.1
