@@ -5,7 +5,8 @@ import { playwright } from '@vitest/browser-playwright';
 import { sveltekit } from '@sveltejs/kit/vite';
 
 export default defineConfig({
-	plugins: [tailwindcss(), sveltekit(), devtoolsJson()],
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	plugins: [tailwindcss(), sveltekit(), devtoolsJson()] as any,
 	server: {
 		proxy: {
 			'/query': {
