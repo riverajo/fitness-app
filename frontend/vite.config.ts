@@ -6,7 +6,7 @@ import { sveltekit } from '@sveltejs/kit/vite';
 
 export default defineConfig({
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	plugins: [tailwindcss(), sveltekit(), devtoolsJson()] as any,
+	plugins: [tailwindcss(), sveltekit(), devtoolsJson() as any],
 	server: {
 		proxy: {
 			'/query': {
