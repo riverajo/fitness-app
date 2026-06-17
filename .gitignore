@@ -34,3 +34,7 @@ backend/tmp/*
 backend/backend
 backend/fitness-app
 playwright-report/
+
+# Node.js / pnpm
+node_modules/
+.pnpm-store/

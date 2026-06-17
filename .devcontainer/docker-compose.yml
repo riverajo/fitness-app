@@ -1,7 +1,7 @@
 services:
   # 1. MongoDB Database
   db:
-    image: mongo:latest
+    image: docker.io/library/mongo:latest
     container_name: fitness_db
     restart: always
     volumes:
@@ -13,7 +13,7 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: password
   # 2. Go GraphQL API uses air for hot-reload
   api:
-    image: cosmtrek/air
+    image: docker.io/cosmtrek/air:latest
     container_name: fitness_api
     working_dir: /app/backend
     ports:
@@ -28,7 +28,7 @@ services:
     depends_on:
       - db
     volumes:
-      - ./backend:/app/backend # Mount code for quick recompilation during development
+      - ../backend:/app/backend # Mount code for quick recompilation during development
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8080/readyz" ]
       interval: 5s
@@ -37,13 +37,23 @@ services:
       start_period: 5s
   frontend:
     build:
-      context: ./frontend
+      context: ../frontend
       dockerfile: Dockerfile.frontend
     volumes:
-      - ./frontend/src:/app/src
+      - ../frontend/src:/app/src
     ports:
       - 5173:5173
     environment:
       API_URL: http://api:8080
+  dev:
+    image: mcr.microsoft.com/devcontainers/base:debian
+    volumes:
+      - ..:/workspaces/fitness-app:cached
+    command: sleep infinity
+    network_mode: host
+    environment:
+      MONGO_URI: mongodb://user:password@localhost:27017/fitness_db?authSource=admin
+      JWT_SECRET: "your-super-long-development-secret-key-12345"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "alloy:4317"
 volumes:
   mongo_data:

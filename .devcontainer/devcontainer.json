@@ -1,11 +1,11 @@
 {
     "name": "Fitness App Dev",
-    "dockerComposeFile": [
-        "../docker-compose.yml",
-        "./docker-compose.dev.yml"
-    ],
+    "dockerComposeFile": "docker-compose.yml",
     "service": "dev",
     "workspaceFolder": "/workspaces/fitness-app",
+    "mounts": [
+        "source=/run/user/1000/podman/podman.sock,target=/var/run/docker.sock,type=bind"
+    ],
     "features": {
         "ghcr.io/devcontainers/features/go:1": {
             "version": "1.25"
@@ -13,7 +13,6 @@
         "ghcr.io/devcontainers/features/node:1": {
             "version": "lts"
         },
-        "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
         "ghcr.io/devcontainers/features/common-utils:2": {
             "configureZshAsDefaultShell": true
         }
@@ -37,5 +36,5 @@
         27017
     ],
     "postCreateCommand": "curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.63.4",
-    "remoteUser": "vscode"
+    "remoteUser": "root"
 }
