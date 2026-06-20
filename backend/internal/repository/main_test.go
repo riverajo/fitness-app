@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	mobyclient "github.com/moby/moby/client"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/mongodb"
 	"github.com/testcontainers/testcontainers-go/network"
@@ -37,13 +38,13 @@ func getMyNetworkName(ctx context.Context, containerID string) string {
 		return ""
 	}
 
-	inspect, err := client.ContainerInspect(ctx, containerID)
+	inspect, err := client.ContainerInspect(ctx, containerID, mobyclient.ContainerInspectOptions{})
 	if err != nil {
 		return ""
 	}
 
 	// Grab the first network name attached to this container
-	for netName := range inspect.NetworkSettings.Networks {
+	for netName := range inspect.Container.NetworkSettings.Networks {
 		return netName
 	}
 	return ""

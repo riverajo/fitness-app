@@ -32,18 +32,14 @@ func FaroProxy(target string, enableAlloy bool) http.Handler {
 			return
 		}
 
-		proxy := httputil.NewSingleHostReverseProxy(targetURL)
-
-		// Override the Director to prevent it from appending the original path
-		originalDirector := proxy.Director
-		proxy.Director = func(req *http.Request) {
-			originalDirector(req)
-			// Explicitly set the path to the target's path, ignoring the incoming path
-			req.URL.Path = targetURL.Path
-			req.URL.RawPath = targetURL.RawPath
-			// Rewrite the Host header
-			req.Header.Set("X-Forwarded-Host", req.Header.Get("Host"))
-			req.Host = targetURL.Host
+		proxy := &httputil.ReverseProxy{
+			Rewrite: func(pr *httputil.ProxyRequest) {
+				pr.SetURL(targetURL)
+				pr.SetXForwarded()
+				// Explicitly set the path to the target's path, ignoring the incoming path
+				pr.Out.URL.Path = targetURL.Path
+				pr.Out.URL.RawPath = targetURL.RawPath
+			},
 		}
 
 		// Set a custom error handler for the proxy to log 502s properly
