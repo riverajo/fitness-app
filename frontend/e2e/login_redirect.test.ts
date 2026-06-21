@@ -11,6 +11,7 @@ test('login flow redirects to dashboard and auto-redirects if logged in', async 
 	// Verify we are on dashboard (registration auto-redirects? or check register test logic)
 	// The register test says it expects redirect to dashboard.
 	await expect(page).toHaveURL('/dashboard');
+	await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
 
 	// 2. Clear cookies to simulate logout
 	await page.context().clearCookies();
@@ -24,6 +25,7 @@ test('login flow redirects to dashboard and auto-redirects if logged in', async 
 
 	// 4. Verify redirect to dashboard
 	await expect(page).toHaveURL('/dashboard');
+	await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
 
 	// 5. Verify auto-redirect
 	// Go back to login page while logged in
