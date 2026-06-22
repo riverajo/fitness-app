@@ -20,7 +20,7 @@ jobs:
         - /run/user/1000/podman/podman.sock:/var/run/docker.sock
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Install Podman CLI
         run: |
