@@ -2,8 +2,9 @@ packages:
   - '.'
 
 overrides:
-  chardet: "2.0.0"
-  semver: "7.7.0"
+  chardet: '2.0.0'
+  semver: '7.7.0'
+  esrap: '2.2.11'
 
 allowBuilds:
   esbuild: true
