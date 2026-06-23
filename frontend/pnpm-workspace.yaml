@@ -1,8 +1,9 @@
-onlyBuiltDependencies:
-  - '@tailwindcss/oxide'
-  - esbuild
-  - protobufjs
+packages:
+  - '.'
 
 overrides:
-  chardet: 2.0.0
-  semver: 7.7.0
+  chardet: "2.0.0"
+  semver: "7.7.0"
+
+allowBuilds:
+  esbuild: true
