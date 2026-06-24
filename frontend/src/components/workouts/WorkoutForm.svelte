@@ -12,9 +12,8 @@
 		Listgroup,
 		ListgroupItem
 	} from 'flowbite-svelte';
-	import type { UniqueExercise } from '../../lib/gql/graphql';
 	import { workoutStore } from '../../state/workout.svelte';
-	import { exerciseStore } from '../../state/exercise.svelte';
+	import { exerciseStore, type Exercise } from '../../state/exercise.svelte';
 	import WeightInput from './WeightInput.svelte';
 
 	// Define a type for the exercises as they are being edited in the scratchpad
@@ -50,7 +49,7 @@
 	});
 
 	// Local state for the "Add Exercise" scratchpad
-	let currentExercise = $state<UniqueExercise | null>(null);
+	let currentExercise = $state<Exercise | null>(null);
 	let currentSets = $state<ScratchpadSet[]>([]);
 
 	// Scratchpad input fields
@@ -59,7 +58,7 @@
 	let rpe = $state<number | undefined>();
 	let toFailure = $state(false);
 
-	function selectExercise(exercise: UniqueExercise) {
+	function selectExercise(exercise: Exercise) {
 		currentExercise = exercise;
 		currentSets = [];
 		searchQuery = '';

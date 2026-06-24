@@ -1,277 +1,133 @@
 /* eslint-disable */
-import type { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/core';
-export type Maybe<T> = T | null;
-export type InputMaybe<T> = T | null | undefined;
-export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
-export type MakeOptional<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]?: Maybe<T[SubKey]> };
-export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]: Maybe<T[SubKey]> };
-export type MakeEmpty<T extends { [key: string]: unknown }, K extends keyof T> = { [_ in K]?: never };
+/** Internal type. DO NOT USE DIRECTLY. */
+type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+/** Internal type. DO NOT USE DIRECTLY. */
 export type Incremental<T> = T | { [P in keyof T]?: P extends ' $fragmentName' | '__typename' ? T[P] : never };
-/** All built-in and custom scalars, mapped to their actual values */
-export type Scalars = {
-  ID: { input: string; output: string; }
-  String: { input: string; output: string; }
-  Boolean: { input: boolean; output: boolean; }
-  Int: { input: number; output: number; }
-  Float: { input: number; output: number; }
-  Time: { input: any; output: any; }
-};
-
-export type AuthPayload = {
-  __typename?: 'AuthPayload';
-  message: Scalars['String']['output'];
-  success: Scalars['Boolean']['output'];
-  token: Scalars['String']['output'];
-  user?: Maybe<User>;
-};
-
+import type { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/core';
 export type CreateUniqueExerciseInput = {
-  description?: InputMaybe<Scalars['String']['input']>;
-  name: Scalars['String']['input'];
+  description?: string | null | undefined;
+  name: string;
 };
 
 export type CreateWorkoutLogInput = {
-  endTime: Scalars['Time']['input'];
+  endTime: unknown;
   exerciseLogs: Array<ExerciseLogInput>;
-  generalNotes?: InputMaybe<Scalars['String']['input']>;
-  locationName?: InputMaybe<Scalars['String']['input']>;
-  name: Scalars['String']['input'];
-  startTime: Scalars['Time']['input'];
-};
-
-export type ExerciseLog = {
-  __typename?: 'ExerciseLog';
-  notes?: Maybe<Scalars['String']['output']>;
-  sets: Array<Set>;
-  uniqueExercise: UniqueExercise;
+  generalNotes?: string | null | undefined;
+  locationName?: string | null | undefined;
+  name: string;
+  startTime: unknown;
 };
 
 export type ExerciseLogInput = {
-  notes?: InputMaybe<Scalars['String']['input']>;
+  notes?: string | null | undefined;
   sets: Array<SetInput>;
-  uniqueExerciseId: Scalars['ID']['input'];
+  uniqueExerciseId: string | number;
 };
 
 export type LoginInput = {
-  email: Scalars['String']['input'];
-  password: Scalars['String']['input'];
-};
-
-export type Mutation = {
-  __typename?: 'Mutation';
-  createUniqueExercise: UniqueExercise;
-  createWorkoutLog: WorkoutLog;
-  login: AuthPayload;
-  logout: AuthPayload;
-  register: AuthPayload;
-  updateUser: AuthPayload;
-  updateWorkoutLog: WorkoutLog;
-};
-
-
-export type MutationCreateUniqueExerciseArgs = {
-  input: CreateUniqueExerciseInput;
-};
-
-
-export type MutationCreateWorkoutLogArgs = {
-  input: CreateWorkoutLogInput;
-};
-
-
-export type MutationLoginArgs = {
-  input: LoginInput;
-};
-
-
-export type MutationRegisterArgs = {
-  input: RegisterInput;
-};
-
-
-export type MutationUpdateUserArgs = {
-  input: UpdateUserInput;
-};
-
-
-export type MutationUpdateWorkoutLogArgs = {
-  input: UpdateWorkoutLogInput;
-};
-
-export type Query = {
-  __typename?: 'Query';
-  getUniqueExercise?: Maybe<UniqueExercise>;
-  getWorkoutLog?: Maybe<WorkoutLog>;
-  listWorkoutLogs: Array<WorkoutLog>;
-  me?: Maybe<User>;
-  uniqueExercises: Array<UniqueExercise>;
-};
-
-
-export type QueryGetUniqueExerciseArgs = {
-  id: Scalars['ID']['input'];
-};
-
-
-export type QueryGetWorkoutLogArgs = {
-  id: Scalars['ID']['input'];
-};
-
-
-export type QueryListWorkoutLogsArgs = {
-  limit?: InputMaybe<Scalars['Int']['input']>;
-  offset?: InputMaybe<Scalars['Int']['input']>;
-};
-
-
-export type QueryUniqueExercisesArgs = {
-  limit?: InputMaybe<Scalars['Int']['input']>;
-  offset?: InputMaybe<Scalars['Int']['input']>;
-  query?: InputMaybe<Scalars['String']['input']>;
+  email: string;
+  password: string;
 };
 
 export type RegisterInput = {
-  email: Scalars['String']['input'];
-  password: Scalars['String']['input'];
-};
-
-export type Set = {
-  __typename?: 'Set';
-  order: Scalars['Int']['output'];
-  reps: Scalars['Int']['output'];
-  rpe?: Maybe<Scalars['Int']['output']>;
-  toFailure?: Maybe<Scalars['Boolean']['output']>;
-  weight: Scalars['Float']['output'];
+  email: string;
+  password: string;
 };
 
 export type SetInput = {
-  order: Scalars['Int']['input'];
-  reps: Scalars['Int']['input'];
-  rpe?: InputMaybe<Scalars['Int']['input']>;
-  toFailure?: InputMaybe<Scalars['Boolean']['input']>;
+  order: number;
+  reps: number;
+  rpe?: number | null | undefined;
+  toFailure?: boolean | null | undefined;
   unit: WeightUnit;
-  weight: Scalars['Float']['input'];
-};
-
-export type UniqueExercise = {
-  __typename?: 'UniqueExercise';
-  description?: Maybe<Scalars['String']['output']>;
-  id: Scalars['ID']['output'];
-  isCustom: Scalars['Boolean']['output'];
-  name: Scalars['String']['output'];
-};
-
-export type UpdateUserInput = {
-  currentPassword: Scalars['String']['input'];
-  email?: InputMaybe<Scalars['String']['input']>;
-  newPassword?: InputMaybe<Scalars['String']['input']>;
-  preferredUnit?: InputMaybe<WeightUnit>;
+  weight: number;
 };
 
 export type UpdateWorkoutLogInput = {
-  endTime?: InputMaybe<Scalars['Time']['input']>;
-  exerciseLogs?: InputMaybe<Array<ExerciseLogInput>>;
-  generalNotes?: InputMaybe<Scalars['String']['input']>;
-  id: Scalars['ID']['input'];
-  locationName?: InputMaybe<Scalars['String']['input']>;
-  name?: InputMaybe<Scalars['String']['input']>;
-  startTime?: InputMaybe<Scalars['Time']['input']>;
+  endTime?: unknown;
+  exerciseLogs?: Array<ExerciseLogInput> | null | undefined;
+  generalNotes?: string | null | undefined;
+  id: string | number;
+  locationName?: string | null | undefined;
+  name?: string | null | undefined;
+  startTime?: unknown;
 };
 
-export type User = {
-  __typename?: 'User';
-  email: Scalars['String']['output'];
-  id: Scalars['ID']['output'];
-  preferredUnit: WeightUnit;
-};
-
-export enum WeightUnit {
-  Kilograms = 'KILOGRAMS',
-  Pounds = 'POUNDS'
-}
-
-export type WorkoutLog = {
-  __typename?: 'WorkoutLog';
-  endTime: Scalars['Time']['output'];
-  exerciseLogs: Array<ExerciseLog>;
-  generalNotes?: Maybe<Scalars['String']['output']>;
-  id: Scalars['ID']['output'];
-  locationName?: Maybe<Scalars['String']['output']>;
-  name: Scalars['String']['output'];
-  startTime: Scalars['Time']['output'];
-};
+export type WeightUnit =
+  | 'KILOGRAMS'
+  | 'POUNDS';
 
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type MeQuery = { __typename?: 'Query', me?: { __typename?: 'User', id: string, email: string } | null };
+export type MeQuery = { me: { id: string, email: string } | null };
 
 export type LogoutMutationVariables = Exact<{ [key: string]: never; }>;
 
 
-export type LogoutMutation = { __typename?: 'Mutation', logout: { __typename?: 'AuthPayload', success: boolean, message: string } };
+export type LogoutMutation = { logout: { success: boolean, message: string } };
 
 export type LoginMutationVariables = Exact<{
   input: LoginInput;
 }>;
 
 
-export type LoginMutation = { __typename?: 'Mutation', login: { __typename?: 'AuthPayload', success: boolean, message: string, token: string, user?: { __typename?: 'User', id: string, email: string } | null } };
+export type LoginMutation = { login: { success: boolean, message: string, token: string, user: { id: string, email: string } | null } };
 
 export type ListWorkoutLogsQueryVariables = Exact<{
-  limit?: InputMaybe<Scalars['Int']['input']>;
-  offset?: InputMaybe<Scalars['Int']['input']>;
+  limit?: number | null | undefined;
+  offset?: number | null | undefined;
 }>;
 
 
-export type ListWorkoutLogsQuery = { __typename?: 'Query', listWorkoutLogs: Array<{ __typename?: 'WorkoutLog', id: string, name: string, startTime: any, endTime: any, exerciseLogs: Array<{ __typename?: 'ExerciseLog', uniqueExercise: { __typename?: 'UniqueExercise', id: string }, sets: Array<{ __typename?: 'Set', reps: number, weight: number }> }> }> };
+export type ListWorkoutLogsQuery = { listWorkoutLogs: Array<{ id: string, name: string, startTime: unknown, endTime: unknown, exerciseLogs: Array<{ uniqueExercise: { id: string }, sets: Array<{ reps: number, weight: number }> }> }> };
 
 export type CreateUniqueExerciseMutationVariables = Exact<{
   input: CreateUniqueExerciseInput;
 }>;
 
 
-export type CreateUniqueExerciseMutation = { __typename?: 'Mutation', createUniqueExercise: { __typename?: 'UniqueExercise', id: string, name: string, description?: string | null, isCustom: boolean } };
+export type CreateUniqueExerciseMutation = { createUniqueExercise: { id: string, name: string, description: string | null, isCustom: boolean } };
 
 export type RegisterMutationVariables = Exact<{
   input: RegisterInput;
 }>;
 
 
-export type RegisterMutation = { __typename?: 'Mutation', register: { __typename?: 'AuthPayload', success: boolean, message: string, token: string, user?: { __typename?: 'User', id: string, email: string } | null } };
+export type RegisterMutation = { register: { success: boolean, message: string, token: string, user: { id: string, email: string } | null } };
 
 export type GetWorkoutLogQueryVariables = Exact<{
-  id: Scalars['ID']['input'];
+  id: string | number;
 }>;
 
 
-export type GetWorkoutLogQuery = { __typename?: 'Query', getWorkoutLog?: { __typename?: 'WorkoutLog', id: string, name: string, startTime: any, endTime: any, locationName?: string | null, generalNotes?: string | null, exerciseLogs: Array<{ __typename?: 'ExerciseLog', notes?: string | null, uniqueExercise: { __typename?: 'UniqueExercise', name: string }, sets: Array<{ __typename?: 'Set', reps: number, weight: number, rpe?: number | null, toFailure?: boolean | null }> }> } | null };
+export type GetWorkoutLogQuery = { getWorkoutLog: { id: string, name: string, startTime: unknown, endTime: unknown, locationName: string | null, generalNotes: string | null, exerciseLogs: Array<{ notes: string | null, uniqueExercise: { name: string }, sets: Array<{ reps: number, weight: number, rpe: number | null, toFailure: boolean | null }> }> } | null };
 
 export type UpdateWorkoutLogMutationVariables = Exact<{
   input: UpdateWorkoutLogInput;
 }>;
 
 
-export type UpdateWorkoutLogMutation = { __typename?: 'Mutation', updateWorkoutLog: { __typename?: 'WorkoutLog', id: string, name: string } };
+export type UpdateWorkoutLogMutation = { updateWorkoutLog: { id: string, name: string } };
 
 export type CreateWorkoutLogMutationVariables = Exact<{
   input: CreateWorkoutLogInput;
 }>;
 
 
-export type CreateWorkoutLogMutation = { __typename?: 'Mutation', createWorkoutLog: { __typename?: 'WorkoutLog', id: string, name: string } };
+export type CreateWorkoutLogMutation = { createWorkoutLog: { id: string, name: string } };
 
 export type GetAllExercisesQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetAllExercisesQuery = { __typename?: 'Query', uniqueExercises: Array<{ __typename?: 'UniqueExercise', id: string, name: string, description?: string | null, isCustom: boolean }> };
+export type GetAllExercisesQuery = { uniqueExercises: Array<{ id: string, name: string, description: string | null, isCustom: boolean }> };
 
 export type GetWorkoutForEditQueryVariables = Exact<{
-  id: Scalars['ID']['input'];
+  id: string | number;
 }>;
 
 
-export type GetWorkoutForEditQuery = { __typename?: 'Query', getWorkoutLog?: { __typename?: 'WorkoutLog', id: string, name: string, locationName?: string | null, generalNotes?: string | null, startTime: any, endTime: any, exerciseLogs: Array<{ __typename?: 'ExerciseLog', notes?: string | null, uniqueExercise: { __typename?: 'UniqueExercise', id: string, name: string }, sets: Array<{ __typename?: 'Set', reps: number, weight: number, rpe?: number | null, toFailure?: boolean | null, order: number }> }> } | null };
+export type GetWorkoutForEditQuery = { getWorkoutLog: { id: string, name: string, locationName: string | null, generalNotes: string | null, startTime: unknown, endTime: unknown, exerciseLogs: Array<{ notes: string | null, uniqueExercise: { id: string, name: string }, sets: Array<{ reps: number, weight: number, rpe: number | null, toFailure: boolean | null, order: number }> }> } | null };
 
 
 export const MeDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"Me"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"me"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"email"}}]}}]}}]} as unknown as DocumentNode<MeQuery, MeQueryVariables>;
