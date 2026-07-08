@@ -4,8 +4,14 @@
     "service": "dev",
     "workspaceFolder": "/workspaces/fitness-app",
     "mounts": [
-        "source=/run/user/1000/podman/podman.sock,target=/var/run/docker.sock,type=bind"
+        "source=/run/user/1000/podman/podman.sock,target=/var/run/docker.sock,type=bind",
+        "source=/home/joe/.local/share/forgejo-cli,target=/home/joe/.local/share/forgejo-cli,type=bind",
+        "source=/home/joe/.gemini,target=/home/joe/.gemini,type=bind",
+        "source=/home/joe/.antigravitycli,target=/home/joe/.antigravitycli,type=bind"
     ],
+    "containerEnv": {
+        "HOME": "/home/joe"
+    },
     "features": {
         "ghcr.io/devcontainers/features/go:1": {
             "version": "1.25"
@@ -35,6 +41,6 @@
         5173,
         27017
     ],
-    "postCreateCommand": "curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.63.4",
+    "postCreateCommand": "./.devcontainer/setup.sh",
     "remoteUser": "root"
 }
