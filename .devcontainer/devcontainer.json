@@ -11,7 +11,7 @@
     ],
     "containerEnv": {
         "HOME": "/home/joe",
-        "TERM": "${localEnv:TERM}",
+        "TERM": "xterm-256color",
         "COLORTERM": "${localEnv:COLORTERM}"
     },
     "features": {
