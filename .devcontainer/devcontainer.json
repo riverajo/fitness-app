@@ -10,7 +10,9 @@
         "source=/home/joe/.antigravitycli,target=/home/joe/.antigravitycli,type=bind"
     ],
     "containerEnv": {
-        "HOME": "/home/joe"
+        "HOME": "/home/joe",
+        "TERM": "${localEnv:TERM}",
+        "COLORTERM": "${localEnv:COLORTERM}"
     },
     "features": {
         "ghcr.io/devcontainers/features/go:1": {
